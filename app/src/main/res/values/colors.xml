@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#FAFAFA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_background">#1A1A18</color>
+    <color name="on_surface_secondary">#6B6A64</color>
+    <color name="border">#E3E2DD</color>
+
+    <color name="accent">#0A84FF</color>
+    <color name="accent_soft">#E5F1FF</color>
+    <color name="positive">#248A3D</color>
+    <color name="negative">#D70015</color>
+
+    <color name="nav_island_bg">#F2FFFFFF</color>
+    <color name="nav_island_selected">#0A84FF</color>
+    <color name="input_bg">#F2F1ED</color>
+</resources>
