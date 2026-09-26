@@ -3,14 +3,17 @@ package com.deniz0706.ykstakip.ui.statistics
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.R
+import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.model.SubjectConfigs
 import com.deniz0706.ykstakip.util.Fmt
+import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -19,7 +22,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
     private lateinit var repository: ExamRepository
 
     private var examType = ExamType.TYT
-    private var mode = "toplam" // toplam | branş
+    private var mode = "toplam"
     private var branch: String? = null
     private var metricKey = "net"
     private var range = "10"
@@ -170,26 +173,51 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
             v.findViewById<TextView>(R.id.tvOrt).text = "—"
             v.findViewById<TextView>(R.id.tvMax).text = "—"
             v.findViewById<TextView>(R.id.tvMin).text = "—"
+            renderWeakSpots(allExams)
             return
         }
 
         chart.visibility = View.VISIBLE
         emptyText.visibility = View.GONE
         chart.points = series
+        chart.targetValue = if (mode == "toplam" && metricKey == "net")
+            AppSettings.getTargetNet(requireContext(), examType) else null
 
         val values = series.map { it.value }
+        fun formatStat(value: Double): String = when (metricKey) {
+            "time" -> "${value.toInt()} dk"
+            "mpq" -> "${Fmt.round2(value)} dk/soru"
+            else -> Fmt.net(value)
+        }
+        v.findViewById<TextView>(R.id.tvSon).text = formatStat(values.last().toDouble())
+        v.findViewById<TextView>(R.id.tvOrt).text = formatStat(values.average())
+        v.findViewById<TextView>(R.id.tvMax).text = formatStat(values.max().toDouble())
+        v.findViewById<TextView>(R.id.tvMin).text = formatStat(values.min().toDouble())
 
-fun formatStat(value: Double): String {
-    return when (metricKey) {
-        "time" -> "${value.toInt()} dk"
-        "mpq" -> "${Fmt.round2(value)} dk/soru"
-        else -> Fmt.net(value)
+        renderWeakSpots(allExams)
     }
-}
 
-v.findViewById<TextView>(R.id.tvSon).text = formatStat(values.last().toDouble())
-v.findViewById<TextView>(R.id.tvOrt).text = formatStat(values.average())
-v.findViewById<TextView>(R.id.tvMax).text = formatStat(values.max().toDouble())
-v.findViewById<TextView>(R.id.tvMin).text = formatStat(values.min().toDouble())
+    private fun renderWeakSpots(exams: List<Exam>) {
+        val v = view ?: return
+        val card = v.findViewById<View>(R.id.weakSpotCard)
+        val list = v.findViewById<LinearLayout>(R.id.weakSpotList)
+        val spots = WeakTopicAnalyzer.findWeakSpots(exams, sampleSize = 5, top = 3)
+
+        if (spots.isEmpty()) {
+            card.visibility = View.GONE
+            return
+        }
+        card.visibility = View.VISIBLE
+        list.removeAllViews()
+        for (spot in spots) {
+            val pct = if (spot.outOf > 0) (spot.count * 100 / spot.outOf) else 0
+            val tv = TextView(requireContext()).apply {
+                text = "${spot.subject} — ${spot.topic}: son ${spot.outOf} denemede ${spot.count} kez (%$pct)"
+                textSize = 13f
+                setTextColor(resources.getColor(R.color.on_background, null))
+                setPadding(0, 6, 0, 6)
+            }
+            list.addView(tv)
+        }
     }
 }
