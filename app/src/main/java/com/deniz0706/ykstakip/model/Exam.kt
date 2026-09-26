@@ -3,12 +3,14 @@ package com.deniz0706.ykstakip.model
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.roundToInt
+import com.deniz0706.ykstakip.model.AytField
 
 data class Exam(
     val id: Long,
     val title: String,
     val date: String,
     val type: ExamType,
+    val aytField: AytField? = null,
     val subjects: List<SubjectResult>,
     val notes: String = ""
 ) {
@@ -29,6 +31,7 @@ data class Exam(
         put("title", title)
         put("date", date)
         put("type", type.name)
+        put("aytField", aytField?.name)
         put("subjects", JSONArray(subjects.map { it.toJson() }))
     }
 
@@ -41,6 +44,9 @@ data class Exam(
                 title = json.getString("title"),
                 date = json.getString("date"),
                 type = ExamType.valueOf(json.getString("type")),
+                aytField = json.optString("aytField", "")
+    .takeIf { it.isNotEmpty() }
+    ?.let { AytField.valueOf(it) },
                 subjects = subjects
             )
         }
