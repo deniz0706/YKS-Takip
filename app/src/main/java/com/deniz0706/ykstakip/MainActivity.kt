@@ -48,12 +48,12 @@ class MainActivity : Activity() {
 
         val scroll = ScrollView(this).apply {
             addView(
-                content,
-                ScrollView.LayoutParams(
-                    ScrollView.LayoutParams.MATCH_PARENT,
-                    ScrollView.LayoutParams.MATCH_PARENT
-                )
-            )
+    content,
+    FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams.MATCH_PARENT,
+        FrameLayout.LayoutParams.MATCH_PARENT
+    )
+)
         }
 
         root.addView(
