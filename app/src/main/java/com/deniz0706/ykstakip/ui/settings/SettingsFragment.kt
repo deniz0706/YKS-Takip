@@ -135,6 +135,13 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 .setText(it.toString())
         }
 
+        AppSettings.getObp(requireContext())?.let {
+            view.findViewById<EditText>(R.id.etObp)
+                .setText(
+                    Fmt.net(it.toDouble()).replace(',', '.')
+                )
+        }
+
         view.findViewById<View>(R.id.btnSaveGoals).setOnClickListener {
             saveGoals()
         }
@@ -175,6 +182,12 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 .toString()
                 .trim()
 
+        val obpText =
+            v.findViewById<EditText>(R.id.etObp)
+                .text
+                .toString()
+                .trim()
+
         val tyt =
             tytText
                 .replace(',', '.')
@@ -187,6 +200,12 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
         val dailyGoal =
             dailyGoalText.toIntOrNull()
+
+        val obp =
+            obpText
+                .replace(',', '.')
+                .toFloatOrNull()
+                ?.takeIf { it in 0f..100f }
 
         AppSettings.setTargetNet(
             requireContext(),
@@ -203,6 +222,11 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         AppSettings.setDailyGoal(
             requireContext(),
             dailyGoal?.takeIf { it >= 0 }
+        )
+
+        AppSettings.setObp(
+            requireContext(),
+            obp
         )
 
         Toast.makeText(
