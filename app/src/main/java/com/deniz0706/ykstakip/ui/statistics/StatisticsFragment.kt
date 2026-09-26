@@ -16,6 +16,7 @@ import com.deniz0706.ykstakip.model.SubjectConfigs
 import com.deniz0706.ykstakip.util.Fmt
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.YksRankingCalculator
+import com.deniz0706.ykstakip.util.RankingEstimate
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -367,6 +368,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
             empty.visibility = View.VISIBLE
             empty.text = "Sıralama tahmini için Ayarlar'dan OBP gir."
             clearRankingStats()
+            renderRankingTrend()
             return
         }
 
@@ -413,7 +415,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
     }
 
     private fun showRankingStats(
-        estimates: List<com.deniz0706.ykstakip.util.RankingEstimate>
+        estimates: List<RankingEstimate>
     ) {
         val v = view ?: return
 
@@ -446,7 +448,33 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
             formatRanking(worst)
     }
 
-        private fun renderRankingTrend() {
+    private fun showRankingEmpty(
+        message: String
+    ) {
+        val v = view ?: return
+
+        v.findViewById<View>(R.id.rankingCard).visibility =
+            View.VISIBLE
+
+        val empty = v.findViewById<TextView>(R.id.tvRankingEmpty)
+        empty.visibility = View.VISIBLE
+        empty.text = message
+
+        clearRankingStats()
+        renderRankingTrend()
+    }
+
+    private fun clearRankingStats() {
+        val v = view ?: return
+
+        v.findViewById<TextView>(R.id.tvRankingLast).text = "—"
+        v.findViewById<TextView>(R.id.tvRankingAvg3).text = "—"
+        v.findViewById<TextView>(R.id.tvRankingAvg5).text = "—"
+        v.findViewById<TextView>(R.id.tvRankingBest).text = "—"
+        v.findViewById<TextView>(R.id.tvRankingWorst).text = "—"
+    }
+
+    private fun renderRankingTrend() {
         val v = view ?: return
 
         val chart =
@@ -513,7 +541,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
     private fun rankingPoint(
         date: String,
         title: String,
-        estimate: com.deniz0706.ykstakip.util.RankingEstimate
+        estimate: RankingEstimate
     ): LineChartView.Point {
         val parser =
             SimpleDateFormat(
@@ -549,144 +577,14 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         )
     }
 
-    private fun showRankingEmpty(
-        message: String
-    ) {
-        val v = view ?: return
-
-        v.findViewById<View>(R.id.rankingCard).visibility =
-            View.VISIBLE
-
-        val empty = v.findViewById<TextView>(R.id.tvRankingEmpty)
-        empty.visibility = View.VISIBLE
-        empty.text = message
-
-        clearRankingStats()
-        renderRankingTrend()
-    }
-
-    private fun renderRankingTrend() {
-    val v = view ?: return
-
-    val chart =
-        v.findViewById<LineChartView>(R.id.rankingChart)
-
-    val empty =
-        v.findViewById<TextView>(R.id.tvEmptyRankingChart)
-
-    val obp =
-        AppSettings.getObp(requireContext())?.toDouble()
-
-    if (obp == null) {
-        chart.visibility = View.GONE
-        empty.visibility = View.VISIBLE
-        return
-    }
-
-    val exams =
-        repository.getAllExams()
-
-    val points =
-        if (examType == ExamType.TYT) {
-            YksRankingCalculator
-                .calculateTyt(
-                    exams = exams,
-                    obp = obp
-                )
-                .map { result ->
-                    rankingPoint(
-                        date = result.exam.date,
-                        title = result.exam.title,
-                        estimate = result.estimate
-                    )
-                }
-        } else {
-            YksRankingCalculator
-                .calculateAyt(
-                    exams = exams,
-                    obp = obp,
-                    field = aytField
-                )
-                .map { result ->
-                    rankingPoint(
-                        date = result.aytExam.date,
-                        title = result.aytExam.title,
-                        estimate = result.estimate
-                    )
-                }
-        }
-
-    if (points.isEmpty()) {
-        chart.visibility = View.GONE
-        empty.visibility = View.VISIBLE
-        return
-    }
-
-    chart.visibility = View.VISIBLE
-    empty.visibility = View.GONE
-
-    chart.reverseY = true
-    chart.targetValue = null
-    chart.points = points
-}
-
-    private fun clearRankingStats()
-    renderRankingTrend(){
-        val v = view ?: return
-
-        v.findViewById<TextView>(R.id.tvRankingLast).text = "—"
-        v.findViewById<TextView>(R.id.tvRankingAvg3).text = "—"
-        v.findViewById<TextView>(R.id.tvRankingAvg5).text = "—"
-        v.findViewById<TextView>(R.id.tvRankingBest).text = "—"
-        v.findViewById<TextView>(R.id.tvRankingWorst).text = "—"
-    }
-    private fun rankingPoint(
-    date: String,
-    title: String,
-    estimate: com.deniz0706.ykstakip.util.RankingEstimate
-): LineChartView.Point {
-    val parser =
-        SimpleDateFormat(
-            "yyyy-MM-dd",
-            Locale.US
-        )
-
-    val df =
-        SimpleDateFormat(
-            "d MMM",
-            Locale("tr", "TR")
-        )
-
-    val dfFull =
-        SimpleDateFormat(
-            "d MMMM yyyy",
-            Locale("tr", "TR")
-        )
-
-    val parsed =
-        try {
-            parser.parse(date)
-        } catch (e: Exception) {
-            null
-        }
-
-    return LineChartView.Point(
-        xLabel = if (parsed != null) df.format(parsed) else date,
-        value = estimate.center.toFloat(),
-        title = title,
-        fullDate = if (parsed != null) dfFull.format(parsed) else date,
-        unit = " sıra"
-    )
-}
-
     private fun formatRanking(
-        estimate: com.deniz0706.ykstakip.util.RankingEstimate
+        estimate: RankingEstimate
     ): String {
         return "~${formatNumber(estimate.center)}"
     }
 
     private fun formatRankingAverage(
-        estimates: List<com.deniz0706.ykstakip.util.RankingEstimate>
+        estimates: List<RankingEstimate>
     ): String {
         if (estimates.isEmpty()) return "—"
 
