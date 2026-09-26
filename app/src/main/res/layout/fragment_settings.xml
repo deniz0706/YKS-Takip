@@ -89,19 +89,6 @@
             android:textColor="@color/on_background"
             android:textColorHint="@color/on_surface_secondary" />
 
-        <TextView
-            android:id="@+id/tvExamDate"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="@dimen/space_s"
-            android:background="@drawable/bg_input"
-            android:paddingHorizontal="14dp"
-            android:gravity="center_vertical"
-            android:text="YKS tarihini seç"
-            android:textColor="@color/on_background"
-            android:clickable="true"
-            android:focusable="true" />
-
         <EditText
             android:id="@+id/etDailyGoal"
             android:layout_width="match_parent"
