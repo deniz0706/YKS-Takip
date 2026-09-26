@@ -243,6 +243,9 @@ for (config in subjectConfigs) {
         }
         val net = Fmt.round2(correct - wrong / 4.0)
         row.tvNet.text = "${Fmt.net(net)} net"
+        val blank = (row.config.questionCount - correct - wrong).coerceAtLeast(0)
+        row.tvBlank.text = blank.toString()
+        updateSaveButtonState()
     }
 
     private fun updateTotals() {
