@@ -89,6 +89,7 @@ class MainActivity : Activity() {
         content.removeAllViews()
 
         addTitle("YKS Takip")
+
         addText(
             SimpleDateFormat("d MMMM yyyy", Locale("tr", "TR")).format(Date()),
             14,
@@ -186,7 +187,9 @@ class MainActivity : Activity() {
                     textColor(),
                     true
                 )
+
                 addSpace(6)
+
                 addText(
                     "İlk denemeni ekleyerek takip etmeye başlayabilirsin.",
                     14,
@@ -339,7 +342,10 @@ class MainActivity : Activity() {
 
             row.addView(
                 Space(this),
-                LinearLayout.LayoutParams(dp(10), 1)
+                LinearLayout.LayoutParams(
+                    dp(10),
+                    1
+                )
             )
 
             row.addView(
@@ -463,18 +469,27 @@ class MainActivity : Activity() {
                     textColor(),
                     true
                 )
+
+                addSpace(6)
+
+                addText(
+                    "İlk denemeni eklediğinde burada görünecek.",
+                    14,
+                    secondaryColor()
+                )
             }
+
             return
         }
 
         exams.asReversed().forEach { exam ->
             addCard {
-                val top = LinearLayout(this).apply {
+                val top = LinearLayout(this@MainActivity).apply {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = Gravity.CENTER_VERTICAL
                 }
 
-                val left = LinearLayout(this).apply {
+                val left = LinearLayout(this@MainActivity).apply {
                     orientation = LinearLayout.VERTICAL
                 }
 
@@ -506,14 +521,14 @@ class MainActivity : Activity() {
 
                 top.addView(
                     textView(
-                        "${formatNet(exam.net)}",
+                        formatNet(exam.net),
                         22,
                         textColor(),
                         true
                     )
                 )
 
-                addView(top)
+                this.addView(top)
             }
 
             addSpace(10)
@@ -550,6 +565,7 @@ class MainActivity : Activity() {
                     true
                 )
             }
+
             return
         }
 
@@ -664,12 +680,14 @@ class MainActivity : Activity() {
         val bar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
+
             setPadding(
                 dp(8),
                 dp(7),
                 dp(8),
                 dp(7)
             )
+
             setBackgroundColor(cardColor())
         }
 
@@ -684,12 +702,14 @@ class MainActivity : Activity() {
             val item = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
+
                 setPadding(
                     dp(8),
                     dp(4),
                     dp(8),
                     dp(4)
                 )
+
                 isClickable = true
                 isFocusable = true
             }
@@ -747,7 +767,12 @@ class MainActivity : Activity() {
     // ---------------------------------------------------------
 
     private fun addTitle(value: String) {
-        addText(value, 32, textColor(), true)
+        addText(
+            value,
+            32,
+            textColor(),
+            true
+        )
     }
 
     private fun addText(
@@ -757,7 +782,12 @@ class MainActivity : Activity() {
         bold: Boolean = false
     ) {
         content.addView(
-            textView(value, size, color, bold)
+            textView(
+                value,
+                size,
+                color,
+                bold
+            )
         )
     }
 
@@ -771,6 +801,7 @@ class MainActivity : Activity() {
             text = value
             textSize = size.toFloat()
             setTextColor(color)
+
             if (bold) {
                 typeface = Typeface.DEFAULT_BOLD
             }
@@ -787,16 +818,21 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun addCard(block: LinearLayout.() -> Unit) {
+    private fun addCard(
+        block: LinearLayout.() -> Unit
+    ) {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
+
             setPadding(
                 dp(18),
                 dp(18),
                 dp(18),
                 dp(18)
             )
+
             setBackgroundColor(cardColor())
+
             block()
         }
 
@@ -817,12 +853,14 @@ class MainActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
+
             setPadding(
                 dp(8),
                 dp(14),
                 dp(8),
                 dp(14)
             )
+
             setBackgroundColor(cardColor())
         }
 
@@ -860,12 +898,14 @@ class MainActivity : Activity() {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+
             setPadding(
                 dp(16),
                 dp(18),
                 dp(16),
                 dp(18)
             )
+
             setBackgroundColor(cardColor())
         }
 
@@ -909,9 +949,15 @@ class MainActivity : Activity() {
         return Button(this).apply {
             this.text = text
             textSize = 15f
+
             setTextColor(
-                if (color == accentColor()) Color.WHITE else textColor()
+                if (color == accentColor()) {
+                    Color.WHITE
+                } else {
+                    textColor()
+                }
             )
+
             setBackgroundColor(color)
             isAllCaps = false
             stateListAnimator = null
@@ -925,9 +971,12 @@ class MainActivity : Activity() {
     ): EditText {
         return EditText(this).apply {
             this.hint = hint
+
             setTextColor(textColor())
             setHintTextColor(secondaryColor())
+
             textSize = 15f
+
             setPadding(
                 dp(14),
                 dp(8),
@@ -965,7 +1014,12 @@ class MainActivity : Activity() {
 
     private fun averageFor(type: String): Double? {
         val values = valuesFor(type)
-        return if (values.isEmpty()) null else values.average()
+
+        return if (values.isEmpty()) {
+            null
+        } else {
+            values.average()
+        }
     }
 
     private fun highestFor(type: String): Double? {
@@ -978,12 +1032,24 @@ class MainActivity : Activity() {
 
     private fun lastFiveAverage(type: String): Double? {
         val values = valuesFor(type).takeLast(5)
-        return if (values.isEmpty()) null else values.average()
+
+        return if (values.isEmpty()) {
+            null
+        } else {
+            values.average()
+        }
     }
 
-    private fun formatNet(value: Double): String {
-        return String.format(Locale.US, "%.2f", max(0.0, value))
-            .replace('.', ',')
+    private fun formatNet(value: Double?): String {
+        if (value == null) {
+            return "—"
+        }
+
+        return String.format(
+            Locale.US,
+            "%.2f",
+            max(0.0, value)
+        ).replace('.', ',')
     }
 
     // ---------------------------------------------------------
@@ -991,23 +1057,35 @@ class MainActivity : Activity() {
     // ---------------------------------------------------------
 
     private fun bgColor(): Int {
-        return if (darkMode) Color.rgb(12, 12, 14)
-        else Color.rgb(247, 247, 249)
+        return if (darkMode) {
+            Color.rgb(12, 12, 14)
+        } else {
+            Color.rgb(247, 247, 249)
+        }
     }
 
     private fun cardColor(): Int {
-        return if (darkMode) Color.rgb(28, 28, 31)
-        else Color.WHITE
+        return if (darkMode) {
+            Color.rgb(28, 28, 31)
+        } else {
+            Color.WHITE
+        }
     }
 
     private fun textColor(): Int {
-        return if (darkMode) Color.WHITE
-        else Color.rgb(20, 20, 22)
+        return if (darkMode) {
+            Color.WHITE
+        } else {
+            Color.rgb(20, 20, 22)
+        }
     }
 
     private fun secondaryColor(): Int {
-        return if (darkMode) Color.rgb(160, 160, 166)
-        else Color.rgb(105, 105, 112)
+        return if (darkMode) {
+            Color.rgb(160, 160, 166)
+        } else {
+            Color.rgb(105, 105, 112)
+        }
     }
 
     private fun accentColor(): Int {
@@ -1015,6 +1093,8 @@ class MainActivity : Activity() {
     }
 
     private fun dp(value: Int): Int {
-        return (value * resources.displayMetrics.density).toInt()
+        return (
+            value * resources.displayMetrics.density
+        ).toInt()
     }
 }
