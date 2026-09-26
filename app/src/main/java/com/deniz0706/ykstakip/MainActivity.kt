@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
+import android.app.Activity
 import kotlin.math.round
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     private val darkBg = Color.rgb(18, 18, 20)
     private val cardDark = Color.rgb(30, 30, 33)
