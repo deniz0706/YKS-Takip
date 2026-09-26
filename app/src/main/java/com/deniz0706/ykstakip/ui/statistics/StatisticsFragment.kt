@@ -178,9 +178,18 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         chart.points = series
 
         val values = series.map { it.value }
-        v.findViewById<TextView>(R.id.tvSon).text = Fmt.net(values.last().toDouble())
-        v.findViewById<TextView>(R.id.tvOrt).text = Fmt.net(values.average())
-        v.findViewById<TextView>(R.id.tvMax).text = Fmt.net(values.max().toDouble())
-        v.findViewById<TextView>(R.id.tvMin).text = Fmt.net(values.min().toDouble())
+
+fun formatStat(value: Double): String {
+    return when (metricKey) {
+        "time" -> "${value.toInt()} dk"
+        "mpq" -> "${Fmt.round2(value)} dk/soru"
+        else -> Fmt.net(value)
+    }
+}
+
+v.findViewById<TextView>(R.id.tvSon).text = formatStat(values.last().toDouble())
+v.findViewById<TextView>(R.id.tvOrt).text = formatStat(values.average())
+v.findViewById<TextView>(R.id.tvMax).text = formatStat(values.max().toDouble())
+v.findViewById<TextView>(R.id.tvMin).text = formatStat(values.min().toDouble())
     }
 }
