@@ -41,14 +41,21 @@ object SubjectConfigs {
         SubjectConfig("Din Kültürü / Ek Felsefe", 6)
     )
 
+    /** TYT için gerçek liste; AYT için tüm alanların BİRLEŞİMİ (tekrarsız) —
+     *  Geçmiş/İstatistik ekranları tek bir "AYT" listesiyle çalıştığı için,
+     *  hangi alanda olursa olsun kaydedilmiş bir dersin adı bu listede bulunur. */
     fun subjectsFor(type: ExamType): List<SubjectConfig> = when (type) {
         ExamType.TYT -> TYT_SUBJECTS
-        ExamType.AYT -> AYT_SAYISAL
+        ExamType.AYT -> allAytSubjects
     }
 
     fun subjectsFor(field: AytField): List<SubjectConfig> = when (field) {
         AytField.SAYISAL -> AYT_SAYISAL
         AytField.ESIT_AGIRLIK -> AYT_ESIT_AGIRLIK
         AytField.SOZEL -> AYT_SOZEL
+    }
+
+    private val allAytSubjects: List<SubjectConfig> by lazy {
+        (AYT_SAYISAL + AYT_ESIT_AGIRLIK + AYT_SOZEL).distinctBy { it.name }
     }
 }
