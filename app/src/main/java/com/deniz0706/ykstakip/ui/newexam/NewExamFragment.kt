@@ -44,7 +44,14 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
 
     companion object {
         private const val ARG_EDIT_ID = "edit_id"
-
+        private const val ARG_TYPE = "exam_type"
+         fun newInstanceForType(type: ExamType): NewExamFragment {
+             val f = NewExamFragment()
+            f.arguments = Bundle().apply {
+            putString(ARG_TYPE, type.name)
+        }
+    return f
+   }
         fun newInstanceForEdit(examId: Long): NewExamFragment {
             val f = NewExamFragment()
             f.arguments = Bundle().apply { putLong(ARG_EDIT_ID, examId) }
@@ -58,6 +65,11 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
 
         val editId = arguments?.getLong(ARG_EDIT_ID, -1L)?.takeIf { it > 0 }
         editingId = editId
+        if (editId == null) {
+    arguments?.getString(ARG_TYPE)?.let {
+        selectedType = ExamType.valueOf(it)
+    }
+}
 
         view.findViewById<View>(R.id.btnCancel).setOnClickListener {
             (activity as? MainActivity)?.goBack()
