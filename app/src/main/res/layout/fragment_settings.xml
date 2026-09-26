@@ -53,4 +53,13 @@
         android:textStyle="bold" android:background="@drawable/bg_button_secondary" android:textColor="@color/on_background"
         android:clickable="true" android:focusable="true" />
 
+    <TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/space_xl"
+    android:gravity="center"
+    android:text="© 2026 Deniz"
+    android:textSize="@dimen/text_caption"
+    android:textColor="@color/on_surface_secondary" />
+
 </LinearLayout>
