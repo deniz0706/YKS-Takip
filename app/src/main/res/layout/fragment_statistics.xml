@@ -30,6 +30,7 @@
             <TextView android:id="@+id/toggleTyt" android:layout_width="88dp" android:layout_height="40dp"
                 android:gravity="center" android:text="TYT" android:textStyle="bold"
                 android:background="@drawable/bg_pill_toggle" android:textColor="@color/on_background" />
+
             <TextView android:id="@+id/toggleAyt" android:layout_width="88dp" android:layout_height="40dp"
                 android:layout_marginStart="4dp" android:gravity="center" android:text="AYT" android:textStyle="bold"
                 android:background="@drawable/bg_pill_toggle" android:textColor="@color/on_background" />
@@ -44,6 +45,7 @@
             <TextView android:id="@+id/modeToplam" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1"
                 android:gravity="center" android:text="Toplam Deneme" android:textStyle="bold" android:textSize="13sp"
                 android:background="@drawable/bg_pill_toggle" android:textColor="@color/on_background" />
+
             <TextView android:id="@+id/modeBranch" android:layout_width="0dp" android:layout_height="40dp"
                 android:layout_weight="1"
                 android:layout_marginStart="4dp" android:gravity="center" android:text="Branş" android:textStyle="bold" android:textSize="13sp"
@@ -61,7 +63,8 @@
             android:textColor="@color/on_background"
             android:textSize="@dimen/text_body"
             android:visibility="gone"
-            android:clickable="true" android:focusable="true" />
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/selectorMetric"
@@ -73,7 +76,8 @@
             android:gravity="center_vertical"
             android:textColor="@color/on_background"
             android:textSize="@dimen/text_body"
-            android:clickable="true" android:focusable="true" />
+            android:clickable="true"
+            android:focusable="true" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -119,51 +123,31 @@
             android:layout_marginTop="@dimen/space_m"
             android:orientation="horizontal">
 
-            <LinearLayout style="@style/StatMini"><TextView style="@style/StatMiniLabel" android:text="Son" />
-                <TextView android:id="@+id/tvSon" style="@style/StatMiniValue" /></LinearLayout>
+            <LinearLayout style="@style/StatMini">
+                <TextView style="@style/StatMiniLabel" android:text="Son" />
+                <TextView android:id="@+id/tvSon" style="@style/StatMiniValue" />
+            </LinearLayout>
+
             <View android:layout_width="8dp" android:layout_height="1dp" />
-            <LinearLayout style="@style/StatMini"><TextView style="@style/StatMiniLabel" android:text="Ortalama" />
-                <TextView android:id="@+id/tvOrt" style="@style/StatMiniValue" /></LinearLayout>
+
+            <LinearLayout style="@style/StatMini">
+                <TextView style="@style/StatMiniLabel" android:text="Ortalama" />
+                <TextView android:id="@+id/tvOrt" style="@style/StatMiniValue" />
+            </LinearLayout>
+
             <View android:layout_width="8dp" android:layout_height="1dp" />
-            <LinearLayout style="@style/StatMini"><TextView style="@style/StatMiniLabel" android:text="En Yüksek" />
-                <TextView android:id="@+id/tvMax" style="@style/StatMiniValue" /></LinearLayout>
+
+            <LinearLayout style="@style/StatMini">
+                <TextView style="@style/StatMiniLabel" android:text="En Yüksek" />
+                <TextView android:id="@+id/tvMax" style="@style/StatMiniValue" />
+            </LinearLayout>
+
             <View android:layout_width="8dp" android:layout_height="1dp" />
-            <LinearLayout style="@style/StatMini"><TextView style="@style/StatMiniLabel" android:text="En Düşük" />
-                <TextView android:id="@+id/tvMin" style="@style/StatMiniValue" /></LinearLayout>
-        </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/weakSpotCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card"
-            android:padding="@dimen/card_padding"
-            android:layout_marginTop="@dimen/space_m"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Zayıf Halka"
-                android:textStyle="bold"
-                android:textSize="@dimen/text_body"
-                android:textColor="@color/on_background" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Son 5 deneme"
-                android:textSize="12sp"
-                android:textColor="@color/on_surface_secondary" />
-
-            <LinearLayout
-                android:id="@+id/weakSpotList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="@dimen/space_s" />
+            <LinearLayout style="@style/StatMini">
+                <TextView style="@style/StatMiniLabel" android:text="En Düşük" />
+                <TextView android:id="@+id/tvMin" style="@style/StatMiniValue" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
