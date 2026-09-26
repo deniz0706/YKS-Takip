@@ -19,7 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_m"
-        android:orientation="horizontal"
+        android:orientation="horizontal">
 
         <TextView android:id="@+id/toggleTyt" android:layout_width="88dp" android:layout_height="40dp"
             android:gravity="center" android:text="TYT" android:textStyle="bold"
