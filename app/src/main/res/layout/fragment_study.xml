@@ -135,6 +135,123 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_xl"
+            android:text="İlerleme"
+            android:textSize="@dimen/text_body"
+            android:textColor="@color/on_surface_secondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_s"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/card_padding">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chartMetricQuestions"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Soru"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_pill_toggle"
+                    android:textColor="@color/on_background" />
+
+                <View
+                    android:layout_width="8dp"
+                    android:layout_height="1dp" />
+
+                <TextView
+                    android:id="@+id/chartMetricTime"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Süre"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_pill_toggle"
+                    android:textColor="@color/on_background" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chartRange7"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="7 Gün"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_pill_toggle"
+                    android:textColor="@color/on_background" />
+
+                <View
+                    android:layout_width="8dp"
+                    android:layout_height="1dp" />
+
+                <TextView
+                    android:id="@+id/chartRange30"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="30 Gün"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_pill_toggle"
+                    android:textColor="@color/on_background" />
+
+                <View
+                    android:layout_width="8dp"
+                    android:layout_height="1dp" />
+
+                <TextView
+                    android:id="@+id/chartRangeAll"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Tüm Zamanlar"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_pill_toggle"
+                    android:textColor="@color/on_background" />
+
+            </LinearLayout>
+
+            <com.deniz0706.ykstakip.ui.statistics.LineChartView
+                android:id="@+id/studyChart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s" />
+
+            <TextView
+                android:id="@+id/tvStudyChartEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="24dp"
+                android:text="Henüz çalışma verisi yok."
+                android:textSize="@dimen/text_body"
+                android:textColor="@color/on_surface_secondary"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xl"
             android:text="Genel Durum"
             android:textSize="@dimen/text_body"
             android:textColor="@color/on_surface_secondary" />
