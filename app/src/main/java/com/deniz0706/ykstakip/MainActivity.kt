@@ -1,79 +1,60 @@
 package com.deniz0706.ykstakip
 
-import android.app.Activity
-import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlin.math.max
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import kotlin.math.round
 
-class MainActivity : Activity() {
+class MainActivity : AppCompatActivity() {
+
+    private val darkBg = Color.rgb(18, 18, 20)
+    private val cardDark = Color.rgb(30, 30, 33)
+    private val textDark = Color.WHITE
+    private val mutedDark = Color.rgb(160, 160, 165)
+
+    private val lightBg = Color.rgb(247, 247, 249)
+    private val cardLight = Color.WHITE
+    private val textLight = Color.rgb(20, 20, 22)
+    private val mutedLight = Color.rgb(110, 110, 115)
+
+    private var isDark = true
+    private var selectedExamType = "TYT"
 
     private lateinit var root: LinearLayout
     private lateinit var content: LinearLayout
 
-    private var darkMode = true
-    private var selectedExam = "TYT"
-
-    private val darkBg = Color.rgb(10, 10, 12)
-    private val darkCard = Color.rgb(25, 25, 28)
-    private val lightBg = Color.rgb(247, 247, 249)
-    private val lightCard = Color.WHITE
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.statusBarColor = darkBg
+        window.navigationBarColor = darkBg
+
         showHome()
     }
 
-    private fun dp(value: Int): Int =
-        (value * resources.displayMetrics.density).toInt()
-
-    private fun textColor(): Int =
-        if (darkMode) Color.WHITE else Color.rgb(20, 20, 22)
-
-    private fun secondaryColor(): Int =
-        if (darkMode) Color.rgb(165, 165, 170) else Color.rgb(105, 105, 110)
-
-    private fun cardColor(): Int =
-        if (darkMode) darkCard else lightCard
-
     private fun setupRoot() {
-        root = LinearLayout(this)
-        root.orientation = LinearLayout.VERTICAL
-        root.setBackgroundColor(if (darkMode) darkBg else lightBg)
+        root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(if (isDark) darkBg else lightBg)
+        }
 
-        setContentView(root)
-    }
+        content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 24, 24, 12)
+        }
 
-    private fun baseContent(): LinearLayout {
-        setupRoot()
-
-        val scroll = ScrollView(this)
-        scroll.isFillViewport = true
-
-        content = LinearLayout(this)
-        content.orientation = LinearLayout.VERTICAL
-        content.setPadding(dp(24), dp(28), dp(24), dp(120))
-
-        scroll.addView(
-            content,
-            ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+        val scroll = ScrollView(this).apply {
+            addView(
+                content,
+                ScrollView.LayoutParams(
+                    ScrollView.LayoutParams.MATCH_PARENT,
+                    ScrollView.LayoutParams.MATCH_PARENT
+                )
             )
-        )
+        }
 
         root.addView(
             scroll,
@@ -84,637 +65,512 @@ class MainActivity : Activity() {
             )
         )
 
-        addBottomIsland()
+        root.addView(createBottomBar())
 
-        return content
+        setContentView(root)
     }
 
-    private fun addBottomIsland() {
-        val island = LinearLayout(this)
-        island.orientation = LinearLayout.HORIZONTAL
-        island.gravity = Gravity.CENTER
-        island.setPadding(dp(8), dp(8), dp(8), dp(8))
+    private fun showHome() {
+        setupRoot()
+        content.removeAllViews()
 
-        val background = GradientDrawable()
-        background.cornerRadius = dp(40).toFloat()
-        background.setColor(
-            if (darkMode) Color.rgb(30, 30, 34) else Color.WHITE
-        )
-        island.background = background
-        island.elevation = dp(8).toFloat()
+        addTitle("YKS Takip")
+        addSubtitle("26 Eylül 2026")
 
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            dp(66)
-        )
-        params.setMargins(dp(18), 0, dp(18), dp(16))
-
-        val items = listOf(
-            Triple("⌂", "Ana Sayfa", "home"),
-            Triple("◷", "Geçmiş", "history"),
-            Triple("◒", "İstatistik", "stats"),
-            Triple("☼", "Görünüm", "theme")
-        )
-
-        items.forEach { item ->
-            val button = LinearLayout(this)
-            button.orientation = LinearLayout.VERTICAL
-            button.gravity = Gravity.CENTER
-            button.setPadding(dp(4), 0, dp(4), 0)
-
-            val icon = TextView(this)
-            icon.text = item.first
-            icon.textSize = 22f
-            icon.gravity = Gravity.CENTER
-            icon.setTextColor(textColor())
-
-            val label = TextView(this)
-            label.text = item.second
-            label.textSize = 10f
-            label.gravity = Gravity.CENTER
-            label.setTextColor(secondaryColor())
-
-            button.addView(icon)
-            button.addView(label)
-
-            button.setOnClickListener {
-                when (item.third) {
-                    "home" -> showHome()
-                    "history" -> showHistory()
-                    "stats" -> showStats()
-                    "theme" -> showTheme()
-                }
-            }
-
-            island.addView(
-                button,
-                LinearLayout.LayoutParams(0, dp(52), 1f)
-            )
+        val switchRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
         }
 
-        root.addView(island, params)
-    }
-
-    private fun addTitle(title: String, subtitle: String? = null) {
-        val titleView = TextView(this)
-        titleView.text = title
-        titleView.textSize = 30f
-        titleView.setTypeface(null, android.graphics.Typeface.BOLD)
-        titleView.setTextColor(textColor())
-
-        content.addView(
-            titleView,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        )
-
-        if (subtitle != null) {
-            val sub = TextView(this)
-            sub.text = subtitle
-            sub.textSize = 15f
-            sub.setTextColor(secondaryColor())
-            sub.setPadding(0, dp(6), 0, dp(20))
-
-            content.addView(sub)
-        } else {
-            val space = View(this)
-            content.addView(
-                space,
-                LinearLayout.LayoutParams(
-                    1,
-                    dp(24)
-                )
-            )
-        }
-    }
-
-    private fun addCard(
-        title: String,
-        value: String,
-        subtitle: String = ""
-    ) {
-        val card = LinearLayout(this)
-        card.orientation = LinearLayout.VERTICAL
-        card.setPadding(dp(20), dp(18), dp(20), dp(18))
-
-        val bg = GradientDrawable()
-        bg.cornerRadius = dp(24).toFloat()
-        bg.setColor(cardColor())
-        card.background = bg
-
-        val titleView = TextView(this)
-        titleView.text = title
-        titleView.textSize = 13f
-        titleView.setTextColor(secondaryColor())
-
-        val valueView = TextView(this)
-        valueView.text = value
-        valueView.textSize = 34f
-        valueView.setTypeface(null, android.graphics.Typeface.BOLD)
-        valueView.setTextColor(textColor())
-        valueView.setPadding(0, dp(6), 0, 0)
-
-        card.addView(titleView)
-        card.addView(valueView)
-
-        if (subtitle.isNotEmpty()) {
-            val sub = TextView(this)
-            sub.text = subtitle
-            sub.textSize = 12f
-            sub.setTextColor(secondaryColor())
-            sub.setPadding(0, dp(4), 0, 0)
-            card.addView(sub)
-        }
-
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.setMargins(0, 0, 0, dp(14))
-
-        content.addView(card, params)
-    }
-
-    private fun addExamSwitch() {
-        val switch = LinearLayout(this)
-        switch.orientation = LinearLayout.HORIZONTAL
-        switch.setPadding(dp(5), dp(5), dp(5), dp(5))
-
-        val bg = GradientDrawable()
-        bg.cornerRadius = dp(30).toFloat()
-        bg.setColor(cardColor())
-        switch.background = bg
-
-        val tyt = makeSwitchButton("TYT")
-        val ayt = makeSwitchButton("AYT")
-
-        switch.addView(tyt, LinearLayout.LayoutParams(0, dp(48), 1f))
-        switch.addView(ayt, LinearLayout.LayoutParams(0, dp(48), 1f))
+        val tyt = button("TYT")
+        val ayt = button("AYT")
 
         tyt.setOnClickListener {
-            selectedExam = "TYT"
+            selectedExamType = "TYT"
             showHome()
         }
 
         ayt.setOnClickListener {
-            selectedExam = "AYT"
+            selectedExamType = "AYT"
             showHome()
         }
 
+        switchRow.addView(tyt, LinearLayout.LayoutParams(0, 52, 1f))
+        switchRow.addView(space(8))
+        switchRow.addView(ayt, LinearLayout.LayoutParams(0, 52, 1f))
+
+        content.addView(switchRow)
+
+        content.addView(space(20))
+
+        val lastCard = card()
+
+        val lastLabel = text(
+            "SON DENEME",
+            13f,
+            if (isDark) mutedDark else mutedLight
+        )
+
+        val lastNet = text(
+            "—",
+            46f,
+            if (isDark) textDark else textLight
+        )
+
+        lastCard.addView(lastLabel)
+        lastCard.addView(lastNet)
+
+        val examTypeText = text(
+            selectedExamType,
+            14f,
+            if (isDark) mutedDark else mutedLight
+        )
+
+        lastCard.addView(examTypeText)
+
         content.addView(
-            switch,
+            lastCard,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(58)
+                LinearLayout.LayoutParams.WRAP_CONTENT
             )
         )
 
-        val space = View(this)
-        content.addView(space, LinearLayout.LayoutParams(1, dp(24)))
-    }
+        content.addView(space(14))
 
-    private fun makeSwitchButton(text: String): TextView {
-        val button = TextView(this)
-        button.text = text
-        button.textSize = 15f
-        button.gravity = Gravity.CENTER
-        button.setTypeface(null, android.graphics.Typeface.BOLD)
-        button.setTextColor(textColor())
+        val stats = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
 
-        if (text == selectedExam) {
-            val bg = GradientDrawable()
-            bg.cornerRadius = dp(25).toFloat()
-            bg.setColor(
-                if (darkMode) Color.rgb(55, 55, 60)
-                else Color.rgb(230, 230, 235)
+        stats.addView(
+            statCard("Ortalama", "—"),
+            LinearLayout.LayoutParams(0, 130, 1f)
+        )
+        stats.addView(space(8))
+        stats.addView(
+            statCard("En yüksek", "—"),
+            LinearLayout.LayoutParams(0, 130, 1f)
+        )
+        stats.addView(space(8))
+        stats.addView(
+            statCard("Son 5", "—"),
+            LinearLayout.LayoutParams(0, 130, 1f)
+        )
+
+        content.addView(stats)
+
+        content.addView(space(20))
+
+        val newExam = button("＋  Yeni Deneme").apply {
+            textSize = 17f
+            setOnClickListener {
+                showNewExam()
+            }
+        }
+
+        content.addView(
+            newExam,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                58
             )
-            button.background = bg
-        }
-
-        return button
-    }
-
-    private fun showHome() {
-        baseContent()
-
-        addTitle(
-            "YKS Takip",
-            SimpleDateFormat("d MMMM yyyy", Locale("tr", "TR")).format(Date())
         )
-
-        addExamSwitch()
-
-        val section = TextView(this)
-        section.text = "Son Deneme"
-        section.textSize = 16f
-        section.setTypeface(null, android.graphics.Typeface.BOLD)
-        section.setTextColor(textColor())
-        content.addView(section)
-
-        val lastCard = LinearLayout(this)
-        lastCard.orientation = LinearLayout.VERTICAL
-        lastCard.gravity = Gravity.CENTER
-        lastCard.setPadding(dp(24), dp(30), dp(24), dp(30))
-
-        val bg = GradientDrawable()
-        bg.cornerRadius = dp(28).toFloat()
-        bg.setColor(cardColor())
-        lastCard.background = bg
-
-        val net = TextView(this)
-        net.text = "—"
-        net.textSize = 58f
-        net.setTypeface(null, android.graphics.Typeface.BOLD)
-        net.setTextColor(textColor())
-        net.gravity = Gravity.CENTER
-
-        val netLabel = TextView(this)
-        netLabel.text = "NET"
-        netLabel.textSize = 13f
-        netLabel.setTextColor(secondaryColor())
-        netLabel.gravity = Gravity.CENTER
-
-        val info = TextView(this)
-        info.text = "$selectedExam · Henüz deneme yok"
-        info.textSize = 13f
-        info.setTextColor(secondaryColor())
-        info.gravity = Gravity.CENTER
-        info.setPadding(0, dp(10), 0, 0)
-
-        lastCard.addView(net)
-        lastCard.addView(netLabel)
-        lastCard.addView(info)
-
-        val cardParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        cardParams.setMargins(0, dp(10), 0, dp(18))
-        content.addView(lastCard, cardParams)
-
-        addCard("Ortalama", "—", "Henüz veri yok")
-        addCard("En yüksek", "—", "Henüz veri yok")
-        addCard("Son 5 deneme", "—", "Henüz veri yok")
-
-        val newExam = Button(this)
-        newExam.text = "＋  Yeni Deneme"
-        newExam.textSize = 17f
-        newExam.setTextColor(textColor())
-        newExam.setAllCaps(false)
-
-        val newBg = GradientDrawable()
-        newBg.cornerRadius = dp(32).toFloat()
-        newBg.setColor(
-            if (darkMode) Color.rgb(45, 45, 50)
-            else Color.rgb(225, 225, 230)
-        )
-        newExam.background = newBg
-
-        newExam.setOnClickListener {
-            showNewExam()
-        }
-
-        val buttonParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            dp(62)
-        )
-        buttonParams.setMargins(0, dp(8), 0, dp(20))
-
-        content.addView(newExam, buttonParams)
     }
 
     private fun showNewExam() {
-        baseContent()
+        setupRoot()
+        content.removeAllViews()
 
-        addTitle(
-            "Yeni Deneme",
-            "$selectedExam deneme sonucu gir"
-        )
+        addTitle("Yeni Deneme")
+        addSubtitle("$selectedExamType deneme sonucu gir")
+
+        content.addView(space(20))
 
         val nameInput = makeInput(
             "Deneme adı",
-            "Örn. Dershane Denemesi 1"
+            false
         )
         content.addView(nameInput)
 
-        val subjects = if (selectedExam == "TYT") {
+        content.addView(space(12))
+
+        val subjects = if (selectedExamType == "TYT") {
             listOf(
-                "Türkçe" to 40,
-                "Sosyal" to 20,
-                "Matematik" to 40,
-                "Fen" to 20
+                Triple("Türkçe", 40, "turkce"),
+                Triple("Sosyal", 20, "sosyal"),
+                Triple("Matematik", 40, "matematik"),
+                Triple("Fen", 20, "fen")
             )
         } else {
             listOf(
-                "Matematik" to 40,
-                "Fen" to 40
+                Triple("Matematik", 40, "matematik"),
+                Triple("Fen", 40, "fen")
             )
         }
 
-        val inputs = mutableListOf<Triple<String, EditText, EditText>>()
+        val correctInputs = mutableMapOf<String, EditText>()
+        val wrongInputs = mutableMapOf<String, EditText>()
 
-        subjects.forEach { subject ->
-            val card = LinearLayout(this)
-            card.orientation = LinearLayout.VERTICAL
-            card.setPadding(dp(18), dp(18), dp(18), dp(18))
+        for ((subject, count, key) in subjects) {
+            val subjectCard = card()
 
-            val bg = GradientDrawable()
-            bg.cornerRadius = dp(22).toFloat()
-            bg.setColor(cardColor())
-            card.background = bg
+            subjectCard.addView(
+                text(
+                    "$subject  •  $count soru",
+                    18f,
+                    if (isDark) textDark else textLight
+                )
+            )
 
-            val title = TextView(this)
-            title.text = "${subject.first}  ·  ${subject.second} soru"
-            title.textSize = 16f
-            title.setTypeface(null, android.graphics.Typeface.BOLD)
-            title.setTextColor(textColor())
-            title.setPadding(0, 0, 0, dp(12))
+            subjectCard.addView(space(10))
 
-            val row = LinearLayout(this)
-            row.orientation = LinearLayout.HORIZONTAL
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+            }
 
             val correct = makeNumberInput("Doğru")
             val wrong = makeNumberInput("Yanlış")
 
+            correctInputs[key] = correct
+            wrongInputs[key] = wrong
+
             row.addView(
                 correct,
-                LinearLayout.LayoutParams(0, dp(58), 1f).apply {
-                    setMargins(0, 0, dp(6), 0)
-                }
+                LinearLayout.LayoutParams(0, 55, 1f)
             )
-
+            row.addView(space(8))
             row.addView(
                 wrong,
-                LinearLayout.LayoutParams(0, dp(58), 1f).apply {
-                    setMargins(dp(6), 0, 0, 0)
-                }
+                LinearLayout.LayoutParams(0, 55, 1f)
             )
 
-            card.addView(title)
-            card.addView(row)
+            subjectCard.addView(row)
 
-            val params = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            params.setMargins(0, 0, 0, dp(12))
+            content.addView(subjectCard)
 
-            content.addView(card, params)
-
-            inputs.add(Triple(subject.first, correct, wrong))
+            content.addView(space(10))
         }
 
         val timeInput = makeNumberInput("Toplam süre (dk)")
-        content.addView(
-            timeInput,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(58)
-            ).apply {
-                setMargins(0, dp(4), 0, dp(14))
-            }
+        content.addView(timeInput)
+
+        content.addView(space(18))
+
+        val resultText = text(
+            "",
+            16f,
+            if (isDark) textDark else textLight
         )
 
-        val result = TextView(this)
-        result.text = ""
-        result.textSize = 18f
-        result.setTypeface(null, android.graphics.Typeface.BOLD)
-        result.setTextColor(textColor())
-        result.gravity = Gravity.CENTER
-        result.setPadding(0, dp(12), 0, dp(12))
+        content.addView(resultText)
 
-        content.addView(result)
+        content.addView(space(10))
 
-        val save = Button(this)
-        save.text = "Kaydet"
-        save.textSize = 17f
-        save.setAllCaps(false)
-        save.setTextColor(textColor())
+        val saveButton = button("Kaydet").apply {
+            textSize = 17f
 
-        val saveBg = GradientDrawable()
-        saveBg.cornerRadius = dp(30).toFloat()
-        saveBg.setColor(
-            if (darkMode) Color.rgb(55, 55, 60)
-            else Color.rgb(220, 220, 225)
-        )
-        save.background = saveBg
+            setOnClickListener {
+                var totalCorrect = 0
+                var totalWrong = 0
+                var valid = true
 
-        save.setOnClickListener {
-            var totalNet = 0.0
-            var valid = true
-            var message = ""
+                for ((subject, count, key) in subjects) {
+                    val correct = correctInputs[key]?.text?.toString()?.toIntOrNull()
+                    val wrong = wrongInputs[key]?.text?.toString()?.toIntOrNull()
 
-            inputs.forEach { item ->
-                val subject = item.first
-                val correct = item.second.text.toString().toIntOrNull() ?: 0
-                val wrong = item.third.text.toString().toIntOrNull() ?: 0
-                val questionCount = subjects.first { it.first == subject }.second
+                    if (correct == null || wrong == null ||
+                        correct < 0 || wrong < 0 ||
+                        correct + wrong > count
+                    ) {
+                        valid = false
+                        break
+                    }
 
-                if (correct < 0 || wrong < 0 || correct + wrong > questionCount) {
-                    valid = false
-                    message = "$subject: doğru + yanlış soru sayısını geçemez."
+                    totalCorrect += correct
+                    totalWrong += wrong
                 }
 
-                totalNet += correct - wrong / 4.0
-            }
+                val time = timeInput.text.toString().toDoubleOrNull()
+                    ?: 0.0
 
-            val totalTime = timeInput.text.toString().toDoubleOrNull() ?: 0.0
-            val maxTime = if (selectedExam == "TYT") 165 else 180
+                val maxTime = if (selectedExamType == "TYT") 165.0 else 180.0
 
-            if (totalTime < 0 || totalTime > maxTime) {
-                valid = false
-                message = "Toplam süre $maxTime dakikayı geçemez."
-            }
+                if (time < 0 || time > maxTime) {
+                    valid = false
+                }
 
-            if (valid) {
-                result.text = "Toplam: ${formatNet(totalNet)} net"
-                save.text = "✓ Kaydedildi"
+                if (!valid) {
+                    resultText.text =
+                        "Bilgileri kontrol et. Doğru + yanlış soru sayısını geçemez."
+                    return@setOnClickListener
+                }
 
-                save.postDelayed({
-                    showHome()
-                }, 900)
-            } else {
-                result.text = message
+                val net = totalCorrect - totalWrong / 4.0
+
+                resultText.text =
+                    "Toplam: $totalCorrect doğru • $totalWrong yanlış\n" +
+                    "Net: ${formatNet(net)}"
+
+                Toast.makeText(
+                    this@MainActivity,
+                    "Deneme kaydedildi",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
         content.addView(
-            save,
+            saveButton,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(62)
+                58
             )
         )
     }
 
-    private fun makeInput(
-        hint: String,
-        placeholder: String
-    ): EditText {
-        val input = EditText(this)
-        input.hint = placeholder
-        input.textSize = 15f
-        input.setTextColor(textColor())
-        input.setHintTextColor(secondaryColor())
-        input.setSingleLine(true)
-        input.setPadding(dp(16), 0, dp(16), 0)
-
-        val bg = GradientDrawable()
-        bg.cornerRadius = dp(20).toFloat()
-        bg.setColor(cardColor())
-        input.background = bg
-
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            dp(58)
-        )
-        params.setMargins(0, 0, 0, dp(14))
-
-        input.tag = hint
-        content.addView(input, params)
-
-        return input
-    }
-
-    private fun makeNumberInput(label: String): EditText {
-        val input = EditText(this)
-        input.hint = label
-        input.textSize = 15f
-        input.inputType =
-            android.text.InputType.TYPE_CLASS_NUMBER or
-                    android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-        input.setTextColor(textColor())
-        input.setHintTextColor(secondaryColor())
-        input.setSingleLine(true)
-        input.gravity = Gravity.CENTER
-        input.setPadding(dp(10), 0, dp(10), 0)
-
-        val bg = GradientDrawable()
-        bg.cornerRadius = dp(18).toFloat()
-        bg.setColor(
-            if (darkMode) Color.rgb(35, 35, 39)
-            else Color.rgb(242, 242, 245)
-        )
-        input.background = bg
-
-        return input
-    }
-
-    private fun formatNet(value: Double): String {
-        return String.format(Locale.US, "%.2f", value)
-            .replace(".", ",")
-    }
-
     private fun showHistory() {
-        baseContent()
+        setupRoot()
+        content.removeAllViews()
 
-        addTitle(
-            "Geçmiş",
-            "Kaydettiğin denemeler"
+        addTitle("Geçmiş Denemeler")
+        addSubtitle("Kaydettiğin denemeler burada görünecek.")
+
+        content.addView(space(30))
+
+        val empty = text(
+            "Henüz deneme kaydı yok.",
+            17f,
+            if (isDark) mutedDark else mutedLight
         )
 
-        val empty = TextView(this)
-        empty.text = "Henüz kayıtlı deneme yok."
-        empty.textSize = 17f
-        empty.setTextColor(secondaryColor())
         empty.gravity = Gravity.CENTER
-        empty.setPadding(0, dp(100), 0, dp(100))
 
         content.addView(
             empty,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                200
             )
         )
     }
 
     private fun showStats() {
-        baseContent()
+        setupRoot()
+        content.removeAllViews()
 
-        addTitle(
-            "İstatistik",
-            "$selectedExam gelişimin"
+        addTitle("İstatistikler")
+        addSubtitle("Deneme performansını incele.")
+
+        content.addView(space(30))
+
+        content.addView(
+            text(
+                "Henüz yeterli veri yok.",
+                17f,
+                if (isDark) mutedDark else mutedLight
+            )
         )
-
-        addCard("Ortalama net", "—")
-        addCard("En yüksek net", "—")
-        addCard("En düşük net", "—")
-
-        val empty = TextView(this)
-        empty.text = "Deneme ekledikçe grafiklerin burada görünecek."
-        empty.textSize = 14f
-        empty.setTextColor(secondaryColor())
-        empty.gravity = Gravity.CENTER
-        empty.setPadding(dp(10), dp(30), dp(10), dp(30))
-
-        content.addView(empty)
     }
 
-    private fun showTheme() {
-        baseContent()
+    private fun showAppearance() {
+        setupRoot()
+        content.removeAllViews()
 
-        addTitle(
-            "Görünüm",
-            "Uygulamanın görünümünü seç"
-        )
+        addTitle("Görünüm")
+        addSubtitle("Uygulamanın temasını seç.")
 
-        val dark = makeThemeButton("Koyu", darkMode)
-        val light = makeThemeButton("Açık", !darkMode)
+        content.addView(space(24))
+
+        val darkButton = button("Koyu tema")
+        val lightButton = button("Açık tema")
+
+        darkButton.setOnClickListener {
+            isDark = true
+            showAppearance()
+        }
+
+        lightButton.setOnClickListener {
+            isDark = false
+            showAppearance()
+        }
 
         content.addView(
-            dark,
+            darkButton,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(62)
-            ).apply {
-                setMargins(0, 0, 0, dp(12))
-            }
-        )
-
-        content.addView(
-            light,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(62)
+                56
             )
         )
 
-        dark.setOnClickListener {
-            darkMode = true
-            showTheme()
+        content.addView(space(10))
+
+        content.addView(
+            lightButton,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                56
+            )
+        )
+    }
+
+    private fun createBottomBar(): View {
+        val bar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(10, 10, 10, 10)
+            setBackgroundColor(if (isDark) Color.rgb(35, 35, 38) else Color.WHITE)
         }
 
-        light.setOnClickListener {
-            darkMode = false
-            showTheme()
+        val home = navButton("Ana Sayfa")
+        val history = navButton("Geçmiş")
+        val stats = navButton("İstatistik")
+        val appearance = navButton("Görünüm")
+
+        home.setOnClickListener { showHome() }
+        history.setOnClickListener { showHistory() }
+        stats.setOnClickListener { showStats() }
+        appearance.setOnClickListener { showAppearance() }
+
+        bar.addView(home, LinearLayout.LayoutParams(0, 60, 1f))
+        bar.addView(history, LinearLayout.LayoutParams(0, 60, 1f))
+        bar.addView(stats, LinearLayout.LayoutParams(0, 60, 1f))
+        bar.addView(appearance, LinearLayout.LayoutParams(0, 60, 1f))
+
+        return bar
+    }
+
+    private fun addTitle(value: String) {
+        content.addView(
+            text(
+                value,
+                32f,
+                if (isDark) textDark else textLight
+            )
+        )
+    }
+
+    private fun addSubtitle(value: String) {
+        content.addView(
+            text(
+                value,
+                15f,
+                if (isDark) mutedDark else mutedLight
+            )
+        )
+    }
+
+    private fun card(): LinearLayout {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 20, 20, 20)
+            setBackgroundColor(if (isDark) cardDark else cardLight)
         }
     }
 
-    private fun makeThemeButton(
-        text: String,
-        selected: Boolean
-    ): Button {
-        val button = Button(this)
-        button.text = if (selected) "✓  $text" else text
-        button.textSize = 16f
-        button.setAllCaps(false)
-        button.setTextColor(textColor())
+    private fun statCard(title: String, value: String): LinearLayout {
+        val card = card()
 
-        val bg = GradientDrawable()
-        bg.cornerRadius = dp(25).toFloat()
-        bg.setColor(
-            if (selected) {
-                if (darkMode) Color.rgb(55, 55, 60)
-                else Color.rgb(225, 225, 230)
-            } else {
-                cardColor()
-            }
+        card.addView(
+            text(
+                title,
+                13f,
+                if (isDark) mutedDark else mutedLight
+            )
         )
-        button.background = bg
 
-        return button
+        card.addView(space(8))
+
+        card.addView(
+            text(
+                value,
+                24f,
+                if (isDark) textDark else textLight
+            )
+        )
+
+        return card
+    }
+
+    private fun makeInput(
+        hint: String,
+        multiline: Boolean
+    ): EditText {
+        return EditText(this).apply {
+            this.hint = hint
+            textSize = 16f
+            setTextColor(if (isDark) textDark else textLight)
+            setHintTextColor(if (isDark) mutedDark else mutedLight)
+            setPadding(16, 0, 16, 0)
+
+            if (multiline) {
+                minLines = 3
+            }
+
+            background = null
+        }
+    }
+
+    private fun makeNumberInput(hint: String): EditText {
+        return EditText(this).apply {
+            this.hint = hint
+            textSize = 16f
+            inputType =
+                android.text.InputType.TYPE_CLASS_NUMBER or
+                        android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setTextColor(if (isDark) textDark else textLight)
+            setHintTextColor(if (isDark) mutedDark else mutedLight)
+            setPadding(16, 0, 16, 0)
+            background = null
+        }
+    }
+
+    private fun button(label: String): Button {
+        return Button(this).apply {
+            text = label
+            textSize = 15f
+            isAllCaps = false
+            setTextColor(if (isDark) textDark else textLight)
+            setBackgroundColor(if (isDark) cardDark else cardLight)
+        }
+    }
+
+    private fun navButton(label: String): Button {
+        return Button(this).apply {
+            text = label
+            textSize = 12f
+            isAllCaps = false
+            setTextColor(if (isDark) textDark else textLight)
+            background = null
+        }
+    }
+
+    private fun text(
+        value: String,
+        size: Float,
+        color: Int
+    ): TextView {
+        return TextView(this).apply {
+            text = value
+            textSize = size
+            setTextColor(color)
+        }
+    }
+
+    private fun space(height: Int): Space {
+        return Space(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                1,
+                height
+            )
+        }
+    }
+
+    private fun formatNet(value: Double): String {
+        val rounded = round(value * 100) / 100
+        return if (rounded % 1.0 == 0.0) {
+            rounded.toInt().toString()
+        } else {
+            rounded.toString()
+        }
     }
 }
