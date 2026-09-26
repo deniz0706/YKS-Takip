@@ -72,7 +72,7 @@ class LineChartView @JvmOverloads constructor(
     }
 
     private fun chartRect(): RectF {
-        val padLeft = 48f; val padRight = 12f; val padTop = 30f; val padBottom = 50f
+        val padLeft = 60f; val padRight = 12f; val padTop = 30f; val padBottom = 50f
         return RectF(padLeft, padTop, width - padRight, height - padBottom)
     }
 
