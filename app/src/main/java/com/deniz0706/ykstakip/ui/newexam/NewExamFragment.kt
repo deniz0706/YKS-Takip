@@ -369,19 +369,22 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
     }
 
     private fun selectDefaultZeroOnFocus(
-        editText: EditText
-    ) {
-        editText.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) {
-                val text = editText.text.toString()
-
-                if (text == "0") {
-                    editText.selectAll()
-                }
-            }
+    editText: EditText
+) {
+    editText.setOnFocusChangeListener { _, hasFocus ->
+        if (hasFocus && editText.text.toString() == "0") {
+            editText.selectAll()
         }
     }
 
+    editText.setOnClickListener {
+        if (editText.text.toString() == "0") {
+            editText.selectAll()
+        }
+    }
+}
+
+    
     private fun clampField(
         et: EditText,
         max: Int
