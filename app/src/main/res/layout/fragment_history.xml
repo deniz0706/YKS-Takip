@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background"
+    android:paddingHorizontal="@dimen/space_l"
+    android:paddingTop="@dimen/space_xl">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Geçmiş Denemeler"
+        android:textSize="@dimen/text_title"
+        android:textStyle="bold"
+        android:textColor="@color/on_background" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:orientation="horizontal"
+        android:background="@color/input_bg"
+        android:padding="4dp">
+
+        <TextView android:id="@+id/toggleTyt" android:layout_width="88dp" android:layout_height="40dp"
+            android:gravity="center" android:text="TYT" android:textStyle="bold"
+            android:background="@drawable/bg_pill_toggle" android:textColor="@color/on_background" />
+
+        <TextView android:id="@+id/toggleAyt" android:layout_width="88dp" android:layout_height="40dp"
+            android:layout_marginStart="4dp" android:gravity="center" android:text="AYT" android:textStyle="bold"
+            android:background="@drawable/bg_pill_toggle" android:textColor="@color/on_background" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/space_m"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp" />
+
+    <LinearLayout
+        android:id="@+id/emptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:orientation="vertical"
+        android:background="@drawable/bg_card"
+        android:padding="@dimen/card_padding"
+        android:visibility="gone">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Henüz deneme yok" android:textStyle="bold" android:textSize="16sp" android:textColor="@color/on_background" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" android:text="İlk denemeni eklediğinde burada görünecek."
+            android:textSize="@dimen/text_body" android:textColor="@color/on_surface_secondary" />
+    </LinearLayout>
+
+</LinearLayout>
