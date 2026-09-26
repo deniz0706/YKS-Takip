@@ -56,8 +56,6 @@
 
         <View android:layout_width="8dp" android:layout_height="1dp" />
 
-<View android:layout_width="8dp" android:layout_height="1dp" />
-
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Süre (dk)" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
@@ -77,6 +75,19 @@
         <TextView android:id="@+id/tvSubjectBlank" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/on_background" />
     </LinearLayout>
+
+    <EditText
+        android:id="@+id/etTopics"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_input"
+        android:paddingHorizontal="12dp"
+        android:hint="Zayıf konular (virgülle ayır, örn. Trigonometri, Türev)"
+        android:textColor="@color/on_background"
+        android:textColorHint="@color/on_surface_secondary"
+        android:textSize="12sp"
+        android:singleLine="true" />
 
     <TextView
         android:id="@+id/tvSubjectError"
