@@ -126,5 +126,74 @@
             android:background="@drawable/bg_button_primary"
             android:clickable="true" android:focusable="true" />
 
+        <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xl"
+        android:text="Hedefler"
+        android:textSize="@dimen/text_body"
+        android:textColor="@color/on_surface_secondary" />
+
+    <EditText
+        android:id="@+id/etTargetTyt"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="@dimen/space_s"
+        android:background="@drawable/bg_input"
+        android:paddingHorizontal="14dp"
+        android:hint="Hedef TYT neti (örn. 95)"
+        android:inputType="numberDecimal"
+        android:textColor="@color/on_background"
+        android:textColorHint="@color/on_surface_secondary" />
+
+    <EditText
+        android:id="@+id/etTargetAyt"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="@dimen/space_s"
+        android:background="@drawable/bg_input"
+        android:paddingHorizontal="14dp"
+        android:hint="Hedef AYT neti (örn. 60)"
+        android:inputType="numberDecimal"
+        android:textColor="@color/on_background"
+        android:textColorHint="@color/on_surface_secondary" />
+
+    <TextView
+        android:id="@+id/tvExamDate"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="@dimen/space_s"
+        android:background="@drawable/bg_input"
+        android:paddingHorizontal="14dp"
+        android:gravity="center_vertical"
+        android:text="YKS tarihini seç"
+        android:textColor="@color/on_background"
+        android:clickable="true" android:focusable="true" />
+
+    <EditText
+        android:id="@+id/etDailyGoal"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="@dimen/space_s"
+        android:background="@drawable/bg_input"
+        android:paddingHorizontal="14dp"
+        android:hint="Günlük soru hedefi (örn. 300)"
+        android:inputType="number"
+        android:textColor="@color/on_background"
+        android:textColorHint="@color/on_surface_secondary" />
+
+    <TextView
+        android:id="@+id/btnSaveGoals"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:layout_marginTop="@dimen/space_s"
+        android:layout_marginBottom="@dimen/space_xl"
+        android:gravity="center"
+        android:text="Hedefleri Kaydet"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:background="@drawable/bg_button_primary"
+        android:clickable="true" android:focusable="true" />
+
     </LinearLayout>
 </ScrollView>
