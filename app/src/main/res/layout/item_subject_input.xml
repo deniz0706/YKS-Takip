@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card"
+    android:padding="@dimen/space_m"
+    android:layout_marginBottom="@dimen/space_m">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvSubjectTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_body"
+            android:textColor="@color/on_background" />
+
+        <TextView
+            android:id="@+id/tvSubjectNet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_body"
+            android:textColor="@color/accent" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/space_s">
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Doğru" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+            <EditText android:id="@+id/etCorrect" android:layout_width="match_parent" android:layout_height="44dp"
+                android:background="@drawable/bg_input" android:inputType="number" android:gravity="center"
+                android:textColor="@color/on_background" android:maxLength="3" android:text="0" />
+        </LinearLayout>
+
+        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Yanlış" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+            <EditText android:id="@+id/etWrong" android:layout_width="match_parent" android:layout_height="44dp"
+                android:background="@drawable/bg_input" android:inputType="number" android:gravity="center"
+                android:textColor="@color/on_background" android:maxLength="3" android:text="0" />
+        </LinearLayout>
+
+        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Süre (dk)" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+            <EditText android:id="@+id/etTime" android:layout_width="match_parent" android:layout_height="44dp"
+                android:background="@drawable/bg_input" android:inputType="number" android:gravity="center"
+                android:textColor="@color/on_background" android:maxLength="3" android:text="0" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSubjectError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textSize="12sp"
+        android:textColor="@color/negative"
+        android:visibility="gone" />
+</LinearLayout>
