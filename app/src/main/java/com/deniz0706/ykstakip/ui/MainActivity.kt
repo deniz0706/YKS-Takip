@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
                 FloatingBottomNavView.NavItem(NAV_HISTORY, "Geçmiş"),
                 FloatingBottomNavView.NavItem(NAV_STUDY, "Çalışma"),
                 FloatingBottomNavView.NavItem(NAV_STATS, "İstatistik"),
-                FloatingBottomNavView.NavItem(NAV_SETTINGS, "Görünüm")
+                FloatingBottomNavView.NavItem(NAV_SETTINGS, "Ayarlar")
             ),
             initialSelectedId = NAV_HOME,
             onSelected = { id -> showFragment(id) }
