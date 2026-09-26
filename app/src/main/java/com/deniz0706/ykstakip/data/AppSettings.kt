@@ -8,6 +8,7 @@ object AppSettings {
     private const val KEY_TARGET_AYT = "target_net_ayt"
     private const val KEY_EXAM_DATE = "yks_exam_date_millis" // yyyy-MM-dd formatında epoch millis
     private const val KEY_DAILY_GOAL = "daily_question_goal"
+    private const val KEY_OBP = "obp"
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -43,6 +44,21 @@ object AppSettings {
     fun setDailyGoal(context: Context, value: Int?) {
         prefs(context).edit().apply {
             if (value == null) remove(KEY_DAILY_GOAL) else putInt(KEY_DAILY_GOAL, value)
+        }.apply()
+    }
+
+    fun getObp(context: Context): Float? {
+        val v = prefs(context).getFloat(KEY_OBP, -1f)
+        return if (v < 0f) null else v
+    }
+
+    fun setObp(context: Context, value: Float?) {
+        prefs(context).edit().apply {
+            if (value == null) {
+                remove(KEY_OBP)
+            } else {
+                putFloat(KEY_OBP, value)
+            }
         }.apply()
     }
 }
