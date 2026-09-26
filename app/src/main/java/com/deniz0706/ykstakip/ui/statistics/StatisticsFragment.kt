@@ -388,6 +388,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
                 results.map { it.estimate }
 
             showRankingStats(estimates)
+            renderRankingTrend()
         } else {
             val results =
                 YksRankingCalculator.calculateAyt(
@@ -407,6 +408,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
                 results.map { it.estimate }
 
             showRankingStats(estimates)
+            renderRankingTrend()
         }
     }
 
@@ -444,6 +446,109 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
             formatRanking(worst)
     }
 
+        private fun renderRankingTrend() {
+        val v = view ?: return
+
+        val chart =
+            v.findViewById<LineChartView>(R.id.rankingChart)
+
+        val empty =
+            v.findViewById<TextView>(R.id.tvEmptyRankingChart)
+
+        val obp =
+            AppSettings.getObp(requireContext())?.toDouble()
+
+        if (obp == null) {
+            chart.visibility = View.GONE
+            empty.visibility = View.VISIBLE
+            return
+        }
+
+        val exams =
+            repository.getAllExams()
+
+        val points =
+            if (examType == ExamType.TYT) {
+                YksRankingCalculator
+                    .calculateTyt(
+                        exams = exams,
+                        obp = obp
+                    )
+                    .map { result ->
+                        rankingPoint(
+                            date = result.exam.date,
+                            title = result.exam.title,
+                            estimate = result.estimate
+                        )
+                    }
+            } else {
+                YksRankingCalculator
+                    .calculateAyt(
+                        exams = exams,
+                        obp = obp,
+                        field = aytField
+                    )
+                    .map { result ->
+                        rankingPoint(
+                            date = result.aytExam.date,
+                            title = result.aytExam.title,
+                            estimate = result.estimate
+                        )
+                    }
+            }
+
+        if (points.isEmpty()) {
+            chart.visibility = View.GONE
+            empty.visibility = View.VISIBLE
+            return
+        }
+
+        chart.visibility = View.VISIBLE
+        empty.visibility = View.GONE
+        chart.reverseY = true
+        chart.targetValue = null
+        chart.points = points
+    }
+
+    private fun rankingPoint(
+        date: String,
+        title: String,
+        estimate: com.deniz0706.ykstakip.util.RankingEstimate
+    ): LineChartView.Point {
+        val parser =
+            SimpleDateFormat(
+                "yyyy-MM-dd",
+                Locale.US
+            )
+
+        val df =
+            SimpleDateFormat(
+                "d MMM",
+                Locale("tr", "TR")
+            )
+
+        val dfFull =
+            SimpleDateFormat(
+                "d MMMM yyyy",
+                Locale("tr", "TR")
+            )
+
+        val parsed =
+            try {
+                parser.parse(date)
+            } catch (e: Exception) {
+                null
+            }
+
+        return LineChartView.Point(
+            xLabel = if (parsed != null) df.format(parsed) else date,
+            value = estimate.center.toFloat(),
+            title = title,
+            fullDate = if (parsed != null) dfFull.format(parsed) else date,
+            unit = " sıra"
+        )
+    }
+
     private fun showRankingEmpty(
         message: String
     ) {
@@ -457,9 +562,76 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         empty.text = message
 
         clearRankingStats()
+        renderRankingTrend()
     }
 
-    private fun clearRankingStats() {
+    private fun renderRankingTrend() {
+    val v = view ?: return
+
+    val chart =
+        v.findViewById<LineChartView>(R.id.rankingChart)
+
+    val empty =
+        v.findViewById<TextView>(R.id.tvEmptyRankingChart)
+
+    val obp =
+        AppSettings.getObp(requireContext())?.toDouble()
+
+    if (obp == null) {
+        chart.visibility = View.GONE
+        empty.visibility = View.VISIBLE
+        return
+    }
+
+    val exams =
+        repository.getAllExams()
+
+    val points =
+        if (examType == ExamType.TYT) {
+            YksRankingCalculator
+                .calculateTyt(
+                    exams = exams,
+                    obp = obp
+                )
+                .map { result ->
+                    rankingPoint(
+                        date = result.exam.date,
+                        title = result.exam.title,
+                        estimate = result.estimate
+                    )
+                }
+        } else {
+            YksRankingCalculator
+                .calculateAyt(
+                    exams = exams,
+                    obp = obp,
+                    field = aytField
+                )
+                .map { result ->
+                    rankingPoint(
+                        date = result.aytExam.date,
+                        title = result.aytExam.title,
+                        estimate = result.estimate
+                    )
+                }
+        }
+
+    if (points.isEmpty()) {
+        chart.visibility = View.GONE
+        empty.visibility = View.VISIBLE
+        return
+    }
+
+    chart.visibility = View.VISIBLE
+    empty.visibility = View.GONE
+
+    chart.reverseY = true
+    chart.targetValue = null
+    chart.points = points
+}
+
+    private fun clearRankingStats()
+    renderRankingTrend(){
         val v = view ?: return
 
         v.findViewById<TextView>(R.id.tvRankingLast).text = "—"
@@ -468,6 +640,44 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         v.findViewById<TextView>(R.id.tvRankingBest).text = "—"
         v.findViewById<TextView>(R.id.tvRankingWorst).text = "—"
     }
+    private fun rankingPoint(
+    date: String,
+    title: String,
+    estimate: com.deniz0706.ykstakip.util.RankingEstimate
+): LineChartView.Point {
+    val parser =
+        SimpleDateFormat(
+            "yyyy-MM-dd",
+            Locale.US
+        )
+
+    val df =
+        SimpleDateFormat(
+            "d MMM",
+            Locale("tr", "TR")
+        )
+
+    val dfFull =
+        SimpleDateFormat(
+            "d MMMM yyyy",
+            Locale("tr", "TR")
+        )
+
+    val parsed =
+        try {
+            parser.parse(date)
+        } catch (e: Exception) {
+            null
+        }
+
+    return LineChartView.Point(
+        xLabel = if (parsed != null) df.format(parsed) else date,
+        value = estimate.center.toFloat(),
+        title = title,
+        fullDate = if (parsed != null) dfFull.format(parsed) else date,
+        unit = " sıra"
+    )
+}
 
     private fun formatRanking(
         estimate: com.deniz0706.ykstakip.util.RankingEstimate
