@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.R
 import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.ExamRepository
+import com.deniz0706.ykstakip.data.StudyRepository
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.util.Fmt
@@ -19,15 +20,23 @@ import java.util.Locale
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private lateinit var repository: ExamRepository
+    private lateinit var studyRepository: StudyRepository
+
     private var selectedType = ExamType.TYT
+
     private val changeListener = { refresh() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         repository = ExamRepository.getInstance(requireContext())
+        studyRepository = StudyRepository(requireContext())
 
         view.findViewById<TextView>(R.id.tvDate).text =
-            SimpleDateFormat("d MMMM yyyy, EEEE", Locale("tr", "TR")).format(Date())
+            SimpleDateFormat(
+                "d MMMM yyyy, EEEE",
+                Locale("tr", "TR")
+            ).format(Date())
 
         view.findViewById<View>(R.id.toggleTyt).setOnClickListener {
             selectedType = ExamType.TYT
@@ -48,12 +57,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     override fun onResume() {
         super.onResume()
+
         repository.addChangeListener(changeListener)
         refresh()
     }
 
     override fun onPause() {
         super.onPause()
+
         repository.removeChangeListener(changeListener)
     }
 
@@ -85,16 +96,24 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             tvLastNet.text = Fmt.net(nets.last())
 
             if (nets.size >= 2) {
-                val delta = Fmt.round2(nets.last() - nets[nets.size - 2])
+                val delta =
+                    Fmt.round2(nets.last() - nets[nets.size - 2])
+
                 tvDelta.visibility = View.VISIBLE
                 tvDelta.text = Fmt.netWithSign(delta)
 
                 val color =
-                    if (delta >= 0) R.color.positive
-                    else R.color.negative
+                    if (delta >= 0) {
+                        R.color.positive
+                    } else {
+                        R.color.negative
+                    }
 
                 tvDelta.setTextColor(
-                    ContextCompat.getColor(requireContext(), color)
+                    ContextCompat.getColor(
+                        requireContext(),
+                        color
+                    )
                 )
             } else {
                 tvDelta.visibility = View.GONE
@@ -102,13 +121,25 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
 
         view.findViewById<TextView>(R.id.tvAvg).text =
-            if (nets.isEmpty()) "—" else Fmt.net(nets.average())
+            if (nets.isEmpty()) {
+                "—"
+            } else {
+                Fmt.net(nets.average())
+            }
 
         view.findViewById<TextView>(R.id.tvMax).text =
-            if (nets.isEmpty()) "—" else Fmt.net(nets.max())
+            if (nets.isEmpty()) {
+                "—"
+            } else {
+                Fmt.net(nets.max())
+            }
 
         view.findViewById<TextView>(R.id.tvLast5).text =
-            if (nets.isEmpty()) "—" else Fmt.net(nets.takeLast(5).average())
+            if (nets.isEmpty()) {
+                "—"
+            } else {
+                Fmt.net(nets.takeLast(5).average())
+            }
 
         view.findViewById<TextView>(R.id.tvTotalCount).text =
             "Toplam ${exams.size} ${selectedType.label} denemesi"
@@ -128,14 +159,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val days = daysUntilExam(selectedType)
 
         view.findViewById<TextView>(R.id.tvDaysLeft).text =
-            if (days >= 0) "$days gün" else "Geçti"
+            if (days >= 0) {
+                "$days gün"
+            } else {
+                "Geçti"
+            }
 
-        val todayStr =
-            SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val today = todayString()
+        val studyDay = studyRepository.get(today)
 
-        val todayQuestionCount = repository.getAllExams()
-            .filter { it.date == todayStr }
-            .sumOf { it.totalQuestions }
+        val todayQuestionCount =
+            studyDay?.questionCount ?: 0
 
         view.findViewById<TextView>(R.id.tvTodayQuestions).text =
             if (dailyGoal != null) {
@@ -155,6 +189,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 0,
                 0
             )
+
             set(Calendar.MILLISECOND, 0)
         }
 
@@ -167,5 +202,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         return (exam.timeInMillis - today.timeInMillis) /
                 (24L * 60L * 60L * 1000L)
+    }
+
+    private fun todayString(): String {
+        return SimpleDateFormat(
+            "yyyy-MM-dd",
+            Locale.US
+        ).format(Date())
     }
 }
