@@ -101,7 +101,7 @@ view.findViewById<View>(R.id.fieldSozel).setOnClickListener {
                 view.findViewById<EditText>(R.id.etTitle).setText(exam.title)
                 selectedType = exam.type
                 if (selectedType == ExamType.AYT) {
-    selectedAytField = AytField.SAYISAL
+    selectedAytField = exam.aytField ?: AytField.SAYISAL
 }
                 SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(exam.date)?.let { selectedDate.time = it }
                 updateDateLabel()
@@ -321,6 +321,7 @@ for (config in subjectConfigs) {
             title = title,
             date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selectedDate.time),
             type = selectedType,
+            aytField = if (selectedType == ExamType.AYT) selectedAytField else null,
             subjects = subjects
         )
         repository.saveExam(exam)
