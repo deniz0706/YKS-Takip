@@ -292,13 +292,6 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
 
             rows.add(row)
 
-            // Alanın içindeki varsayılan 0'a ilk dokunuşta
-            // 0'ın tamamını seç. Böylece örneğin 5 yazınca
-            // "05" değil direkt "5" olur.
-            selectDefaultZeroOnFocus(etCorrect)
-            selectDefaultZeroOnFocus(etWrong)
-            selectDefaultZeroOnFocus(etTime)
-
             val watcher = object : TextWatcher {
                 override fun beforeTextChanged(
                     s: CharSequence?,
@@ -368,23 +361,6 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
         updateSaveButtonState()
     }
 
-    private fun selectDefaultZeroOnFocus(
-    editText: EditText
-) {
-    editText.setOnFocusChangeListener { _, hasFocus ->
-        if (hasFocus && editText.text.toString() == "0") {
-            editText.selectAll()
-        }
-    }
-
-    editText.setOnClickListener {
-        if (editText.text.toString() == "0") {
-            editText.selectAll()
-        }
-    }
-}
-
-    
     private fun clampField(
         et: EditText,
         max: Int
