@@ -10,6 +10,7 @@ import com.deniz0706.ykstakip.ui.nav.FloatingBottomNavView
 import com.deniz0706.ykstakip.ui.newexam.NewExamFragment
 import com.deniz0706.ykstakip.ui.settings.SettingsFragment
 import com.deniz0706.ykstakip.ui.statistics.StatisticsFragment
+import com.deniz0706.ykstakip.model.ExamType
 
 class MainActivity : AppCompatActivity() {
 
@@ -60,13 +61,13 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
-    fun openNewExam() {
+    fun openNewExam(type: ExamType) {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(
                 android.R.anim.fade_in, android.R.anim.fade_out,
                 android.R.anim.fade_in, android.R.anim.fade_out
             )
-            .replace(R.id.fragmentContainer, NewExamFragment())
+            .replace(R.id.fragmentContainer, NewExamFragment.newInstanceForType(type))
             .addToBackStack("new_exam")
             .commit()
     }
