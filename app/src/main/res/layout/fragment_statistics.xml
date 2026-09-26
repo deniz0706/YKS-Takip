@@ -132,5 +132,39 @@
                 <TextView android:id="@+id/tvMin" style="@style/StatMiniValue" /></LinearLayout>
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/weakSpotCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/card_padding"
+            android:layout_marginTop="@dimen/space_m"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Zayıf Halka"
+                android:textStyle="bold"
+                android:textSize="@dimen/text_body"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Son 5 deneme"
+                android:textSize="12sp"
+                android:textColor="@color/on_surface_secondary" />
+
+            <LinearLayout
+                android:id="@+id/weakSpotList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="@dimen/space_s" />
+        </LinearLayout>
+
     </LinearLayout>
 </ScrollView>
