@@ -112,7 +112,7 @@ class LineChartView @JvmOverloads constructor(
         axisTextPaint
     )
 }
-        }
+        
 
         fun xFor(i: Int): Float =
             if (points.size == 1) rect.centerX() else rect.left + rect.width() * i / (points.size - 1)
