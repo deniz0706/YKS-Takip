@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background"
+    android:paddingHorizontal="@dimen/space_l"
+    android:paddingTop="@dimen/space_xl">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Görünüm"
+        android:textSize="@dimen/text_title"
+        android:textStyle="bold"
+        android:textColor="@color/on_background" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_l"
+        android:text="Tema"
+        android:textSize="@dimen/text_body"
+        android:textColor="@color/on_surface_secondary" />
+
+    <TextView android:id="@+id/optLight" android:layout_width="match_parent" android:layout_height="54dp"
+        android:layout_marginTop="@dimen/space_s" android:gravity="center_vertical" android:paddingHorizontal="16dp"
+        android:text="Açık" android:textStyle="bold" android:background="@drawable/bg_pill_toggle" android:textColor="@color/on_background" />
+
+    <TextView android:id="@+id/optDark" android:layout_width="match_parent" android:layout_height="54dp"
+        android:layout_marginTop="@dimen/space_s" android:gravity="center_vertical" android:paddingHorizontal="16dp"
+        android:text="Koyu" android:textStyle="bold" android:background="@drawable/bg_pill_toggle" android:textColor="@color/on_background" />
+
+    <TextView android:id="@+id/optSystem" android:layout_width="match_parent" android:layout_height="54dp"
+        android:layout_marginTop="@dimen/space_s" android:gravity="center_vertical" android:paddingHorizontal="16dp"
+        android:text="Sistem" android:textStyle="bold" android:background="@drawable/bg_pill_toggle" android:textColor="@color/on_background" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_xl"
+        android:text="Yedekleme"
+        android:textSize="@dimen/text_body"
+        android:textColor="@color/on_surface_secondary" />
+
+    <TextView android:id="@+id/btnExport" android:layout_width="match_parent" android:layout_height="54dp"
+        android:layout_marginTop="@dimen/space_s" android:gravity="center" android:text="Dışa Aktar (JSON)"
+        android:textStyle="bold" android:textColor="@android:color/white" android:background="@drawable/bg_button_primary"
+        android:clickable="true" android:focusable="true" />
+
+    <TextView android:id="@+id/btnImport" android:layout_width="match_parent" android:layout_height="54dp"
+        android:layout_marginTop="@dimen/space_s" android:gravity="center" android:text="İçe Aktar (JSON)"
+        android:textStyle="bold" android:background="@drawable/bg_button_secondary" android:textColor="@color/on_background"
+        android:clickable="true" android:focusable="true" />
+
+</LinearLayout>
