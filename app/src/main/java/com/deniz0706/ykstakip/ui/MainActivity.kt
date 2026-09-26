@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.ui
 
 import android.os.Bundle
+import com.deniz0706.ykstakip.ui.study.StudyFragment
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.R
@@ -19,9 +20,10 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val NAV_HOME = 1
-        const val NAV_HISTORY = 2
-        const val NAV_STATS = 3
-        const val NAV_SETTINGS = 4
+const val NAV_HISTORY = 2
+const val NAV_STUDY = 3
+const val NAV_STATS = 4
+const val NAV_SETTINGS = 5
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
