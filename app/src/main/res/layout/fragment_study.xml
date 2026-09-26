@@ -92,4 +92,102 @@
             android:layout_marginTop="@dimen/space_s"
             android:text="Hedef: —"
             android:textSize="14sp"
-            android:textColor="@
+            android:textColor="@color/on_surface_secondary" />
+
+        <Button
+            android:id="@+id/btnEditToday"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_l"
+            android:text="Bugünü düzenle" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xl"
+            android:text="Z Raporu"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/on_background" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_xs"
+            android:text="Tüm kayıtlarına göre çalışma özeti"
+            android:textSize="13sp"
+            android:textColor="@color/on_surface_secondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_l"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTotalQuestions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Toplam soru: 0"
+                android:textSize="16sp"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/tvTotalStudyTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s"
+                android:text="Toplam çalışma: 0 dk"
+                android:textSize="16sp"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/tvAverageQuestions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s"
+                android:text="Günlük ortalama soru: 0"
+                android:textSize="16sp"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/tvAverageStudyTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s"
+                android:text="Günlük ortalama çalışma: 0 dk"
+                android:textSize="16sp"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/tvGoalDays"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s"
+                android:text="Hedef tutan gün: 0"
+                android:textSize="16sp"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/tvBestQuestionDay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s"
+                android:text="En çok soru: —"
+                android:textSize="16sp"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/tvBestStudyDay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s"
+                android:text="En uzun çalışma: —"
+                android:textSize="16sp"
+                android:textColor="@color/on_background" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
