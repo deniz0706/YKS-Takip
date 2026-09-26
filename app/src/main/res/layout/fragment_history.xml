@@ -93,6 +93,128 @@
             android:clickable="true" android:focusable="true" />
     </LinearLayout>
 
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="@dimen/space_s"
+        android:background="@drawable/bg_input"
+        android:paddingHorizontal="14dp"
+        android:hint="Deneme adı veya yayın evi ara"
+        android:textColor="@color/on_background"
+        android:textColorHint="@color/on_surface_secondary"
+        android:textSize="@dimen/text_body"
+        android:singleLine="true" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_s"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/dateFrom"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="12dp"
+            android:gravity="center_vertical"
+            android:text="Başlangıç"
+            android:textSize="12sp"
+            android:textColor="@color/on_surface_secondary"
+            android:clickable="true" android:focusable="true" />
+
+        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+        <TextView
+            android:id="@+id/dateTo"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="12dp"
+            android:gravity="center_vertical"
+            android:text="Bitiş"
+            android:textSize="12sp"
+            android:textColor="@color/on_surface_secondary"
+            android:clickable="true" android:focusable="true" />
+
+        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+        <TextView
+            android:id="@+id/btnClearDates"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:paddingHorizontal="10dp"
+            android:gravity="center"
+            android:text="Temizle"
+            android:textSize="12sp"
+            android:textColor="@color/accent"
+            android:clickable="true" android:focusable="true" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="@dimen/space_s"
+        android:background="@drawable/bg_input"
+        android:paddingHorizontal="14dp"
+        android:hint="Deneme adı veya yayın evi ara"
+        android:textColor="@color/on_background"
+        android:textColorHint="@color/on_surface_secondary"
+        android:textSize="@dimen/text_body"
+        android:singleLine="true" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_s"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/dateFrom"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="12dp"
+            android:gravity="center_vertical"
+            android:text="Başlangıç"
+            android:textSize="12sp"
+            android:textColor="@color/on_surface_secondary"
+            android:clickable="true" android:focusable="true" />
+
+        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+        <TextView
+            android:id="@+id/dateTo"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="12dp"
+            android:gravity="center_vertical"
+            android:text="Bitiş"
+            android:textSize="12sp"
+            android:textColor="@color/on_surface_secondary"
+            android:clickable="true" android:focusable="true" />
+
+        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+        <TextView
+            android:id="@+id/btnClearDates"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:paddingHorizontal="10dp"
+            android:gravity="center"
+            android:text="Temizle"
+            android:textSize="12sp"
+            android:textColor="@color/accent"
+            android:clickable="true" android:focusable="true" />
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
