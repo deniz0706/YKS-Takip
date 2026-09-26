@@ -33,10 +33,14 @@ const val NAV_SETTINGS = 5
         nav = findViewById(R.id.bottomNav)
         nav.setItems(
             items = listOf(
-                FloatingBottomNavView.NavItem(NAV_HOME, "Ana Sayfa"),
-                FloatingBottomNavView.NavItem(NAV_HISTORY, "Geçmiş"),
-                FloatingBottomNavView.NavItem(NAV_STATS, "İstatistik"),
-                FloatingBottomNavView.NavItem(NAV_SETTINGS, "Görünüm")
+                items = listOf(
+    FloatingBottomNavView.NavItem(NAV_HOME, "Ana Sayfa"),
+    FloatingBottomNavView.NavItem(NAV_HISTORY, "Geçmiş"),
+    FloatingBottomNavView.NavItem(NAV_STUDY, "Çalışma"),
+    FloatingBottomNavView.NavItem(NAV_STATS, "İstatistik"),
+    FloatingBottomNavView.NavItem(NAV_SETTINGS, "Görünüm")
+),
+                
             ),
             initialSelectedId = NAV_HOME,
             onSelected = { id -> showFragment(id) }
@@ -50,6 +54,7 @@ const val NAV_SETTINGS = 5
             when (navId) {
                 NAV_HOME -> HomeFragment()
                 NAV_HISTORY -> HistoryFragment()
+                NAV_STUDY -> StudyFragment()
                 NAV_STATS -> StatisticsFragment()
                 NAV_SETTINGS -> SettingsFragment()
                 else -> HomeFragment()
