@@ -14,6 +14,7 @@ import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.ExamValidator
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.model.SubjectConfig
 import com.deniz0706.ykstakip.model.SubjectConfigs
 import com.deniz0706.ykstakip.model.SubjectResult
@@ -28,6 +29,7 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
 
     private lateinit var repository: ExamRepository
     private var selectedType = ExamType.TYT
+    private var selectedAytField = AytField.SAYISAL
     private var editingId: Long? = null
     private var selectedDate: Calendar = Calendar.getInstance()
 
@@ -77,6 +79,15 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
 
         view.findViewById<View>(R.id.toggleTyt).setOnClickListener { setType(ExamType.TYT) }
         view.findViewById<View>(R.id.toggleAyt).setOnClickListener { setType(ExamType.AYT) }
+        view.findViewById<View>(R.id.fieldSayisal).setOnClickListener {
+    setAytField(AytField.SAYISAL)
+}
+view.findViewById<View>(R.id.fieldEa).setOnClickListener {
+    setAytField(AytField.ESIT_AGIRLIK)
+}
+view.findViewById<View>(R.id.fieldSozel).setOnClickListener {
+    setAytField(AytField.SOZEL)
+}
 
         updateDateLabel()
         view.findViewById<View>(R.id.tvDatePicker).setOnClickListener { showDatePicker() }
@@ -89,6 +100,9 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
                 view.findViewById<TextView>(R.id.tvScreenTitle).text = "Denemeyi Düzenle"
                 view.findViewById<EditText>(R.id.etTitle).setText(exam.title)
                 selectedType = exam.type
+                if (selectedType == ExamType.AYT) {
+    selectedAytField = AytField.SAYISAL
+}
                 SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(exam.date)?.let { selectedDate.time = it }
                 updateDateLabel()
                 buildSubjectRows()
@@ -99,17 +113,42 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
         }
         buildSubjectRows()
         updateTypeToggle()
+        updateAytFieldUi()
         updateTotals()
     }
 
     private fun setType(type: ExamType) {
-        if (type == selectedType) return
-        selectedType = type
-        buildSubjectRows()
-        updateTypeToggle()
-        updateTotals()
-    }
+    if (type == selectedType) return
+    selectedType = type
+    buildSubjectRows()
+    updateTypeToggle()
+    updateAytFieldUi()
+    updateTotals()
+}
+    private fun setAytField(field: AytField) {
+    if (selectedType != ExamType.AYT) return
+    if (field == selectedAytField) return
 
+    selectedAytField = field
+    buildSubjectRows()
+    updateAytFieldUi()
+    updateTotals()
+}
+    private fun updateAytFieldUi() {
+    val v = view ?: return
+
+    val container = v.findViewById<View>(R.id.aytFieldContainer)
+    container.visibility = if (selectedType == ExamType.AYT) View.VISIBLE else View.GONE
+
+    v.findViewById<View>(R.id.fieldSayisal).isSelected =
+        selectedAytField == AytField.SAYISAL
+
+    v.findViewById<View>(R.id.fieldEa).isSelected =
+        selectedAytField == AytField.ESIT_AGIRLIK
+
+    v.findViewById<View>(R.id.fieldSozel).isSelected =
+        selectedAytField == AytField.SOZEL
+}
     private fun updateTypeToggle() {
         val v = view ?: return
         v.findViewById<View>(R.id.toggleTyt).isSelected = selectedType == ExamType.TYT
@@ -140,7 +179,13 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
         rows.clear()
 
         val inflater = LayoutInflater.from(requireContext())
-        for (config in SubjectConfigs.subjectsFor(selectedType)) {
+        val subjectConfigs = if (selectedType == ExamType.AYT) {
+    SubjectConfigs.subjectsFor(selectedAytField)
+} else {
+    SubjectConfigs.subjectsFor(selectedType)
+}
+
+for (config in subjectConfigs) {
             val itemView = inflater.inflate(R.layout.item_subject_input, container, false)
             itemView.findViewById<TextView>(R.id.tvSubjectTitle).text =
                 "${config.name}  •  ${config.questionCount} soru"
