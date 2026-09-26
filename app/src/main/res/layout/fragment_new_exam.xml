@@ -55,6 +55,18 @@
             android:textColorHint="@color/on_surface_secondary"
             android:textSize="@dimen/text_body" />
 
+        <EditText
+            android:id="@+id/etPublisher"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="@dimen/space_s"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="14dp"
+            android:hint="Yayın evi (örn. 3D, Palme, Bilgi Sarmal)"
+            android:textColor="@color/on_background"
+            android:textColorHint="@color/on_surface_secondary"
+            android:textSize="@dimen/text_body" />
+
         <TextView
             android:id="@+id/tvDatePicker"
             android:layout_width="match_parent"
@@ -66,19 +78,20 @@
             android:textColor="@color/on_background"
             android:textSize="@dimen/text_body"
             android:clickable="true" android:focusable="true" />
+
         <EditText
-    android:id="@+id/etNotes"
-    android:layout_width="match_parent"
-    android:layout_height="100dp"
-    android:layout_marginTop="@dimen/space_s"
-    android:background="@drawable/bg_input"
-    android:gravity="top"
-    android:padding="14dp"
-    android:hint="Notlar (örn. Mat: 12, 18, 27 → tekrar bak)"
-    android:textColor="@color/on_background"
-    android:textColorHint="@color/on_surface_secondary"
-    android:textSize="@dimen/text_body"
-    android:inputType="textMultiLine|textCapSentences" />
+            android:id="@+id/etNotes"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_marginTop="@dimen/space_s"
+            android:background="@drawable/bg_input"
+            android:gravity="top"
+            android:padding="14dp"
+            android:hint="Notlar (örn. Mat: 12, 18, 27 → tekrar bak)"
+            android:textColor="@color/on_background"
+            android:textColorHint="@color/on_surface_secondary"
+            android:textSize="@dimen/text_body"
+            android:inputType="textMultiLine|textCapSentences" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -107,6 +120,7 @@
                 android:background="@drawable/bg_pill_toggle"
                 android:textColor="@color/on_background" />
         </LinearLayout>
+
         <LinearLayout
             android:id="@+id/aytFieldContainer"
             android:layout_width="wrap_content"
@@ -154,6 +168,7 @@
                 android:focusable="true" />
 
         </LinearLayout>
+
         <TextView
             android:id="@+id/tvTimeWarning"
             android:layout_width="match_parent"
