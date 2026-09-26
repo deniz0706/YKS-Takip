@@ -85,6 +85,32 @@
             <TextView android:id="@+id/tvTotalMeta" android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="6dp" android:textSize="13sp" android:textColor="@color/on_surface_secondary" />
         </LinearLayout>
+        <LinearLayout
+    android:id="@+id/notesContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card"
+    android:padding="@dimen/card_padding"
+    android:layout_marginTop="@dimen/space_l">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Notlar"
+        android:textStyle="bold"
+        android:textSize="@dimen/text_body"
+        android:textColor="@color/on_background" />
+
+    <TextView
+        android:id="@+id/tvNotes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textSize="@dimen/text_body"
+        android:textColor="@color/on_surface_secondary" />
+
+</LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
