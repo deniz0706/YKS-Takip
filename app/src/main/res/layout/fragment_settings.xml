@@ -90,6 +90,18 @@
             android:textColorHint="@color/on_surface_secondary" />
 
         <EditText
+            android:id="@+id/etObp"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="@dimen/space_s"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="14dp"
+            android:hint="OBP (örn. 88)"
+            android:inputType="numberDecimal"
+            android:textColor="@color/on_background"
+            android:textColorHint="@color/on_surface_secondary" />
+
+        <EditText
             android:id="@+id/etDailyGoal"
             android:layout_width="match_parent"
             android:layout_height="52dp"
