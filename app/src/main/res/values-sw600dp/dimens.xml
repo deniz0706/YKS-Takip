@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="space_l">32dp</dimen>
+    <dimen name="space_xl">48dp</dimen>
+    <dimen name="card_padding">28dp</dimen>
+    <dimen name="content_max_width">720dp</dimen>
+    <dimen name="nav_island_height">72dp</dimen>
+    <dimen name="nav_island_margin_h">64dp</dimen>
+    <dimen name="text_display">52sp</dimen>
+    <dimen name="text_title">24sp</dimen>
+</resources>
