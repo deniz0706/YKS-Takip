@@ -36,8 +36,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_l"
             android:orientation="horizontal"
-            android:background="@color/input_bg"
-            android:padding="4dp">
 
             <TextView
                 android:id="@+id/toggleTyt"
