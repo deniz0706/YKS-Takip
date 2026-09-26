@@ -188,10 +188,13 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="YKS'ye kalan" android:textSize="12sp" android:textColor="@color/on_surface_secondary" />
-                <TextView android:id="@+id/tvDaysLeft" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp" android:textSize="26sp" android:textStyle="bold" android:textColor="@color/on_background" />
+                <TextView
+    android:id="@+id/tvCountdownLabel"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="TYT'ye kalan"
+    android:textSize="12sp"
+    android:textColor="@color/on_surface_secondary" />
             </LinearLayout>
 
             <LinearLayout
