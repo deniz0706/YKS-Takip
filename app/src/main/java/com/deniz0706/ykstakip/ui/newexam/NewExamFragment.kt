@@ -99,6 +99,7 @@ view.findViewById<View>(R.id.fieldSozel).setOnClickListener {
             if (exam != null) {
                 view.findViewById<TextView>(R.id.tvScreenTitle).text = "Denemeyi Düzenle"
                 view.findViewById<EditText>(R.id.etTitle).setText(exam.title)
+                view.findViewById<EditText>(R.id.etNotes).setText(exam.notes)
                 selectedType = exam.type
                 if (selectedType == ExamType.AYT) {
     selectedAytField = exam.aytField ?: AytField.SAYISAL
@@ -323,6 +324,7 @@ for (config in subjectConfigs) {
             type = selectedType,
             aytField = if (selectedType == ExamType.AYT) selectedAytField else null,
             subjects = subjects
+            notes = v.findViewById<EditText>(R.id.etNotes).text.toString().trim()
         )
         repository.saveExam(exam)
         (activity as? MainActivity)?.closeAndReturnHome()
