@@ -35,4 +35,12 @@ data class SubjectResult(
             return SubjectResult(
                 subject = json.getString("subject"),
                 questionCount = json.getInt("questionCount"),
-                correct = json.getInt("
+                correct = json.getInt("correct"),
+                wrong = json.getInt("wrong"),
+                timeMinutes = json.optInt("timeMinutes", 0),
+                weakTopics = topics
+            )
+        }
+        private fun round2(value: Double): Double = (value * 100).roundToInt() / 100.0
+    }
+}
