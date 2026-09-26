@@ -2,6 +2,7 @@ package com.deniz0706.ykstakip.ui.statistics
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
@@ -26,6 +27,9 @@ class LineChartView @JvmOverloads constructor(
             invalidate()
         }
 
+    var targetValue: Float? = null
+        set(value) { field = value; invalidate() }
+
     private var selectedIndex: Int? = null
 
     private val lineColor = ContextCompat.getColor(context, R.color.accent)
@@ -33,6 +37,7 @@ class LineChartView @JvmOverloads constructor(
     private val textColor = ContextCompat.getColor(context, R.color.on_surface_secondary)
     private val labelColor = ContextCompat.getColor(context, R.color.on_background)
     private val surfaceColor = ContextCompat.getColor(context, R.color.surface)
+    private val targetColor = ContextCompat.getColor(context, R.color.positive)
 
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = lineColor; style = Paint.Style.STROKE; strokeWidth = 6f; strokeCap = Paint.Cap.ROUND
@@ -47,6 +52,13 @@ class LineChartView @JvmOverloads constructor(
     private val tooltipBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = surfaceColor; setShadowLayer(12f, 0f, 4f, 0x33000000) }
     private val tooltipTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = labelColor; textSize = 26f; isFakeBoldText = true }
     private val tooltipBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = textColor; textSize = 24f }
+    private val targetLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = targetColor; style = Paint.Style.STROKE; strokeWidth = 4f
+        pathEffect = DashPathEffect(floatArrayOf(14f, 10f), 0f)
+    }
+    private val targetTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = targetColor; textSize = 24f; isFakeBoldText = true
+    }
 
     init { setLayerType(LAYER_TYPE_SOFTWARE, null) }
 
@@ -89,7 +101,8 @@ class LineChartView @JvmOverloads constructor(
         if (points.isEmpty()) return
         val rect = chartRect()
 
-        val values = points.map { it.value }
+        val values = points.map { it.value }.toMutableList()
+        targetValue?.let { values.add(it) }
         var minV = values.min()
         var maxV = values.max()
         if (minV == maxV) { minV -= 1f; maxV += 1f }
@@ -98,26 +111,27 @@ class LineChartView @JvmOverloads constructor(
         if (minV > 0f) minV = 0f
 
         for (i in 0..3) {
-    val y = rect.top + rect.height() * i / 3f
-    canvas.drawLine(rect.left, y, rect.right, y, gridPaint)
-
-    val value = maxV - (maxV - minV) * i / 3f
-    val text = value.toInt().toString()
-    val textWidth = axisTextPaint.measureText(text)
-
-    canvas.drawText(
-        text,
-        rect.left - textWidth - 8f,
-        y + axisTextPaint.textSize / 3f,
-        axisTextPaint
-    )
-}
-        
+            val y = rect.top + rect.height() * i / 3f
+            canvas.drawLine(rect.left, y, rect.right, y, gridPaint)
+            val value = maxV - (maxV - minV) * i / 3f
+            val text = value.toInt().toString()
+            val textWidth = axisTextPaint.measureText(text)
+            canvas.drawText(text, rect.left - textWidth - 8f, y + axisTextPaint.textSize / 3f, axisTextPaint)
+        }
 
         fun xFor(i: Int): Float =
             if (points.size == 1) rect.centerX() else rect.left + rect.width() * i / (points.size - 1)
         fun yFor(v: Float): Float =
             rect.bottom - (v - minV) / (maxV - minV) * rect.height()
+
+        targetValue?.let { target ->
+            val y = yFor(target)
+            canvas.drawLine(rect.left, y, rect.right, y, targetLinePaint)
+            val label = "Hedef: ${formatValue(target)}"
+            val labelWidth = targetTextPaint.measureText(label)
+            val labelY = if (y - 10f < rect.top + 20f) y + 26f else y - 10f
+            canvas.drawText(label, rect.right - labelWidth, labelY, targetTextPaint)
+        }
 
         val path = Path()
         val fillPath = Path()
@@ -164,12 +178,7 @@ class LineChartView @JvmOverloads constructor(
             canvas.drawText(body, boxLeft + 16f, boxTop + 58f, tooltipBodyPaint)
         }
     }
-    private fun formatAxisValue(v: Float): String =
-    if (v == v.toInt().toFloat()) {
-        v.toInt().toString()
-    } else {
-        String.format(java.util.Locale.US, "%.1f", v).replace('.', ',')
-    }
+
     private fun formatValue(v: Float): String =
         if (v == v.toInt().toFloat()) v.toInt().toString()
         else String.format(java.util.Locale.US, "%.2f", v).replace('.', ',')
