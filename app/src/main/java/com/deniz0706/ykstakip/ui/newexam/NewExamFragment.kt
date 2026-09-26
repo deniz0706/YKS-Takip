@@ -186,6 +186,25 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
                     updateTotals()
                 }
             }
+
+            etCorrect.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus && etCorrect.text.toString() == "0") {
+                    etCorrect.setText("")
+                }
+            }
+
+            etWrong.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus && etWrong.text.toString() == "0") {
+                    etWrong.setText("")
+                }
+            }
+
+            etTime.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus && etTime.text.toString() == "0") {
+                    etTime.setText("")
+                }
+            }
+
             etCorrect.addTextChangedListener(watcher)
             etWrong.addTextChangedListener(watcher)
             etTime.addTextChangedListener(object : TextWatcher {
@@ -272,50 +291,4 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
             row.etCorrect.setText(subj.correct.toString())
             row.etWrong.setText(subj.wrong.toString())
             row.etTime.setText(subj.timeMinutes.toString())
-            row.etTopics.setText(subj.weakTopics.joinToString(", "))
-            onRowChanged(row)
-        }
-    }
-
-    private fun onSaveClicked() {
-        val v = view ?: return
-        val titleInput = v.findViewById<EditText>(R.id.etTitle)
-        val title = titleInput.text.toString().trim()
-        if (title.isEmpty()) { titleInput.error = "Deneme adı gir"; return }
-
-        val entries = rows.map { row ->
-            Triple(row.config, row.etCorrect.text.toString().toIntOrNull() ?: 0, row.etWrong.text.toString().toIntOrNull() ?: 0)
-        }
-        val timesBySubject = rows.associate { it.config.name to (it.etTime.text.toString().toIntOrNull() ?: 0) }
-
-        val validation = ExamValidator.validateWholeExam(selectedType, entries, timesBySubject)
-        if (validation is ExamValidator.FieldResult.Invalid) {
-            android.widget.Toast.makeText(requireContext(), validation.message, android.widget.Toast.LENGTH_LONG).show()
-            return
-        }
-
-        val subjects = rows.map { row ->
-            SubjectResult(
-                subject = row.config.name,
-                questionCount = row.config.questionCount,
-                correct = row.etCorrect.text.toString().toIntOrNull() ?: 0,
-                wrong = row.etWrong.text.toString().toIntOrNull() ?: 0,
-                timeMinutes = row.etTime.text.toString().toIntOrNull() ?: 0,
-                weakTopics = row.etTopics.text.toString().split(",").map { it.trim() }.filter { it.isNotEmpty() }
-            )
-        }
-
-        val exam = Exam(
-            id = editingId ?: repository.nextId(),
-            title = title,
-            date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selectedDate.time),
-            type = selectedType,
-            aytField = if (selectedType == ExamType.AYT) selectedAytField else null,
-            subjects = subjects,
-            notes = v.findViewById<EditText>(R.id.etNotes).text.toString().trim(),
-            publisher = v.findViewById<EditText>(R.id.etPublisher).text.toString().trim()
-        )
-        repository.saveExam(exam)
-        (activity as? MainActivity)?.closeAndReturnHome()
-    }
-}
+            row.etTopics
