@@ -48,7 +48,7 @@ data class Exam(
                 aytField = json.optString("aytField", "")
     .takeIf { it.isNotEmpty() }
     ?.let { AytField.valueOf(it) },
-                subjects = subjects
+                subjects = subjects,
                 notes = json.optString("notes", "")
             )
         }
