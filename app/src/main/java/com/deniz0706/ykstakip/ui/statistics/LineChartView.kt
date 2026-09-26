@@ -102,7 +102,7 @@ class LineChartView @JvmOverloads constructor(
     canvas.drawLine(rect.left, y, rect.right, y, gridPaint)
 
     val value = maxV - (maxV - minV) * i / 3f
-    val text = formatAxisValue(value)
+    val text = value.toInt().toString()
     val textWidth = axisTextPaint.measureText(text)
 
     canvas.drawText(
