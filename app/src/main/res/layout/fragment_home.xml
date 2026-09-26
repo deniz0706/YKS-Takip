@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true"
+    android:clipToPadding="false"
+    android:paddingBottom="100dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center_horizontal"
+        android:paddingHorizontal="@dimen/space_l"
+        android:paddingTop="@dimen/space_xl">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="YKS Takip"
+            android:textSize="@dimen/text_title"
+            android:textStyle="bold"
+            android:textColor="@color/on_background" />
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="@dimen/text_body"
+            android:textColor="@color/on_surface_secondary" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_l"
+            android:orientation="horizontal"
+            android:background="@color/input_bg"
+            android:padding="4dp">
+
+            <TextView
+                android:id="@+id/toggleTyt"
+                android:layout_width="88dp"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="TYT"
+                android:textStyle="bold"
+                android:textSize="@dimen/text_body"
+                android:background="@drawable/bg_pill_toggle"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/toggleAyt"
+                android:layout_width="88dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:text="AYT"
+                android:textStyle="bold"
+                android:textSize="@dimen/text_body"
+                android:background="@drawable/bg_pill_toggle"
+                android:textColor="@color/on_background" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvLastLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_l"
+            android:text="Son Deneme"
+            android:textSize="@dimen/text_body"
+            android:textColor="@color/on_surface_secondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="bottom"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:id="@+id/tvLastNet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="—"
+                android:textSize="@dimen/text_display"
+                android:textStyle="bold"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/tvDelta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="6dp"
+                android:textSize="@dimen/text_body"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_l"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_card"
+                android:padding="14dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Ortalama" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+                <TextView android:id="@+id/tvAvg" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="—" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/on_background" />
+            </LinearLayout>
+
+            <View android:layout_width="10dp" android:layout_height="1dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_card"
+                android:padding="14dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="En Yüksek" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+                <TextView android:id="@+id/tvMax" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="—" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/on_background" />
+            </LinearLayout>
+
+            <View android:layout_width="10dp" android:layout_height="1dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_card"
+                android:padding="14dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Son 5" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+                <TextView android:id="@+id/tvLast5" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="—" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/on_background" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTotalCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_s"
+            android:gravity="center"
+            android:textSize="@dimen/text_caption"
+            android:textColor="@color/on_surface_secondary" />
+
+        <TextView
+            android:id="@+id/btnNewExam"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginTop="@dimen/space_xl"
+            android:gravity="center"
+            android:text="＋  Yeni Deneme"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_body"
+            android:background="@drawable/bg_button_primary"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <LinearLayout
+            android:id="@+id/emptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_l"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/card_padding"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Henüz deneme eklemedin"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/on_background" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="İlk denemeni ekleyerek gelişimini takip etmeye başla."
+                android:textSize="@dimen/text_body"
+                android:textColor="@color/on_surface_secondary" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
