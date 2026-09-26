@@ -70,24 +70,13 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="6dp">
+
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Boş: " android:textSize="12sp" android:textColor="@color/on_surface_secondary" />
+
         <TextView android:id="@+id/tvSubjectBlank" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/on_background" />
     </LinearLayout>
-
-    <EditText
-        android:id="@+id/etTopics"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/bg_input"
-        android:paddingHorizontal="12dp"
-        android:hint="Zayıf konular (virgülle ayır, örn. Trigonometri, Türev)"
-        android:textColor="@color/on_background"
-        android:textColorHint="@color/on_surface_secondary"
-        android:textSize="12sp"
-        android:singleLine="true" />
 
     <EditText
         android:id="@+id/etTopics"
@@ -110,4 +99,5 @@
         android:textSize="12sp"
         android:textColor="@color/negative"
         android:visibility="gone" />
+
 </LinearLayout>
