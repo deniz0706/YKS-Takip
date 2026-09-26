@@ -3,7 +3,6 @@ package com.deniz0706.ykstakip.model
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.roundToInt
-import com.deniz0706.ykstakip.model.AytField
 
 data class Exam(
     val id: Long,
@@ -12,7 +11,8 @@ data class Exam(
     val type: ExamType,
     val aytField: AytField? = null,
     val subjects: List<SubjectResult>,
-    val notes: String = ""
+    val notes: String = "",
+    val publisher: String = ""
 ) {
     val totalCorrect: Int get() = subjects.sumOf { it.correct }
     val totalWrong: Int get() = subjects.sumOf { it.wrong }
@@ -33,6 +33,7 @@ data class Exam(
         put("type", type.name)
         put("aytField", aytField?.name)
         put("notes", notes)
+        put("publisher", publisher)
         put("subjects", JSONArray(subjects.map { it.toJson() }))
     }
 
@@ -45,13 +46,4 @@ data class Exam(
                 title = json.getString("title"),
                 date = json.getString("date"),
                 type = ExamType.valueOf(json.getString("type")),
-                aytField = json.optString("aytField", "")
-    .takeIf { it.isNotEmpty() }
-    ?.let { AytField.valueOf(it) },
-                subjects = subjects,
-                notes = json.optString("notes", "")
-            )
-        }
-        private fun round2(value: Double): Double = (value * 100).roundToInt() / 100.0
-    }
-}
+                aytField = json.optString("aytField", "").takeIf { it.isNotEmpty() }?.let { AytField.valueOf(it) },
