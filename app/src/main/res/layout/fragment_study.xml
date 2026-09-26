@@ -3,28 +3,33 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:background="@color/background"
+    android:fillViewport="true"
+    android:clipToPadding="false"
+    android:paddingBottom="100dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/space_l">
+        android:layout_gravity="center_horizontal"
+        android:paddingHorizontal="@dimen/space_l"
+        android:paddingTop="@dimen/space_xl">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Çalışma"
-            android:textSize="28sp"
+            android:textSize="@dimen/text_title"
             android:textStyle="bold"
             android:textColor="@color/on_background" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_s"
-            android:text="Günlük çalışma takibini buradan yapabilirsin."
-            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:text="Bugünkü çalışma durumunu takip et."
+            android:textSize="@dimen/text_body"
             android:textColor="@color/on_surface_secondary" />
 
         <LinearLayout
@@ -37,47 +42,57 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_card"
+                android:padding="14dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Bugün çözülen"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_caption"
                     android:textColor="@color/on_surface_secondary" />
 
                 <TextView
                     android:id="@+id/tvStudyQuestions"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_xs"
+                    android:layout_marginTop="4dp"
                     android:text="0"
-                    android:textSize="24sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="@color/on_background" />
 
             </LinearLayout>
 
+            <View
+                android:layout_width="10dp"
+                android:layout_height="1dp" />
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_card"
+                android:padding="14dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Çalışma süresi"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_caption"
                     android:textColor="@color/on_surface_secondary" />
 
                 <TextView
                     android:id="@+id/tvStudyTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_xs"
+                    android:layout_marginTop="4dp"
                     android:text="0 dk"
-                    android:textSize="24sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="@color/on_background" />
 
@@ -85,51 +100,59 @@
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvStudyGoal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_s"
-            android:text="Hedef: —"
-            android:textSize="14sp"
-            android:textColor="@color/on_surface_secondary" />
-
-        <Button
-            android:id="@+id/btnEditToday"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_l"
-            android:text="Bugünü düzenle" />
+            android:layout_marginTop="@dimen/space_s"
+            android:background="@drawable/bg_card"
+            android:padding="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvStudyGoal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Hedef: —"
+                android:textSize="@dimen/text_body"
+                android:textColor="@color/on_surface_secondary" />
+
+        </LinearLayout>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/btnEditToday"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="@dimen/space_l"
+            android:gravity="center"
+            android:text="Bugünü Düzenle"
+            android:textStyle="bold"
+            android:textColor="@color/on_background"
+            android:background="@drawable/bg_button_secondary"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_xl"
-            android:text="Z Raporu"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/on_background" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_xs"
-            android:text="Tüm kayıtlarına göre çalışma özeti"
-            android:textSize="13sp"
+            android:text="Genel Durum"
+            android:textSize="@dimen/text_body"
             android:textColor="@color/on_surface_secondary" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_l"
-            android:orientation="vertical">
+            android:layout_marginTop="@dimen/space_s"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/card_padding">
 
             <TextView
                 android:id="@+id/tvTotalQuestions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Toplam soru: 0"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/on_background" />
 
             <TextView
@@ -138,7 +161,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_s"
                 android:text="Toplam çalışma: 0 dk"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/on_background" />
 
             <TextView
@@ -147,7 +170,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_s"
                 android:text="Günlük ortalama soru: 0"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/on_background" />
 
             <TextView
@@ -156,7 +179,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_s"
                 android:text="Günlük ortalama çalışma: 0 dk"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/on_background" />
 
             <TextView
@@ -165,7 +188,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_s"
                 android:text="Hedef tutan gün: 0"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/on_background" />
 
             <TextView
@@ -174,7 +197,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_s"
                 android:text="En çok soru: —"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/on_background" />
 
             <TextView
@@ -183,7 +206,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_s"
                 android:text="En uzun çalışma: —"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/on_background" />
 
         </LinearLayout>
