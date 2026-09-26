@@ -96,7 +96,53 @@
                 android:background="@drawable/bg_pill_toggle"
                 android:textColor="@color/on_background" />
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/aytFieldContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_m"
+            android:orientation="horizontal"
+            android:visibility="gone">
 
+            <TextView
+                android:id="@+id/fieldSayisal"
+                android:layout_width="88dp"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="Sayısal"
+                android:textStyle="bold"
+                android:background="@drawable/bg_pill_toggle"
+                android:textColor="@color/on_background"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/fieldEa"
+                android:layout_width="88dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:text="EA"
+                android:textStyle="bold"
+                android:background="@drawable/bg_pill_toggle"
+                android:textColor="@color/on_background"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/fieldSözel"
+                android:layout_width="88dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:text="Sözel"
+                android:textStyle="bold"
+                android:background="@drawable/bg_pill_toggle"
+                android:textColor="@color/on_background"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
         <TextView
             android:id="@+id/tvTimeWarning"
             android:layout_width="match_parent"
