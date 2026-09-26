@@ -38,7 +38,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             refresh()
         }
         view.findViewById<View>(R.id.btnNewExam).setOnClickListener {
-            (activity as? MainActivity)?.openNewExam()
+            (activity as? MainActivity)?.openNewExam(selectedType)
         }
 
         refresh()
