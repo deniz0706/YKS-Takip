@@ -32,6 +32,7 @@ data class Exam(
         put("date", date)
         put("type", type.name)
         put("aytField", aytField?.name)
+        put("notes", notes)
         put("subjects", JSONArray(subjects.map { it.toJson() }))
     }
 
@@ -48,6 +49,7 @@ data class Exam(
     .takeIf { it.isNotEmpty() }
     ?.let { AytField.valueOf(it) },
                 subjects = subjects
+                notes = json.optString("notes", "")
             )
         }
         private fun round2(value: Double): Double = (value * 100).roundToInt() / 100.0
