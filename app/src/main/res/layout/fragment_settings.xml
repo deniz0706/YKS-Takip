@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Görünüm"
+            android:text="Ayarlar"
             android:textSize="@dimen/text_title"
             android:textStyle="bold"
             android:textColor="@color/on_background" />
