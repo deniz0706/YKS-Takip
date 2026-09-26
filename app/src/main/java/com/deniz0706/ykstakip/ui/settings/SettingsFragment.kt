@@ -30,6 +30,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                     uri,
                     repository.getAllExams()
                 )
+
                 Toast.makeText(
                     requireContext(),
                     "Yedek kaydedildi.",
@@ -45,7 +46,9 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         }
 
     private val importLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        registerForActivityResult(
+            ActivityResultContracts.OpenDocument()
+        ) { uri ->
             if (uri == null) return@registerForActivityResult
 
             when (
@@ -56,6 +59,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             ) {
                 is BackupManager.ImportResult.Success -> {
                     repository.replaceAll(result.exams)
+
                     Toast.makeText(
                         requireContext(),
                         "${result.exams.size} deneme içe aktarıldı.",
@@ -73,7 +77,10 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             }
         }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         repository = ExamRepository.getInstance(requireContext())
@@ -103,14 +110,24 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             importLauncher.launch(arrayOf("application/json"))
         }
 
-        AppSettings.getTargetNet(requireContext(), ExamType.TYT)?.let {
+        AppSettings.getTargetNet(
+            requireContext(),
+            ExamType.TYT
+        )?.let {
             view.findViewById<EditText>(R.id.etTargetTyt)
-                .setText(Fmt.net(it.toDouble()).replace(',', '.'))
+                .setText(
+                    Fmt.net(it.toDouble()).replace(',', '.')
+                )
         }
 
-        AppSettings.getTargetNet(requireContext(), ExamType.AYT)?.let {
+        AppSettings.getTargetNet(
+            requireContext(),
+            ExamType.AYT
+        )?.let {
             view.findViewById<EditText>(R.id.etTargetAyt)
-                .setText(Fmt.net(it.toDouble()).replace(',', '.'))
+                .setText(
+                    Fmt.net(it.toDouble()).replace(',', '.')
+                )
         }
 
         AppSettings.getDailyGoal(requireContext())?.let {
@@ -121,4 +138,77 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         view.findViewById<View>(R.id.btnSaveGoals).setOnClickListener {
             saveGoals()
         }
-   
+    }
+
+    private fun refreshThemeSelection() {
+        val context = requireContext()
+        val current = ThemeManager.currentTheme(context)
+
+        view?.findViewById<View>(R.id.optLight)?.isSelected =
+            current == "light"
+
+        view?.findViewById<View>(R.id.optDark)?.isSelected =
+            current == "dark"
+
+        view?.findViewById<View>(R.id.optSystem)?.isSelected =
+            current == "system"
+    }
+
+    private fun saveGoals() {
+        val v = view ?: return
+
+        val tytText =
+            v.findViewById<EditText>(R.id.etTargetTyt)
+                .text
+                .toString()
+                .trim()
+
+        val aytText =
+            v.findViewById<EditText>(R.id.etTargetAyt)
+                .text
+                .toString()
+                .trim()
+
+        val dailyGoalText =
+            v.findViewById<EditText>(R.id.etDailyGoal)
+                .text
+                .toString()
+                .trim()
+
+        val tyt =
+            tytText
+                .replace(',', '.')
+                .toFloatOrNull()
+
+        val ayt =
+            aytText
+                .replace(',', '.')
+                .toFloatOrNull()
+
+        val dailyGoal =
+            dailyGoalText.toIntOrNull()
+
+        AppSettings.setTargetNet(
+            requireContext(),
+            ExamType.TYT,
+            tyt
+        )
+
+        AppSettings.setTargetNet(
+            requireContext(),
+            ExamType.AYT,
+            ayt
+        )
+
+        AppSettings.setDailyGoal(
+            requireContext(),
+            dailyGoal?.takeIf { it >= 0 }
+        )
+
+        Toast.makeText(
+            requireContext(),
+            "Hedefler kaydedildi.",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+}
