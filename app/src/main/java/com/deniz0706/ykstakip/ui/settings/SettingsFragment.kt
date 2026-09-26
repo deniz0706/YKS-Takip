@@ -17,6 +17,7 @@ import com.deniz0706.ykstakip.model.ExamType
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.deniz0706.ykstakip.util.Fmt
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
