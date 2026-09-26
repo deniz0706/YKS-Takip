@@ -56,6 +56,8 @@
 
         <View android:layout_width="8dp" android:layout_height="1dp" />
 
+<View android:layout_width="8dp" android:layout_height="1dp" />
+
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Süre (dk)" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
@@ -63,6 +65,17 @@
                 android:background="@drawable/bg_input" android:inputType="number" android:gravity="center"
                 android:textColor="@color/on_background" android:maxLength="3" android:text="0" />
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="6dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Boş: " android:textSize="12sp" android:textColor="@color/on_surface_secondary" />
+        <TextView android:id="@+id/tvSubjectBlank" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="0" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/on_background" />
     </LinearLayout>
 
     <TextView
