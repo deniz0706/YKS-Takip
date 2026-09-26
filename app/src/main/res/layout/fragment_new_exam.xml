@@ -26,7 +26,8 @@
                 android:text="Vazgeç"
                 android:textColor="@color/on_surface_secondary"
                 android:textSize="@dimen/text_body"
-                android:clickable="true" android:focusable="true" />
+                android:clickable="true"
+                android:focusable="true" />
 
             <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
 
@@ -67,30 +68,6 @@
             android:textColorHint="@color/on_surface_secondary"
             android:textSize="@dimen/text_body" />
 
-        <EditText
-            android:id="@+id/etPublisher"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="@dimen/space_s"
-            android:background="@drawable/bg_input"
-            android:paddingHorizontal="14dp"
-            android:hint="Yayın evi (örn. 3D, Palme, Bilgi Sarmal)"
-            android:textColor="@color/on_background"
-            android:textColorHint="@color/on_surface_secondary"
-            android:textSize="@dimen/text_body" />
-
-        <EditText
-            android:id="@+id/etPublisher"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="@dimen/space_s"
-            android:background="@drawable/bg_input"
-            android:paddingHorizontal="14dp"
-            android:hint="Yayın evi (örn. 3D, Palme, Bilgi Sarmal)"
-            android:textColor="@color/on_background"
-            android:textColorHint="@color/on_surface_secondary"
-            android:textSize="@dimen/text_body" />
-
         <TextView
             android:id="@+id/tvDatePicker"
             android:layout_width="match_parent"
@@ -101,7 +78,8 @@
             android:gravity="center_vertical"
             android:textColor="@color/on_background"
             android:textSize="@dimen/text_body"
-            android:clickable="true" android:focusable="true" />
+            android:clickable="true"
+            android:focusable="true" />
 
         <EditText
             android:id="@+id/etNotes"
@@ -219,15 +197,30 @@
             android:padding="@dimen/card_padding"
             android:layout_marginTop="@dimen/space_s">
 
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="Toplam" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Toplam"
+                android:textSize="@dimen/text_caption"
+                android:textColor="@color/on_surface_secondary" />
 
-            <TextView android:id="@+id/tvTotalNet" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" android:text="0,00 net"
-                android:textSize="26sp" android:textStyle="bold" android:textColor="@color/on_background" />
+            <TextView
+                android:id="@+id/tvTotalNet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="0,00 net"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="@color/on_background" />
 
-            <TextView android:id="@+id/tvTotalBreakdown" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" android:textSize="13sp" android:textColor="@color/on_surface_secondary" />
+            <TextView
+                android:id="@+id/tvTotalBreakdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13sp"
+                android:textColor="@color/on_surface_secondary" />
         </LinearLayout>
 
         <TextView
@@ -241,7 +234,8 @@
             android:textStyle="bold"
             android:textSize="@dimen/text_body"
             android:background="@drawable/bg_button_primary"
-            android:clickable="true" android:focusable="true" />
+            android:clickable="true"
+            android:focusable="true" />
 
     </LinearLayout>
 </ScrollView>
