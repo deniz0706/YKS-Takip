@@ -72,7 +72,7 @@ class LineChartView @JvmOverloads constructor(
     }
 
     private fun chartRect(): RectF {
-        val padLeft = 12f; val padRight = 12f; val padTop = 30f; val padBottom = 50f
+        val padLeft = 48f; val padRight = 12f; val padTop = 30f; val padBottom = 50f
         return RectF(padLeft, padTop, width - padRight, height - padBottom)
     }
 
@@ -98,8 +98,20 @@ class LineChartView @JvmOverloads constructor(
         if (minV > 0f) minV = 0f
 
         for (i in 0..3) {
-            val y = rect.top + rect.height() * i / 3f
-            canvas.drawLine(rect.left, y, rect.right, y, gridPaint)
+    val y = rect.top + rect.height() * i / 3f
+    canvas.drawLine(rect.left, y, rect.right, y, gridPaint)
+
+    val value = maxV - (maxV - minV) * i / 3f
+    val text = formatAxisValue(value)
+    val textWidth = axisTextPaint.measureText(text)
+
+    canvas.drawText(
+        text,
+        rect.left - textWidth - 8f,
+        y + axisTextPaint.textSize / 3f,
+        axisTextPaint
+    )
+}
         }
 
         fun xFor(i: Int): Float =
@@ -152,7 +164,12 @@ class LineChartView @JvmOverloads constructor(
             canvas.drawText(body, boxLeft + 16f, boxTop + 58f, tooltipBodyPaint)
         }
     }
-
+    private fun formatAxisValue(v: Float): String =
+    if (v == v.toInt().toFloat()) {
+        v.toInt().toString()
+    } else {
+        String.format(java.util.Locale.US, "%.1f", v).replace('.', ',')
+    }
     private fun formatValue(v: Float): String =
         if (v == v.toInt().toFloat()) v.toInt().toString()
         else String.format(java.util.Locale.US, "%.2f", v).replace('.', ',')
