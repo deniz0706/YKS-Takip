@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_l"
-            android:orientation="horizontal"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/toggleTyt"
@@ -111,13 +111,28 @@
                 android:gravity="center"
                 android:background="@drawable/bg_card"
                 android:padding="14dp">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Ortalama" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
-                <TextView android:id="@+id/tvAvg" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:text="—" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/on_background" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ortalama"
+                    android:textSize="@dimen/text_caption"
+                    android:textColor="@color/on_surface_secondary" />
+
+                <TextView
+                    android:id="@+id/tvAvg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="—"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_background" />
             </LinearLayout>
 
-            <View android:layout_width="10dp" android:layout_height="1dp" />
+            <View
+                android:layout_width="10dp"
+                android:layout_height="1dp" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -127,13 +142,28 @@
                 android:gravity="center"
                 android:background="@drawable/bg_card"
                 android:padding="14dp">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="En Yüksek" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
-                <TextView android:id="@+id/tvMax" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:text="—" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/on_background" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="En Yüksek"
+                    android:textSize="@dimen/text_caption"
+                    android:textColor="@color/on_surface_secondary" />
+
+                <TextView
+                    android:id="@+id/tvMax"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="—"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_background" />
             </LinearLayout>
 
-            <View android:layout_width="10dp" android:layout_height="1dp" />
+            <View
+                android:layout_width="10dp"
+                android:layout_height="1dp" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -143,10 +173,23 @@
                 android:gravity="center"
                 android:background="@drawable/bg_card"
                 android:padding="14dp">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Son 5" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
-                <TextView android:id="@+id/tvLast5" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:text="—" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/on_background" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Son 5"
+                    android:textSize="@dimen/text_caption"
+                    android:textColor="@color/on_surface_secondary" />
+
+                <TextView
+                    android:id="@+id/tvLast5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="—"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_background" />
             </LinearLayout>
         </LinearLayout>
 
@@ -188,13 +231,14 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
+
                 <TextView
-    android:id="@+id/tvCountdownLabel"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="TYT'ye kalan"
-    android:textSize="12sp"
-    android:textColor="@color/on_surface_secondary" />
+                    android:id="@+id/tvCountdownLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TYT'ye kalan"
+                    android:textSize="12sp"
+                    android:textColor="@color/on_surface_secondary" />
             </LinearLayout>
 
             <LinearLayout
@@ -202,10 +246,22 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Bugün çözülen" android:textSize="12sp" android:textColor="@color/on_surface_secondary" />
-                <TextView android:id="@+id/tvTodayQuestions" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp" android:textSize="26sp" android:textStyle="bold" android:textColor="@color/on_background" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bugün çözülen"
+                    android:textSize="12sp"
+                    android:textColor="@color/on_surface_secondary" />
+
+                <TextView
+                    android:id="@+id/tvTodayQuestions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_background" />
             </LinearLayout>
         </LinearLayout>
 
