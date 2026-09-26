@@ -9,7 +9,7 @@ data class Exam(
     val title: String,
     val date: String,
     val type: ExamType,
-    val subjects: List<SubjectResult>
+    val subjects: List<SubjectResult>,
     val notes: String = ""
 ) {
     val totalCorrect: Int get() = subjects.sumOf { it.correct }
