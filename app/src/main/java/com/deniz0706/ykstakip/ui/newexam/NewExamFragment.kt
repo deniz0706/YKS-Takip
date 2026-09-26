@@ -323,7 +323,7 @@ for (config in subjectConfigs) {
             date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selectedDate.time),
             type = selectedType,
             aytField = if (selectedType == ExamType.AYT) selectedAytField else null,
-            subjects = subjects
+            subjects = subjects,
             notes = v.findViewById<EditText>(R.id.etNotes).text.toString().trim()
         )
         repository.saveExam(exam)
