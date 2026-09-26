@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:clipToPadding="false"
+    android:paddingBottom="40dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/space_l"
+        android:paddingTop="@dimen/space_xl">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="‹ Geri"
+                android:textColor="@color/accent"
+                android:textStyle="bold"
+                android:textSize="@dimen/text_body"
+                android:clickable="true" android:focusable="true" />
+
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/btnEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Düzenle"
+                android:textColor="@color/accent"
+                android:textStyle="bold"
+                android:textSize="@dimen/text_body"
+                android:clickable="true" android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btnDelete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Sil"
+                android:textColor="@color/negative"
+                android:textStyle="bold"
+                android:textSize="@dimen/text_body"
+                android:clickable="true" android:focusable="true" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_l"
+            android:textSize="@dimen/text_title"
+            android:textStyle="bold"
+            android:textColor="@color/on_background" />
+
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="@dimen/text_body"
+            android:textColor="@color/on_surface_secondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/card_padding"
+            android:layout_marginTop="@dimen/space_l">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Toplam Net" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+            <TextView android:id="@+id/tvTotalNet" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:textSize="36sp" android:textStyle="bold" android:textColor="@color/on_background" />
+            <TextView android:id="@+id/tvTotalMeta" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" android:textSize="13sp" android:textColor="@color/on_surface_secondary" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_l"
+            android:text="Dersler"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_body"
+            android:textColor="@color/on_background" />
+
+        <LinearLayout
+            android:id="@+id/llSubjects"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/space_s" />
+
+    </LinearLayout>
+</ScrollView>
