@@ -47,3 +47,11 @@ data class Exam(
                 date = json.getString("date"),
                 type = ExamType.valueOf(json.getString("type")),
                 aytField = json.optString("aytField", "").takeIf { it.isNotEmpty() }?.let { AytField.valueOf(it) },
+                subjects = subjects,
+                notes = json.optString("notes", ""),
+                publisher = json.optString("publisher", "")
+            )
+        }
+        private fun round2(value: Double): Double = (value * 100).roundToInt() / 100.0
+    }
+}
