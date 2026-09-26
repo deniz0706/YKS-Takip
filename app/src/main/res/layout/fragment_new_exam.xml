@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:clipToPadding="false"
+    android:paddingBottom="40dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/space_l"
+        android:paddingTop="@dimen/space_xl">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/btnCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vazgeç"
+                android:textColor="@color/on_surface_secondary"
+                android:textSize="@dimen/text_body"
+                android:clickable="true" android:focusable="true" />
+
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tvScreenTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Yeni Deneme"
+                android:textStyle="bold"
+                android:textSize="@dimen/text_body"
+                android:textColor="@color/on_background" />
+
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+            <View android:layout_width="52dp" android:layout_height="1dp" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/etTitle"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="@dimen/space_l"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="14dp"
+            android:hint="Deneme adı (örn. 3D Yayınları TYT-12)"
+            android:textColor="@color/on_background"
+            android:textColorHint="@color/on_surface_secondary"
+            android:textSize="@dimen/text_body" />
+
+        <TextView
+            android:id="@+id/tvDatePicker"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="@dimen/space_s"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="14dp"
+            android:gravity="center_vertical"
+            android:textColor="@color/on_background"
+            android:textSize="@dimen/text_body"
+            android:clickable="true" android:focusable="true" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_m"
+            android:orientation="horizontal"
+            android:background="@color/input_bg"
+            android:padding="4dp">
+
+            <TextView
+                android:id="@+id/toggleTyt"
+                android:layout_width="88dp"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="TYT"
+                android:textStyle="bold"
+                android:background="@drawable/bg_pill_toggle"
+                android:textColor="@color/on_background" />
+
+            <TextView
+                android:id="@+id/toggleAyt"
+                android:layout_width="88dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:text="AYT"
+                android:textStyle="bold"
+                android:background="@drawable/bg_pill_toggle"
+                android:textColor="@color/on_background" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTimeWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_m"
+            android:background="@drawable/bg_card"
+            android:padding="12dp"
+            android:textColor="@color/negative"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/llSubjectsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/space_m" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/card_padding"
+            android:layout_marginTop="@dimen/space_s">
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Toplam" android:textSize="@dimen/text_caption" android:textColor="@color/on_surface_secondary" />
+
+            <TextView android:id="@+id/tvTotalNet" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:text="0,00 net"
+                android:textSize="26sp" android:textStyle="bold" android:textColor="@color/on_background" />
+
+            <TextView android:id="@+id/tvTotalBreakdown" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:textSize="13sp" android:textColor="@color/on_surface_secondary" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginTop="@dimen/space_l"
+            android:gravity="center"
+            android:text="Denemeyi Kaydet"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_body"
+            android:background="@drawable/bg_button_primary"
+            android:clickable="true" android:focusable="true" />
+
+    </LinearLayout>
+</ScrollView>
