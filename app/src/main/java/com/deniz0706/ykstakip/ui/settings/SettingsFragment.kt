@@ -12,7 +12,9 @@ import com.deniz0706.ykstakip.data.BackupManager
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.util.Fmt
+import com.deniz0706.ykstakip.util.ThemeTransitionHelper
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
@@ -88,16 +90,19 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         refreshThemeSelection()
 
         view.findViewById<View>(R.id.optLight).setOnClickListener {
+            (activity as? MainActivity)?.let { ThemeTransitionHelper.captureSnapshot(it) }
             ThemeManager.setTheme(requireContext(), "light")
             refreshThemeSelection()
         }
 
         view.findViewById<View>(R.id.optDark).setOnClickListener {
+            (activity as? MainActivity)?.let { ThemeTransitionHelper.captureSnapshot(it) }
             ThemeManager.setTheme(requireContext(), "dark")
             refreshThemeSelection()
         }
 
         view.findViewById<View>(R.id.optSystem).setOnClickListener {
+            (activity as? MainActivity)?.let { ThemeTransitionHelper.captureSnapshot(it) }
             ThemeManager.setTheme(requireContext(), "system")
             refreshThemeSelection()
         }
