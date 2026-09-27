@@ -319,7 +319,11 @@ object YksRankingEstimator {
         )
     )
 
-    fun estimateTyt(exam: Exam, obp: Double): RankingEstimate? {
+    fun estimateTyt(
+        exam: Exam,
+        obp: Double
+    ): RankingEstimate? {
+
         if (exam.type != ExamType.TYT) return null
 
         val nets = mapOf(
@@ -333,13 +337,32 @@ object YksRankingEstimator {
 
         val weights = tytWeights()
 
-        val z2025 = normalizedZ(nets, tyt2025, weights)
-        val z2026 = normalizedZ(nets, tyt2026, weights)
+        val z2025 = normalizedZ(
+            nets,
+            tyt2025,
+            weights
+        )
 
-        val rank2025 = rankFromZ(z2025, tytExam2025.last().rank)
-        val rank2026 = rankFromZ(z2026, tytExam2026.last().rank)
+        val z2026 = normalizedZ(
+            nets,
+            tyt2026,
+            weights
+        )
 
-        return combine(rank2025, rank2026)
+        val rank2025 = rankFromZ(
+            z2025,
+            tytExam2025.last().rank
+        )
+
+        val rank2026 = rankFromZ(
+            z2026,
+            tytExam2026.last().rank
+        )
+
+        return combine(
+            rank2025,
+            rank2026
+        )
     }
 
     fun estimateAyt(
@@ -348,6 +371,7 @@ object YksRankingEstimator {
         obp: Double,
         field: AytField
     ): RankingEstimate? {
+
         if (tytExam.type != ExamType.TYT) return null
         if (aytExam.type != ExamType.AYT) return null
 
@@ -358,7 +382,10 @@ object YksRankingEstimator {
             "Fen Bilimleri" to (tytExam.subject("Fen Bilimleri")?.net ?: 0.0)
         )
 
-        val aytNets = getAytNets(aytExam, field)
+        val aytNets = getAytNets(
+            aytExam,
+            field
+        )
 
         if (tytNets.values.none { it != 0.0 }) return null
         if (aytNets.values.none { it != 0.0 }) return null
@@ -366,16 +393,45 @@ object YksRankingEstimator {
         val aytWeights = aytWeightsFor(field)
         val key = fieldKey(field)
 
-        val obpZ = (obp.coerceIn(0.0, 100.0) - 65.0) / 15.0
+        val obpZ = (
+            obp.coerceIn(0.0, 100.0) - 65.0
+        ) / 15.0
 
-        val tytZ2025 = normalizedZ(tytNets, tyt2025, tytWeights())
-        val tytZ2026 = normalizedZ(tytNets, tyt2026, tytWeights())
+        val tytZ2025 = normalizedZ(
+            tytNets,
+            tyt2025,
+            tytWeights()
+        )
 
-        val aytZ2025 = normalizedZ(aytNets, ayt2025, aytWeights)
-        val aytZ2026 = normalizedZ(aytNets, ayt2026, aytWeights)
+        val tytZ2026 = normalizedZ(
+            tytNets,
+            tyt2026,
+            tytWeights()
+        )
 
-        val combinedZ2025 = combinePlacementZ(tytZ2025, aytZ2025, obpZ)
-        val combinedZ2026 = combinePlacementZ(tytZ2026, aytZ2026, obpZ)
+        val aytZ2025 = normalizedZ(
+            aytNets,
+            ayt2025,
+            aytWeights
+        )
+
+        val aytZ2026 = normalizedZ(
+            aytNets,
+            ayt2026,
+            aytWeights
+        )
+
+        val combinedZ2025 = combinePlacementZ(
+            tytZ2025,
+            aytZ2025,
+            obpZ
+        )
+
+        val combinedZ2026 = combinePlacementZ(
+            tytZ2026,
+            aytZ2026,
+            obpZ
+        )
 
         val rank2025 = rankFromZ(
             combinedZ2025,
@@ -387,18 +443,27 @@ object YksRankingEstimator {
             placement2026.getValue(key).last().rank
         )
 
-        return combine(rank2025, rank2026)
+        return combine(
+            rank2025,
+            rank2026
+        )
     }
 
-    private fun tytWeights(): List<Pair<String, Double>> = listOf(
-        "Türkçe" to 0.33,
-        "Sosyal Bilimler" to 0.17,
-        "Matematik" to 0.33,
-        "Fen Bilimleri" to 0.17
-    )
+    private fun tytWeights(): List<Pair<String, Double>> {
+        return listOf(
+            "Türkçe" to 0.33,
+            "Sosyal Bilimler" to 0.17,
+            "Matematik" to 0.33,
+            "Fen Bilimleri" to 0.17
+        )
+    }
 
-    private fun aytWeightsFor(field: AytField): List<Pair<String, Double>> {
+    private fun aytWeightsFor(
+        field: AytField
+    ): List<Pair<String, Double>> {
+
         return when (field) {
+
             AytField.SAYISAL -> listOf(
                 "Matematik" to 0.30,
                 "Fizik" to 0.10,
@@ -430,16 +495,28 @@ object YksRankingEstimator {
         stats: Map<String, Stats>,
         weights: List<Pair<String, Double>>
     ): Double {
-        val weightedSum = weights.sumOf { (key, weight) ->
-            val net = nets[key] ?: 0.0
-            val stat = stats[key] ?: return@sumOf 0.0
-            ((net - stat.mean) / stat.sd) * weight
+
+        var weightedSum = 0.0
+        var totalWeight = 0.0
+
+        for ((key, weight) in weights) {
+
+            val net = nets[key] ?: continue
+            val stat = stats[key] ?: continue
+
+            val z = (
+                net - stat.mean
+            ) / stat.sd
+
+            weightedSum += z * weight
+            totalWeight += weight
         }
 
-        val variance = weights.sumOf { it.second * it.second }
-        val sd = kotlin.math.sqrt(variance).takeIf { it > 0.0 } ?: 1.0
+        if (totalWeight <= 0.0) {
+            return 0.0
+        }
 
-        return weightedSum / sd
+        return weightedSum / totalWeight
     }
 
     private fun combinePlacementZ(
@@ -447,13 +524,20 @@ object YksRankingEstimator {
         aytZ: Double,
         obpZ: Double
     ): Double {
+
         val wt = 0.40
         val wa = 0.60
         val wo = 0.08
 
-        val weighted = wt * tytZ + wa * aytZ + wo * obpZ
+        val weighted =
+            wt * tytZ +
+            wa * aytZ +
+            wo * obpZ
+
         val norm = kotlin.math.sqrt(
-            wt * wt + wa * wa + wo * wo
+            wt * wt +
+            wa * wa +
+            wo * wo
         )
 
         return weighted / norm
@@ -463,30 +547,45 @@ object YksRankingEstimator {
         z: Double,
         totalCandidates: Int
     ): Int {
+
         val percentileAbove = 1.0 - normalCdf(z)
 
-        return (totalCandidates * percentileAbove)
+        return (
+            totalCandidates * percentileAbove
+        )
             .roundToInt()
             .coerceAtLeast(1)
     }
 
-    private fun normalCdf(z: Double): Double {
+    private fun normalCdf(
+        z: Double
+    ): Double {
+
         return 0.5 * (
-            1.0 + erf(z / kotlin.math.sqrt(2.0))
+            1.0 +
+            erf(
+                z / kotlin.math.sqrt(2.0)
+            )
         )
     }
 
-    private fun erf(x: Double): Double {
+    private fun erf(
+        x: Double
+    ): Double {
+
         val t = 1.0 / (
-            1.0 + 0.3275911 * kotlin.math.abs(x)
+            1.0 +
+            0.3275911 *
+            kotlin.math.abs(x)
         )
 
-        val y = 1.0 -
-                (((((1.061405429 * t - 1.453152027) * t)
-                    + 1.421413741) * t
-                    - 0.284496736) * t
-                    + 0.254829592) * t *
-                    kotlin.math.exp(-x * x)
+        val y =
+            1.0 -
+            (((((1.061405429 * t - 1.453152027) * t)
+                + 1.421413741) * t
+                - 0.284496736) * t
+                + 0.254829592) * t *
+                kotlin.math.exp(-x * x)
 
         return if (x >= 0) y else -y
     }
@@ -495,29 +594,61 @@ object YksRankingEstimator {
         exam: Exam,
         field: AytField
     ): Map<String, Double> {
+
         return when (field) {
+
             AytField.SAYISAL -> mapOf(
-                "Matematik" to (exam.subject("Matematik")?.net ?: 0.0),
-                "Fizik" to (exam.subject("Fizik")?.net ?: 0.0),
-                "Kimya" to (exam.subject("Kimya")?.net ?: 0.0),
-                "Biyoloji" to (exam.subject("Biyoloji")?.net ?: 0.0)
+                "Matematik" to (
+                    exam.subject("Matematik")?.net ?: 0.0
+                ),
+                "Fizik" to (
+                    exam.subject("Fizik")?.net ?: 0.0
+                ),
+                "Kimya" to (
+                    exam.subject("Kimya")?.net ?: 0.0
+                ),
+                "Biyoloji" to (
+                    exam.subject("Biyoloji")?.net ?: 0.0
+                )
             )
 
             AytField.ESIT_AGIRLIK -> mapOf(
-                "Matematik" to (exam.subject("Matematik")?.net ?: 0.0),
-                "Edebiyat" to (exam.subject("Edebiyat")?.net ?: 0.0),
-                "Tarih-1" to (exam.subject("Tarih-1")?.net ?: 0.0),
-                "Coğrafya-1" to (exam.subject("Coğrafya-1")?.net ?: 0.0)
+                "Matematik" to (
+                    exam.subject("Matematik")?.net ?: 0.0
+                ),
+                "Edebiyat" to (
+                    exam.subject("Edebiyat")?.net ?: 0.0
+                ),
+                "Tarih-1" to (
+                    exam.subject("Tarih-1")?.net ?: 0.0
+                ),
+                "Coğrafya-1" to (
+                    exam.subject("Coğrafya-1")?.net ?: 0.0
+                )
             )
 
             AytField.SOZEL -> mapOf(
-                "Edebiyat" to (exam.subject("Edebiyat")?.net ?: 0.0),
-                "Tarih-1" to (exam.subject("Tarih-1")?.net ?: 0.0),
-                "Coğrafya-1" to (exam.subject("Coğrafya-1")?.net ?: 0.0),
-                "Tarih-2" to (exam.subject("Tarih-2")?.net ?: 0.0),
-                "Coğrafya-2" to (exam.subject("Coğrafya-2")?.net ?: 0.0),
-                "Felsefe Grubu" to (exam.subject("Felsefe Grubu")?.net ?: 0.0),
-                "Din Kültürü / Ek Felsefe" to (exam.subject("Din Kültürü / Ek Felsefe")?.net ?: 0.0)
+                "Edebiyat" to (
+                    exam.subject("Edebiyat")?.net ?: 0.0
+                ),
+                "Tarih-1" to (
+                    exam.subject("Tarih-1")?.net ?: 0.0
+                ),
+                "Coğrafya-1" to (
+                    exam.subject("Coğrafya-1")?.net ?: 0.0
+                ),
+                "Tarih-2" to (
+                    exam.subject("Tarih-2")?.net ?: 0.0
+                ),
+                "Coğrafya-2" to (
+                    exam.subject("Coğrafya-2")?.net ?: 0.0
+                ),
+                "Felsefe Grubu" to (
+                    exam.subject("Felsefe Grubu")?.net ?: 0.0
+                ),
+                "Din Kültürü / Ek Felsefe" to (
+                    exam.subject("Din Kültürü / Ek Felsefe")?.net ?: 0.0
+                )
             )
         }
     }
@@ -526,20 +657,28 @@ object YksRankingEstimator {
         rank2025: Int,
         rank2026: Int
     ): RankingEstimate {
+
         val center = (
             (rank2025 + rank2026) / 2.0
         ).roundToInt()
 
         return RankingEstimate(
             center = center.coerceAtLeast(1),
-            lower = minOf(rank2025, rank2026).coerceAtLeast(1),
-            upper = maxOf(rank2025, rank2026).coerceAtLeast(1)
+            lower = minOf(
+                rank2025,
+                rank2026
+            ).coerceAtLeast(1),
+            upper = maxOf(
+                rank2025,
+                rank2026
+            ).coerceAtLeast(1)
         )
     }
 
     private fun anchors(
         vararg values: Pair<Int, Int>
     ): List<Anchor> {
+
         return values
             .map {
                 Anchor(
@@ -547,10 +686,15 @@ object YksRankingEstimator {
                     rank = it.second
                 )
             }
-            .sortedByDescending { it.score }
+            .sortedByDescending {
+                it.score
+            }
     }
 
-    private fun fieldKey(field: AytField): String {
+    private fun fieldKey(
+        field: AytField
+    ): String {
+
         return when (field) {
             AytField.SAYISAL -> "SAY"
             AytField.ESIT_AGIRLIK -> "EA"
