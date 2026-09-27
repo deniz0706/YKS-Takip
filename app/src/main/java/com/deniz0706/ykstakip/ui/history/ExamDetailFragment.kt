@@ -57,15 +57,23 @@ class ExamDetailFragment : Fragment(R.layout.fragment_exam_detail) {
                 .format(SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(exam.date)!!)
         } catch (e: Exception) { exam.date }
         view.findViewById<TextView>(R.id.tvSubtitle).text = "${exam.type.label}  •  $displayDate"
-        val notesContainer = view.findViewById<View>(R.id.notesContainer)
-val tvNotes = view.findViewById<TextView>(R.id.tvNotes)
 
-if (exam.notes.isBlank()) {
-    notesContainer.visibility = View.GONE
-} else {
-    notesContainer.visibility = View.VISIBLE
-    tvNotes.text = exam.notes
-}
+        val tvPublisher = view.findViewById<TextView>(R.id.tvPublisher)
+        if (exam.publisher.isBlank()) {
+            tvPublisher.visibility = View.GONE
+        } else {
+            tvPublisher.visibility = View.VISIBLE
+            tvPublisher.text = "Yayın evi: ${exam.publisher}"
+        }
+
+        val notesContainer = view.findViewById<View>(R.id.notesContainer)
+        val tvNotes = view.findViewById<TextView>(R.id.tvNotes)
+        if (exam.notes.isBlank()) {
+            notesContainer.visibility = View.GONE
+        } else {
+            notesContainer.visibility = View.VISIBLE
+            tvNotes.text = exam.notes
+        }
 
         view.findViewById<TextView>(R.id.tvTotalNet).text = Fmt.net(exam.totalNet)
         view.findViewById<TextView>(R.id.tvTotalMeta).text =
@@ -81,6 +89,15 @@ if (exam.notes.isBlank()) {
             row.findViewById<TextView>(R.id.tvDetail).text =
                 "${s.correct} doğru · ${s.wrong} yanlış · ${s.blank} boş · ${s.timeMinutes} dk" +
                     (s.minutesPerQuestion?.let { " · ${Fmt.minutesPerQuestion(it)} dk/soru" } ?: "")
+
+            val tvWeakTopics = row.findViewById<TextView>(R.id.tvWeakTopics)
+            if (s.weakTopics.isEmpty()) {
+                tvWeakTopics.visibility = View.GONE
+            } else {
+                tvWeakTopics.visibility = View.VISIBLE
+                tvWeakTopics.text = "Zayıf konular: ${s.weakTopics.joinToString(", ")}"
+            }
+
             container.addView(row)
         }
     }
