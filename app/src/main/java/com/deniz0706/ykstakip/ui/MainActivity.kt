@@ -12,6 +12,7 @@ import com.deniz0706.ykstakip.ui.newexam.NewExamFragment
 import com.deniz0706.ykstakip.ui.settings.SettingsFragment
 import com.deniz0706.ykstakip.ui.statistics.StatisticsFragment
 import com.deniz0706.ykstakip.ui.study.StudyFragment
+import com.deniz0706.ykstakip.util.ThemeTransitionHelper
 
 class MainActivity : AppCompatActivity() {
 
@@ -47,6 +48,18 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             showFragment(NAV_HOME)
         }
+
+        // Tema değişimi sonrası recreate() olduysa, eski ekran görüntüsünü
+        // üstte fade-out ederek yumuşak bir geçiş hissi veriyoruz.
+        window.decorView.viewTreeObserver.addOnPreDrawListener(
+            object : android.view.ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    window.decorView.viewTreeObserver.removeOnPreDrawListener(this)
+                    ThemeTransitionHelper.applyPendingSnapshot(this@MainActivity)
+                    return true
+                }
+            }
+        )
     }
 
     private fun showFragment(navId: Int) {
