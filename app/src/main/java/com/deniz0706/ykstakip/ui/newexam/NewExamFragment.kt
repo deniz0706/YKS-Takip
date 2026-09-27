@@ -227,6 +227,21 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
         ).show()
     }
 
+    /** "0" değeriyle dolu bir alana dokunulunca temizlenir, boş bırakılırsa "0"a döner. */
+    private fun clearZeroOnFocus(et: EditText) {
+        et.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                if (et.text.toString() == "0") {
+                    et.setText("")
+                }
+            } else {
+                if (et.text.toString().isEmpty()) {
+                    et.setText("0")
+                }
+            }
+        }
+    }
+
     private fun buildSubjectRows() {
         val container =
             view?.findViewById<android.widget.LinearLayout>(
@@ -277,6 +292,10 @@ class NewExamFragment : Fragment(R.layout.fragment_new_exam) {
 
             val tvError =
                 itemView.findViewById<TextView>(R.id.tvSubjectError)
+
+            clearZeroOnFocus(etCorrect)
+            clearZeroOnFocus(etWrong)
+            clearZeroOnFocus(etTime)
 
             val row =
                 SubjectRow(
