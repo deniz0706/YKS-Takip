@@ -18,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     private val fragmentCache = mutableMapOf<Int, Fragment>()
     private lateinit var nav: FloatingBottomNavView
+    private var currentNavId: Int = NAV_HOME
 
     companion object {
         const val NAV_HOME = 1
@@ -25,11 +26,14 @@ class MainActivity : AppCompatActivity() {
         const val NAV_STUDY = 3
         const val NAV_STATS = 4
         const val NAV_SETTINGS = 5
+        private const val KEY_CURRENT_NAV = "current_nav_id"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        currentNavId = savedInstanceState?.getInt(KEY_CURRENT_NAV, NAV_HOME) ?: NAV_HOME
 
         nav = findViewById(R.id.bottomNav)
 
@@ -41,16 +45,14 @@ class MainActivity : AppCompatActivity() {
                 FloatingBottomNavView.NavItem(NAV_STATS, "İstatistik"),
                 FloatingBottomNavView.NavItem(NAV_SETTINGS, "Ayarlar")
             ),
-            initialSelectedId = NAV_HOME,
+            initialSelectedId = currentNavId,
             onSelected = { id -> showFragment(id) }
         )
 
         if (savedInstanceState == null) {
             showFragment(NAV_HOME)
         }
-
-        // Tema değişimi sonrası recreate() olduysa, eski ekran görüntüsünü
-        // üstte fade-out ederek yumuşak bir geçiş hissi veriyoruz.
+    
         window.decorView.viewTreeObserver.addOnPreDrawListener(
             object : android.view.ViewTreeObserver.OnPreDrawListener {
                 override fun onPreDraw(): Boolean {
@@ -62,7 +64,14 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_CURRENT_NAV, currentNavId)
+    }
+
     private fun showFragment(navId: Int) {
+        currentNavId = navId
+
         val fragment = fragmentCache.getOrPut(navId) {
             when (navId) {
                 NAV_HOME -> HomeFragment()
@@ -134,6 +143,7 @@ class MainActivity : AppCompatActivity() {
             null,
             androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
         )
+        currentNavId = NAV_HOME
         nav.select(NAV_HOME)
         showFragment(NAV_HOME)
     }
