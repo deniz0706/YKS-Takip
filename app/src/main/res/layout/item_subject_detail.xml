@@ -20,4 +20,14 @@
 
     <TextView android:id="@+id/tvDetail" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:layout_marginTop="6dp" android:textSize="13sp" android:textColor="@color/on_surface_secondary" />
+
+    <TextView
+        android:id="@+id/tvWeakTopics"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textSize="12sp"
+        android:textStyle="italic"
+        android:textColor="@color/negative"
+        android:visibility="gone" />
 </LinearLayout>
