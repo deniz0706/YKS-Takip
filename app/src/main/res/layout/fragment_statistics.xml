@@ -282,9 +282,9 @@
                 <LinearLayout style="@style/StatMini">
                     <TextView
                         style="@style/StatMiniLabel"
-                        android:text="Son 3 Ort." />
+                        android:text="Son 7" />
                     <TextView
-                        android:id="@+id/tvRankingAvg3"
+                        android:id="@+id/tvRankingAvg7"
                         style="@style/StatMiniValue"
                         android:text="—" />
                 </LinearLayout>
@@ -296,9 +296,23 @@
                 <LinearLayout style="@style/StatMini">
                     <TextView
                         style="@style/StatMiniLabel"
-                        android:text="Son 5 Ort." />
+                        android:text="Son 30" />
                     <TextView
-                        android:id="@+id/tvRankingAvg5"
+                        android:id="@+id/tvRankingAvg30"
+                        style="@style/StatMiniValue"
+                        android:text="—" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="8dp"
+                    android:layout_height="1dp" />
+
+                <LinearLayout style="@style/StatMini">
+                    <TextView
+                        style="@style/StatMiniLabel"
+                        android:text="Tüm Zamanlar" />
+                    <TextView
+                        android:id="@+id/tvRankingAvgAll"
                         style="@style/StatMiniValue"
                         android:text="—" />
                 </LinearLayout>
@@ -337,7 +351,7 @@
 
         </LinearLayout>
 
-                    <LinearLayout
+        <LinearLayout
             android:id="@+id/rankingTrendCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
