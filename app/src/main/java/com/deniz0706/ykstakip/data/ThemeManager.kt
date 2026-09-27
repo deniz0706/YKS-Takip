@@ -17,17 +17,10 @@ object ThemeManager {
     }
 
     fun setTheme(context: Context, mode: String) {
-    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-        .putString(KEY_THEME, mode).apply()
-
-    val activity = context as? android.app.Activity
-    activity?.overridePendingTransition(
-        android.R.anim.fade_in,
-        android.R.anim.fade_out
-    )
-
-    applySavedTheme(context)
-}
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString(KEY_THEME, mode).apply()
+        applySavedTheme(context)
+    }
 
     fun currentTheme(context: Context): String =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_THEME, "system") ?: "system"
