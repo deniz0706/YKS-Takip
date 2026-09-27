@@ -132,6 +132,41 @@
             android:focusable="true" />
 
         <TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/space_xl"
+    android:text="Ders Programı"
+    android:textSize="@dimen/text_body"
+    android:textColor="@color/on_surface_secondary" />
+
+<LinearLayout
+    android:id="@+id/planDaySelector"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/space_s"
+    android:orientation="horizontal" />
+
+<TextView
+    android:id="@+id/btnAddPlan"
+    android:layout_width="match_parent"
+    android:layout_height="54dp"
+    android:layout_marginTop="@dimen/space_s"
+    android:gravity="center"
+    android:text="+ Ders Ekle"
+    android:textStyle="bold"
+    android:textColor="@color/on_background"
+    android:background="@drawable/bg_button_secondary"
+    android:clickable="true"
+    android:focusable="true" />
+
+<LinearLayout
+    android:id="@+id/planList"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/space_s"
+    android:orientation="vertical" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_xl"
