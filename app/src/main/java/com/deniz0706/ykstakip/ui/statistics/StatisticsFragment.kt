@@ -35,6 +35,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         "net" to "Toplam Net", "correct" to "Toplam Doğru", "wrong" to "Toplam Yanlış",
         "blank" to "Toplam Boş", "time" to "Toplam Süre", "mpq" to "Genel Dakika/Soru"
     )
+
     private val branchMetrics = listOf(
         "net" to "Net", "correct" to "Doğru", "wrong" to "Yanlış",
         "blank" to "Boş", "time" to "Süre", "mpq" to "Dakika/Soru"
@@ -44,6 +45,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         repository = ExamRepository.getInstance(requireContext())
 
         view.findViewById<View>(R.id.toggleTyt).setOnClickListener {
@@ -65,9 +67,11 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
 
         view.findViewById<View>(R.id.modeBranch).setOnClickListener {
             mode = "branş"
+
             if (branch == null) {
                 branch = SubjectConfigs.subjectsFor(examType).first().name
             }
+
             refresh()
         }
 
@@ -163,6 +167,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
                     1 -> AytField.ESIT_AGIRLIK
                     else -> AytField.SOZEL
                 }
+
                 dialog.dismiss()
                 refresh()
             }
@@ -180,18 +185,18 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
                 "mpq" -> exam.overallMinutesPerQuestion?.toFloat()
                 else -> null
             }
-        } else {
-            val s = exam.subject(branch ?: return null) ?: return null
+        }
 
-            return when (metricKey) {
-                "net" -> s.net.toFloat()
-                "correct" -> s.correct.toFloat()
-                "wrong" -> s.wrong.toFloat()
-                "blank" -> s.blank.toFloat()
-                "time" -> s.timeMinutes.toFloat()
-                "mpq" -> s.minutesPerQuestion?.toFloat()
-                else -> null
-            }
+        val s = exam.subject(branch ?: return null) ?: return null
+
+        return when (metricKey) {
+            "net" -> s.net.toFloat()
+            "correct" -> s.correct.toFloat()
+            "wrong" -> s.wrong.toFloat()
+            "blank" -> s.blank.toFloat()
+            "time" -> s.timeMinutes.toFloat()
+            "mpq" -> s.minutesPerQuestion?.toFloat()
+            else -> null
         }
     }
 
@@ -386,8 +391,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
                 return
             }
 
-            val estimates =
-                results.map { it.estimate }
+            val estimates = results.map { it.estimate }
 
             showRankingStats(estimates)
             renderRankingTrend()
@@ -406,8 +410,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
                 return
             }
 
-            val estimates =
-                results.map { it.estimate }
+            val estimates = results.map { it.estimate }
 
             showRankingStats(estimates)
             renderRankingTrend()
@@ -426,8 +429,10 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
             View.GONE
 
         val latest = estimates.last()
-        val last3 = estimates.takeLast(3)
-        val last5 = estimates.takeLast(5)
+
+        val last7 = estimates.takeLast(7)
+        val last30 = estimates.takeLast(30)
+        val allTime = estimates
 
         val best = estimates.minByOrNull { it.center } ?: latest
         val worst = estimates.maxByOrNull { it.center } ?: latest
@@ -435,11 +440,14 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         v.findViewById<TextView>(R.id.tvRankingLast).text =
             formatRanking(latest)
 
-        v.findViewById<TextView>(R.id.tvRankingAvg3).text =
-            formatRankingAverage(last3)
+        v.findViewById<TextView>(R.id.tvRankingAvg7).text =
+            formatRankingAverage(last7)
 
-        v.findViewById<TextView>(R.id.tvRankingAvg5).text =
-            formatRankingAverage(last5)
+        v.findViewById<TextView>(R.id.tvRankingAvg30).text =
+            formatRankingAverage(last30)
+
+        v.findViewById<TextView>(R.id.tvRankingAvgAll).text =
+            formatRankingAverage(allTime)
 
         v.findViewById<TextView>(R.id.tvRankingBest).text =
             formatRanking(best)
@@ -457,6 +465,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
             View.VISIBLE
 
         val empty = v.findViewById<TextView>(R.id.tvRankingEmpty)
+
         empty.visibility = View.VISIBLE
         empty.text = message
 
@@ -468,8 +477,9 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         val v = view ?: return
 
         v.findViewById<TextView>(R.id.tvRankingLast).text = "—"
-        v.findViewById<TextView>(R.id.tvRankingAvg3).text = "—"
-        v.findViewById<TextView>(R.id.tvRankingAvg5).text = "—"
+        v.findViewById<TextView>(R.id.tvRankingAvg7).text = "—"
+        v.findViewById<TextView>(R.id.tvRankingAvg30).text = "—"
+        v.findViewById<TextView>(R.id.tvRankingAvgAll).text = "—"
         v.findViewById<TextView>(R.id.tvRankingBest).text = "—"
         v.findViewById<TextView>(R.id.tvRankingWorst).text = "—"
     }
@@ -492,8 +502,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
             return
         }
 
-        val exams =
-            repository.getAllExams()
+        val exams = repository.getAllExams()
 
         val points =
             if (examType == ExamType.TYT) {
@@ -533,6 +542,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
 
         chart.visibility = View.VISIBLE
         empty.visibility = View.GONE
+
         chart.reverseY = true
         chart.targetValue = null
         chart.points = points
@@ -611,6 +621,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
 
     private fun renderWeakSpots(exams: List<Exam>) {
         val v = view ?: return
+
         val card = v.findViewById<View>(R.id.weakSpotCard)
         val list = v.findViewById<LinearLayout>(R.id.weakSpotList)
 
@@ -642,12 +653,14 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
                     "${spot.subject} — ${spot.topic}: son ${spot.outOf} denemede ${spot.count} kez (%$pct)"
 
                 textSize = 13f
+
                 setTextColor(
                     resources.getColor(
                         R.color.on_background,
                         null
                     )
                 )
+
                 setPadding(0, 6, 0, 6)
             }
 
