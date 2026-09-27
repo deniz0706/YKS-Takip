@@ -18,11 +18,6 @@ object YksRankingEstimator {
         val sd: Double
     )
 
-    private data class Anchor(
-        val score: Double,
-        val rank: Int
-    )
-
     /*
      * ÖSYM 2025 test ortalama / standart sapmaları
      */
@@ -72,99 +67,23 @@ object YksRankingEstimator {
     )
 
     /*
-     * Bu tablolar artık puan→sıralama eşlemesi için DEĞİL,
-     * sadece "toplam aday sayısı"nı (en düşük puan satırındaki
-     * kümülatif sayı) çekmek için kullanılıyor. Gerçek sıralama
-     * hesaplaması artık normal dağılım yüzdelik dilimiyle yapılıyor
-     * (bkz. rankFromZ), çünkü z*50+250 formülüyle üretilen "puan"ın
-     * bu tablolardaki gerçek ÖSYM puan ölçeğiyle örtüşmediği ortaya
-     * çıktı — bu da mükemmel bir net'in bile 40-50 bin gibi çok kötü
-     * bir sıralamaya denk gelmesine yol açıyordu.
+     * Toplam aday sayıları
      */
-    private val tytExam2025 = anchors(
-        500 to 1, 480 to 180, 460 to 2_050, 440 to 8_163, 420 to 21_061,
-        400 to 44_193, 380 to 79_260, 360 to 127_655, 340 to 193_064,
-        320 to 282_276, 300 to 404_024, 280 to 570_335, 260 to 794_784,
-        240 to 1_073_527, 220 to 1_379_866, 200 to 1_686_626, 180 to 1_977_665,
-        160 to 2_210_463, 140 to 2_303_695, 120 to 2_310_493, 100 to 2_310_579
+    private const val TOTAL_TYT_CANDIDATES_2025 = 2_310_579
+    private const val TOTAL_TYT_CANDIDATES_2026 = 2_187_743
+
+    private val TOTAL_PLACEMENT_CANDIDATES_2025 = mapOf(
+        "TYT" to 2_310_579,
+        "SAY" to 1_291_531,
+        "EA" to 1_494_612,
+        "SÖZ" to 1_174_047
     )
 
-    private val tytExam2026 = anchors(
-        500 to 1, 480 to 822, 460 to 5_524, 440 to 17_050, 420 to 37_770,
-        400 to 67_394, 380 to 106_404, 360 to 155_008, 340 to 218_156,
-        320 to 302_758, 300 to 417_935, 280 to 577_094, 260 to 787_244,
-        240 to 1_045_340, 220 to 1_332_391, 200 to 1_630_698, 180 to 1_914_717,
-        160 to 2_125_244, 140 to 2_184_873, 120 to 2_187_723, 100 to 2_187_743
-    )
-
-    private val placement2025 = mapOf(
-        "TYT" to anchors(
-            550 to 14, 530 to 601, 510 to 3_648, 490 to 11_733, 470 to 27_141,
-            450 to 52_500, 430 to 88_915, 410 to 137_133, 390 to 201_126,
-            370 to 286_158, 350 to 397_823, 330 to 545_280, 310 to 737_144,
-            290 to 976_188, 270 to 1_251_236, 250 to 1_542_701, 230 to 1_835_041,
-            210 to 2_099_883, 190 to 2_270_224, 170 to 2_308_495, 150 to 2_310_553,
-            130 to 2_310_579, 115 to 2_310_579
-        ),
-        "SAY" to anchors(
-            550 to 57, 530 to 1_930, 510 to 7_081, 490 to 16_140, 470 to 29_410,
-            450 to 46_142, 430 to 65_449, 410 to 87_117, 390 to 111_498,
-            370 to 139_619, 350 to 174_355, 330 to 217_778, 310 to 274_252,
-            290 to 348_397, 270 to 449_880, 250 to 596_635, 230 to 811_201,
-            210 to 1_052_783, 190 to 1_228_141, 170 to 1_287_932, 150 to 1_291_491,
-            130 to 1_291_531, 115 to 1_291_531
-        ),
-        "EA" to anchors(
-            550 to 4, 530 to 58, 510 to 261, 490 to 742, 470 to 1_629,
-            450 to 3_422, 430 to 8_145, 410 to 20_244, 390 to 42_590,
-            370 to 76_959, 350 to 125_389, 330 to 192_949, 310 to 287_630,
-            290 to 418_975, 270 to 592_803, 250 to 806_796, 230 to 1_042_314,
-            210 to 1_262_545, 190 to 1_425_544, 170 to 1_489_209, 150 to 1_494_521,
-            130 to 1_494_611, 115 to 1_494_612
-        ),
-        "SÖZ" to anchors(
-            550 to 1, 530 to 7, 510 to 26, 490 to 77, 470 to 254,
-            450 to 721, 430 to 1_926, 410 to 5_036, 390 to 12_522,
-            370 to 28_323, 350 to 57_848, 330 to 108_894, 310 to 190_203,
-            290 to 309_551, 270 to 468_930, 250 to 658_973, 230 to 849_410,
-            210 to 1_010_174, 190 to 1_121_933, 170 to 1_168_866, 150 to 1_173_955,
-            130 to 1_174_046, 115 to 1_174_047
-        )
-    )
-
-    private val placement2026 = mapOf(
-        "TYT" to anchors(
-            550 to 112, 530 to 2_045, 510 to 8_638, 490 to 22_600, 470 to 45_313,
-            450 to 76_021, 430 to 115_071, 410 to 163_211, 390 to 225_038,
-            370 to 305_570, 350 to 412_011, 330 to 553_526, 310 to 735_519,
-            290 to 961_261, 270 to 1_219_171, 250 to 1_499_060, 230 to 1_782_951,
-            210 to 2_033_331, 190 to 2_166_477, 170 to 2_186_977, 150 to 2_187_734,
-            130 to 2_187_742, 115 to 2_187_743
-        ),
-        "SAY" to anchors(
-            550 to 154, 530 to 3_500, 510 to 12_887, 490 to 27_402, 470 to 44_919,
-            450 to 63_669, 430 to 83_511, 410 to 105_112, 390 to 129_485,
-            370 to 157_778, 350 to 191_247, 330 to 232_317, 310 to 282_213,
-            290 to 344_726, 270 to 425_443, 250 to 533_920, 230 to 681_176,
-            210 to 858_167, 190 to 1_019_046, 170 to 1_117_304, 150 to 1_135_198,
-            130 to 1_135_713, 115 to 1_135_718
-        ),
-        "EA" to anchors(
-            550 to 12, 530 to 98, 510 to 394, 490 to 1_118, 470 to 2_482,
-            450 to 5_299, 430 to 12_363, 410 to 29_700, 390 to 58_772,
-            370 to 97_839, 350 to 148_570, 330 to 215_631, 310 to 307_918,
-            290 to 429_479, 270 to 585_271, 250 to 775_922, 230 to 990_764,
-            210 to 1_196_809, 190 to 1_347_025, 170 to 1_412_649, 150 to 1_421_093,
-            130 to 1_421_289, 115 to 1_421_290
-        ),
-        "SÖZ" to anchors(
-            550 to 4, 530 to 14, 510 to 69, 490 to 221, 470 to 606,
-            450 to 1_566, 430 to 4_058, 410 to 10_184, 390 to 22_750,
-            370 to 45_237, 350 to 82_479, 330 to 140_496, 310 to 223_004,
-            290 to 333_238, 270 to 474_443, 250 to 642_816, 230 to 814_264,
-            210 to 953_036, 190 to 1_040_347, 170 to 1_078_859, 150 to 1_085_505,
-            130 to 1_085_697, 115 to 1_085_698
-        )
+    private val TOTAL_PLACEMENT_CANDIDATES_2026 = mapOf(
+        "TYT" to 2_187_743,
+        "SAY" to 1_135_718,
+        "EA" to 1_421_290,
+        "SÖZ" to 1_085_698
     )
 
     fun estimateTyt(exam: Exam, obp: Double): RankingEstimate? {
@@ -184,8 +103,8 @@ object YksRankingEstimator {
         val z2025 = normalizedZ(nets, tyt2025, weights)
         val z2026 = normalizedZ(nets, tyt2026, weights)
 
-        val rank2025 = rankFromZ(z2025, tytExam2025.last().rank)
-        val rank2026 = rankFromZ(z2026, tytExam2026.last().rank)
+        val rank2025 = rankFromZ(z2025, TOTAL_TYT_CANDIDATES_2025)
+        val rank2026 = rankFromZ(z2026, TOTAL_TYT_CANDIDATES_2026)
 
         return combine(rank2025, rank2026)
     }
@@ -214,8 +133,7 @@ object YksRankingEstimator {
         val aytWeights = aytWeightsFor(field)
         val key = fieldKey(field)
 
-        // OBP tipik olarak 50-70 bandında yoğunlaşır; bunu kabaca bir z'ye çeviriyoruz.
-        val obpZ = (obp.coerceIn(0.0, 100.0) - 65.0) / 15.0
+        val obpZ = (obp.coerceIn(0.0, 100.0) - 75.0) / 12.0
 
         val tytZ2025 = normalizedZ(tytNets, tyt2025, tytWeights())
         val tytZ2026 = normalizedZ(tytNets, tyt2026, tytWeights())
@@ -225,8 +143,11 @@ object YksRankingEstimator {
         val combinedZ2025 = combinePlacementZ(tytZ2025, aytZ2025, obpZ)
         val combinedZ2026 = combinePlacementZ(tytZ2026, aytZ2026, obpZ)
 
-        val rank2025 = rankFromZ(combinedZ2025, placement2025.getValue(key).last().rank)
-        val rank2026 = rankFromZ(combinedZ2026, placement2026.getValue(key).last().rank)
+        val totalCandidates2025 = TOTAL_PLACEMENT_CANDIDATES_2025.getValue(key)
+        val totalCandidates2026 = TOTAL_PLACEMENT_CANDIDATES_2026.getValue(key)
+
+        val rank2025 = rankFromZ(combinedZ2025, totalCandidates2025)
+        val rank2026 = rankFromZ(combinedZ2026, totalCandidates2026)
 
         return combine(rank2025, rank2026)
     }
@@ -251,8 +172,6 @@ object YksRankingEstimator {
         )
     }
 
-    /** Ağırlıklı z toplamını (sum(z_i * w_i)) alıp, bunu kendi varyansına
-     *  göre normalize ederek gerçekten N(0,1)'e yakın bir z döndürür. */
     private fun normalizedZ(
         nets: Map<String, Double>,
         stats: Map<String, Stats>,
@@ -271,22 +190,24 @@ object YksRankingEstimator {
     private fun combinePlacementZ(tytZ: Double, aytZ: Double, obpZ: Double): Double {
         val wt = 0.40
         val wa = 0.60
-        val wo = 0.08 // OBP'ye modest bir ağırlık — asıl belirleyici TYT+AYT
+        val wo = 0.08
         val weighted = wt * tytZ + wa * aytZ + wo * obpZ
         val norm = kotlin.math.sqrt(wt * wt + wa * wa + wo * wo)
         return weighted / norm
     }
 
-    /** z-skorunu standart normal dağılımın yüzdelik dilimine çevirip,
-     *  bu dilimi gerçek aday sayısıyla çarparak sıralama tahmini üretir. */
     private fun rankFromZ(z: Double, totalCandidates: Int): Int {
-        val percentileAbove = 1.0 - normalCdf(z)
+        val adjustedZ = if (z > 2.0) {
+            z + (z - 2.0) * 0.25
+        } else {
+            z
+        }
+        val percentileAbove = 1.0 - normalCdf(adjustedZ)
         return (totalCandidates * percentileAbove).roundToInt().coerceAtLeast(1)
     }
 
     private fun normalCdf(z: Double): Double = 0.5 * (1.0 + erf(z / kotlin.math.sqrt(2.0)))
 
-    /** Abramowitz-Stegun yaklaşık hata fonksiyonu (7.1.26). */
     private fun erf(x: Double): Double {
         val t = 1.0 / (1.0 + 0.3275911 * kotlin.math.abs(x))
         val y = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * kotlin.math.exp(-x * x)
@@ -326,12 +247,6 @@ object YksRankingEstimator {
             lower = minOf(rank2025, rank2026).coerceAtLeast(1),
             upper = maxOf(rank2025, rank2026).coerceAtLeast(1)
         )
-    }
-
-    private fun anchors(vararg values: Pair<Int, Int>): List<Anchor> {
-        return values
-            .map { Anchor(score = it.first.toDouble(), rank = it.second) }
-            .sortedByDescending { it.score }
     }
 
     private fun fieldKey(field: AytField): String = when (field) {
