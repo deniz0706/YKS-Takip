@@ -3,11 +3,6 @@ package com.deniz0706.ykstakip.util
 import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
-import java.text.Normalizer
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
-import java.util.Locale
-import kotlin.math.abs
 
 data class TytRankingResult(
     val exam: Exam,
@@ -53,12 +48,23 @@ object YksRankingCalculator {
             .filter { it.type == ExamType.TYT }
             .sortedBy { it.date }
 
-        val aytExams = exams
-            .filter {
-                it.type == ExamType.AYT &&
-                    (it.aytField == null || it.aytField == field)
-            }
+        val allAytExams = exams
+            .filter { it.type == ExamType.AYT }
             .sortedBy { it.date }
+
+        if (tytExams.isEmpty() || allAytExams.isEmpty()) {
+            return emptyList()
+        }
+
+        val fieldAytExams = allAytExams.filter {
+            it.aytField == null || it.aytField == field
+        }
+
+        val aytExams = if (fieldAytExams.isNotEmpty()) {
+            fieldAytExams
+        } else {
+            allAytExams
+        }
 
         return aytExams.mapNotNull { aytExam ->
 
@@ -98,83 +104,23 @@ object YksRankingCalculator {
             return sameDate
         }
 
-        val aytTitle = normalizeText(aytExam.title)
-        val aytPublisher = normalizeText(aytExam.publisher)
-
-        val sameTitle = tytExams
-            .filter {
-                normalizeText(it.title) == aytTitle &&
-                    aytTitle.isNotEmpty()
-            }
-            .minByOrNull {
-                dateDistance(it.date, aytExam.date)
-            }
-
-        if (sameTitle != null) {
-            return sameTitle
-        }
-
-        if (aytPublisher.isNotEmpty()) {
-            val samePublisher = tytExams
-                .filter {
-                    normalizeText(it.publisher) == aytPublisher
-                }
-                .minByOrNull {
-                    dateDistance(it.date, aytExam.date)
-                }
-
-            if (samePublisher != null &&
-                dateDistance(
-                    samePublisher.date,
-                    aytExam.date
-                ) <= 30L
-            ) {
-                return samePublisher
-            }
-        }
-
-        val nearest = tytExams.minByOrNull {
-            dateDistance(it.date, aytExam.date)
-        }
-
-        return nearest?.takeIf {
-            dateDistance(
-                it.date,
-                aytExam.date
-            ) <= 30L
+        return tytExams.minByOrNull {
+            kotlin.math.abs(
+                daysBetween(it.date, aytExam.date)
+            )
         }
     }
 
-    private fun normalizeText(
-        value: String
-    ): String {
-
-        return Normalizer
-            .normalize(
-                value.lowercase(Locale("tr", "TR")),
-                Normalizer.Form.NFD
-            )
-            .replace(
-                Regex("\\p{InCombiningDiacriticalMarks}+"),
-                ""
-            )
-            .replace(
-                Regex("[^a-z0-9]+"),
-                ""
-            )
-    }
-
-    private fun dateDistance(
+    private fun daysBetween(
         first: String,
         second: String
     ): Long {
-
         return try {
-            val firstDate = LocalDate.parse(first)
-            val secondDate = LocalDate.parse(second)
+            val firstDate = java.time.LocalDate.parse(first)
+            val secondDate = java.time.LocalDate.parse(second)
 
-            abs(
-                ChronoUnit.DAYS.between(
+            kotlin.math.abs(
+                java.time.temporal.ChronoUnit.DAYS.between(
                     firstDate,
                     secondDate
                 )
