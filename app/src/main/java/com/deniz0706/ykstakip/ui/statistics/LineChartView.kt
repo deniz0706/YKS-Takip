@@ -124,7 +124,7 @@ class LineChartView @JvmOverloads constructor(
         widthMeasureSpec: Int,
         heightMeasureSpec: Int
     ) {
-        val width = MeasureSpec.getSize(widthMeasure)
+        val width = MeasureSpec.getSize(widthMeasureSpec)
         val height =
             (width * 0.62f)
                 .toInt()
