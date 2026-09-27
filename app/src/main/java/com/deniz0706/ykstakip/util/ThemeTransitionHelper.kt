@@ -40,4 +40,18 @@ object ThemeTransitionHelper {
             setImageBitmap(bitmap)
             scaleType = ImageView.ScaleType.FIT_XY
             layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+        decor.addView(overlay)
+        overlay.animate()
+            .alpha(0f)
+            .setDuration(280)
+            .withEndAction {
+                decor.removeView(overlay)
+                if (!bitmap.isRecycled) bitmap.recycle()
+            }
+            .start()
+    }
+}
