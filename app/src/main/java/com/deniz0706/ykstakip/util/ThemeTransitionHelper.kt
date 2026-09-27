@@ -6,14 +6,6 @@ import android.graphics.Canvas
 import android.view.ViewGroup
 import android.widget.ImageView
 
-/**
- * setDefaultNightMode() bir Activity'yi otomatik recreate() ediyor, bu da
- * varsayılan olarak sert bir "flaş" gibi hissettiriyor. Bunu yumuşatmak için:
- * 1) Tema değişmeden HEMEN ÖNCE ekranın anlık görüntüsünü (bitmap) alıyoruz.
- * 2) Activity yeniden oluşup yeni tema çizildikten sonra, bu eski görüntüyü
- *    üstüne kaplıyoruz ve yavaşça (fade) kayboluyor — göz, eski temadan yeni
- *    temaya yumuşak bir geçiş görüyor.
- */
 object ThemeTransitionHelper {
 
     private var pendingSnapshot: Bitmap? = null
@@ -29,6 +21,8 @@ object ThemeTransitionHelper {
         } catch (e: Exception) {
             null
         }
+
+        activity.overridePendingTransition(0, 0)
     }
 
     fun applyPendingSnapshot(activity: Activity) {
