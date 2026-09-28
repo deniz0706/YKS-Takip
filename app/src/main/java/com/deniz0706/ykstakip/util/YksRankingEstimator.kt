@@ -519,6 +519,8 @@ object YksRankingEstimator {
         return weightedSum / totalWeight
     }
 
+    private const val AYT_Z_CALIBRATION = 0.6
+
     private fun combinePlacementZ(
         tytZ: Double,
         aytZ: Double,
@@ -529,18 +531,16 @@ object YksRankingEstimator {
         val wa = 0.60
         val wo = 0.08
 
+        val calibratedAytZ = aytZ * AYT_Z_CALIBRATION
+
         val weighted =
             wt * tytZ +
-            wa * aytZ +
+            wa * calibratedAytZ +
             wo * obpZ
 
-        val norm = kotlin.math.sqrt(
-            wt * wt +
-            wa * wa +
-            wo * wo
-        )
+        val totalWeight = wt + wa + wo
 
-        return weighted / norm
+        return weighted / totalWeight
     }
 
     private fun rankFromZ(
