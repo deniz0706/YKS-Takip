@@ -50,6 +50,7 @@ fun StudyScreenV2(
     onEditDay: (String) -> Unit,
     onPickDay: () -> Unit,
     onAddPlan: (Int) -> Unit,
+    onEditPlan: (StudyPlanItem) -> Unit,
     onTogglePlan: (Long) -> Unit,
     onDeletePlan: (StudyPlanItem) -> Unit
 ) {
@@ -500,13 +501,18 @@ fun StudyScreenV2(
             YksCard(Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = item.completed, onCheckedChange = { onTogglePlan(item.id) })
-                    Column(Modifier.weight(1f)) {
+                    Column(Modifier.weight(1f)
+                        .clickable { onEditPlan(item) }
+                        .padding(vertical = 3.dp)) {
                         Text(item.subject, fontWeight = FontWeight.SemiBold,
                             color = if (item.completed) colors.onSurfaceVariant else colors.onSurface)
                         if (item.topic.isNotBlank()) Text(item.topic, color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall)
                         Text("${item.startTime} – ${item.endTime}", color = colors.secondary,
                             style = MaterialTheme.typography.labelMedium)
+                        Spacer(Modifier.height(3.dp))
+                        Text("Düzenle ›", color = colors.secondary,
+                            style = MaterialTheme.typography.labelSmall)
                     }
                     TextButton(onClick = { onDeletePlan(item) }) { Text("Sil", color = colors.error) }
                 }
