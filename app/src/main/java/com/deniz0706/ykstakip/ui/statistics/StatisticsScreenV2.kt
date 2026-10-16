@@ -6,6 +6,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -234,6 +237,11 @@ private fun StatsTrend(
     val max = maxOf(plotted.maxOf { it.second }, target ?: Float.NEGATIVE_INFINITY)
     val spread = (max - min).coerceAtLeast(1f)
     val selectedPoint = plotted[selected.coerceIn(0, plotted.lastIndex)]
+    val animatedIndex by animateFloatAsState(
+        targetValue = selected.coerceIn(0, plotted.lastIndex).toFloat(),
+        animationSpec = spring(stiffness = 500f, dampingRatio = .85f),
+        label = "trend-cursor"
+    )
     val selectedValue = if (rankingMode) -selectedPoint.second else selectedPoint.second
     val formatted = if (rankingMode) {
         "~" + NumberFormat.getIntegerInstance(Locale("tr", "TR")).format(selectedValue.toLong())
@@ -281,6 +289,14 @@ private fun StatsTrend(
                     if (index == 0) line.moveTo(point.x, point.y)
                     else line.lineTo(point.x, point.y)
                 }
+                val area = Path().apply {
+                    addPath(line)
+                    lineTo(pos(plotted.lastIndex, plotted.last().second).x, size.height)
+                    lineTo(pos(0, plotted.first().second).x, size.height)
+                    close()
+                }
+                val areaBrush = Brush.verticalGradient(
+                    listOf(colors.primary.copy(alpha = .23f), colors.primary.copy(alpha = 0f)))
                 val targetY = target?.let { pos(0, it).y }
                 val stroke = Stroke(width = 3.dp.toPx())
                 val guideWidth = 1.dp.toPx()
@@ -293,9 +309,15 @@ private fun StatsTrend(
                             Offset(0f, targetY), Offset(size.width, targetY),
                             strokeWidth = targetWidth)
                     }
+                    drawPath(area, areaBrush)
                     drawPath(line, colors.primary, style = stroke)
-                    val index = selected.coerceIn(0, plotted.lastIndex)
-                    val point = pos(index, plotted[index].second)
+                    val left = animatedIndex.toInt().coerceIn(0, plotted.lastIndex)
+                    val right = (left + 1).coerceAtMost(plotted.lastIndex)
+                    val fraction = (animatedIndex - left).coerceIn(0f, 1f)
+                    val a = pos(left, plotted[left].second)
+                    val b = pos(right, plotted[right].second)
+                    val point = Offset(a.x + (b.x - a.x) * fraction,
+                        a.y + (b.y - a.y) * fraction)
                     drawLine(colors.outline, Offset(point.x, 0f),
                         Offset(point.x, size.height), strokeWidth = guideWidth)
                     drawCircle(colors.primary, radius = outerRadius, center = point)
