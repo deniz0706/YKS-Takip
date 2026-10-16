@@ -12,6 +12,7 @@ import com.deniz0706.ykstakip.data.ExamValidator
 import com.deniz0706.ykstakip.model.*
 import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.ui.theme.YksTheme
+import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 import java.time.LocalDate
 import java.util.Calendar
 
@@ -38,11 +39,7 @@ class NewExamFragment : Fragment() {
             setViewCompositionStrategy(
                 androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val dark = when (ThemeManager.currentTheme(context)) {
-                    "dark" -> true
-                    "light" -> false
-                    else -> isSystemInDarkTheme()
-                }
+                val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
                 NewExamScreenV2(
                     initialType = initialType,

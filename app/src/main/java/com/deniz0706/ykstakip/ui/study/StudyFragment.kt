@@ -24,6 +24,7 @@ import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.model.StudyDay
 import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.ui.theme.YksTheme
+import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,11 +46,7 @@ class StudyFragment : Fragment() {
         ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val dark = when (ThemeManager.currentTheme(context)) {
-                    "dark" -> true
-                    "light" -> false
-                    else -> isSystemInDarkTheme()
-                }
+                val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
                     StudyScreenV2(
                         days = days.value,

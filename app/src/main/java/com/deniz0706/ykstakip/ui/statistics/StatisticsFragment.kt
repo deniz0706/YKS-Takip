@@ -15,6 +15,7 @@ import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.theme.YksTheme
+import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 
 class StatisticsFragment : Fragment() {
     private lateinit var repository: ExamRepository
@@ -33,11 +34,7 @@ class StatisticsFragment : Fragment() {
         ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val dark = when (ThemeManager.currentTheme(context)) {
-                    "dark" -> true
-                    "light" -> false
-                    else -> isSystemInDarkTheme()
-                }
+                val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
                     StatisticsScreenV2(exams.value, obp.value, targetTyt.value, targetAyt.value)
                 }

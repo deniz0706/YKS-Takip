@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.Context
+import android.content.res.Configuration
+import com.deniz0706.ykstakip.data.ThemeManager
 import androidx.compose.ui.graphics.Color
 
 private val DarkPalette = darkColorScheme(
@@ -88,5 +92,20 @@ fun YksTheme(
         ) {
             content()
         }
+    }
+}
+
+/**
+ * Read LocalConfiguration even for explicitly selected themes, so kept-alive
+ * fragments recompose when the Activity handles uiMode without recreation.
+ */
+@Composable
+fun activeDarkTheme(context: Context): Boolean {
+    val configuration = LocalConfiguration.current
+    return when (ThemeManager.currentTheme(context)) {
+        "dark" -> true
+        "light" -> false
+        else -> (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
     }
 }

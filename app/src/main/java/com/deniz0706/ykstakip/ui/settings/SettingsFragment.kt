@@ -16,6 +16,7 @@ import com.deniz0706.ykstakip.data.*
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.ui.theme.YksTheme
+import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 
 class SettingsFragment : Fragment() {
     private lateinit var repository: ExamRepository
@@ -66,11 +67,8 @@ class SettingsFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val selected = theme.value
-                val dark = when (selected) {
-                    "dark" -> true
-                    "light" -> false
-                    else -> isSystemInDarkTheme()
-                }
+                // The saved theme and LocalConfiguration both drive repaint.
+                val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
                     SettingsScreenV2(
                         selectedTheme = selected,

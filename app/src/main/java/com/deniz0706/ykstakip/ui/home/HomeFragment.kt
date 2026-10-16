@@ -17,6 +17,7 @@ import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.ui.theme.YksTheme
+import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -39,11 +40,7 @@ class HomeFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val dark = when (ThemeManager.currentTheme(context)) {
-                    "dark" -> true
-                    "light" -> false
-                    else -> isSystemInDarkTheme()
-                }
+                val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
                     val revision = dashboardRevision.value
                     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
