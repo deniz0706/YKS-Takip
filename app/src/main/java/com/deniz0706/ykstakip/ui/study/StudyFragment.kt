@@ -521,18 +521,11 @@ class StudyFragment : Fragment(R.layout.fragment_study) {
 
         val dates = when (chartRange) {
             "7" -> datesForLastDays(7)
-
             "30" -> datesForLastDays(30)
-
             else -> {
-                val firstDate =
-                    days.minOfOrNull { it.date }
-                        ?: return emptyList()
-
-                datesBetween(
-                    firstDate,
-                    todayString()
-                )
+                // Avoid generating thousands of empty points on every redraw.
+                // Only recorded days are needed for the all-time trend.
+                days.map { it.date }.distinct().sorted()
             }
         }
 
