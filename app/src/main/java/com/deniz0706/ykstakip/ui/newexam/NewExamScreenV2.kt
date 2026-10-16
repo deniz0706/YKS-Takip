@@ -64,9 +64,14 @@ fun NewExamScreenV2(
         if (type == ExamType.AYT) SubjectConfigs.subjectsFor(field)
         else SubjectConfigs.subjectsFor(type)
     }
-    val rows = remember(configs, existing) {
+    // Preserve unsaved inputs when moving between TYT, AYT and AYT fields.
+    val drafts = remember(existing) { mutableStateMapOf<String, List<SubjectDraft>>() }
+    val draftKey = if (type == ExamType.TYT) "TYT" else "AYT_${field.name}"
+    val rows = drafts.getOrPut(draftKey) {
         configs.map { config ->
-            val saved = existing?.takeIf { it.type == type }?.subject(config.name)
+            val saved = existing?.takeIf {
+                it.type == type && (type != ExamType.AYT || it.aytField == field)
+            }?.subject(config.name)
             SubjectDraft(config, saved?.correct ?: 0, saved?.wrong ?: 0,
                 saved?.timeMinutes ?: 0, saved?.weakTopics?.joinToString(", ").orEmpty())
         }
