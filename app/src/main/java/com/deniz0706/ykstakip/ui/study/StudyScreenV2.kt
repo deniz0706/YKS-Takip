@@ -86,6 +86,10 @@ fun StudyScreenV2(
             it.date to if (metric == "questions") it.questionCount.toFloat() else it.studyMinutes.toFloat()
         }
     }
+    val todayDayOfWeek = remember(today) { Calendar.getInstance().get(Calendar.DAY_OF_WEEK) }
+    val todayLessons = remember(plan, todayDayOfWeek) {
+        plan.filter { it.dayOfWeek == todayDayOfWeek }.sortedBy { it.startTime }
+    }
     val selectedPlans = remember(plan, selectedDay) {
         plan.filter { it.dayOfWeek == selectedDay }.sortedBy { it.startTime }
     }
@@ -197,6 +201,15 @@ fun StudyScreenV2(
         }
         if (section == "today") item(key = "focus-session") {
             FocusSessionCard(onSaved = onFocusSaved, modifier = Modifier.fillMaxWidth())
+        }
+        if (section == "today") item(key = "today-agenda") {
+            TodayAgendaPanel(
+                items = todayLessons,
+                onToggle = onTogglePlan,
+                onAdd = { onAddPlan(todayDayOfWeek) },
+                onShowPlan = { selectedDay = todayDayOfWeek; section = "plan" },
+                modifier = Modifier.fillMaxWidth()
+            )
         }
         if (section == "today") {
         item {
