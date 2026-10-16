@@ -202,7 +202,7 @@ fun HomeScreenV2(
                     }
                     Spacer(Modifier.height(12.dp))
                     DashboardProgress(
-                        (recentAvg!! / type.totalQuestions).toFloat(),
+                        (recentAvg!! / if (type == ExamType.TYT) 120f else 80f).toFloat(),
                         Modifier.fillMaxWidth(),
                         foreground = if (trend >= 0) c.primary else c.tertiary
                     )
