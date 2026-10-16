@@ -1,9 +1,14 @@
 package com.deniz0706.ykstakip.ui.home
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +28,7 @@ import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.components.ExamTypeTabs
 import com.deniz0706.ykstakip.ui.components.MetricTile
 import com.deniz0706.ykstakip.ui.components.YksCard
+import com.deniz0706.ykstakip.ui.components.NetTrendChart
 import com.deniz0706.ykstakip.util.Fmt
 
 @Composable
@@ -38,8 +44,17 @@ fun HomeScreenV2(
     daysLeftAyt: Long? = null
 ) {
     var selected by remember { mutableStateOf(ExamType.TYT) }
+    var period by remember { mutableStateOf(0) }
+    var showTarget by remember { mutableStateOf(true) }
     val filtered = remember(exams, selected) { exams.filter { it.type == selected }.sortedBy { it.date } }
-    val nets = remember(filtered) { filtered.map { it.totalNet } }
+    val visible = remember(filtered, period) {
+        val cutoff = when (period) { 0 -> 7L; 1 -> 30L; 2 -> 90L; else -> null }
+        if (cutoff == null) filtered else {
+            val limit = java.time.LocalDate.now().minusDays(cutoff - 1)
+            filtered.filter { runCatching { java.time.LocalDate.parse(it.date).isBefore(limit) }.getOrDefault(false).not() }
+        }
+    }
+    val nets = remember(visible) { visible.map { it.totalNet } }
     val targetNet = if (selected == ExamType.TYT) targetTyt else targetAyt
     val remainingDays = if (selected == ExamType.TYT) daysLeft else daysLeftAyt
     val last = nets.lastOrNull()
@@ -58,17 +73,47 @@ fun HomeScreenV2(
         item { ExamTypeTabs(selected.name, { selected = ExamType.valueOf(it) }) }
         item {
             YksCard(highlighted = true) {
-                Text("SON ${selected.name} DENEMESİ", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.labelLarge)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column {
+                        Text("SON ${selected.name} DENEMESİ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
+                        Spacer(Modifier.height(7.dp))
+                        AnimatedContent(last?.let(Fmt::net) ?: "—", label = "last-net") { value ->
+                            Text(value, fontSize = 42.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+                    Column {
+                        Text("DEĞİŞİM", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                        Text(delta?.let { "${if (it >= 0) "↗" else "↘"} ${Fmt.netWithSign(it)}" } ?: "—",
+                            color = if (delta != null && delta >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                Spacer(Modifier.height(22.dp))
+                Text("Net gelişimi", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(12.dp))
-                Text(last?.let(Fmt::net) ?: "—", fontSize = 48.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Text(
-                    delta?.let { "Önceki denemeye göre ${Fmt.netWithSign(it)} net" } ?: "Henüz karşılaştırma yok",
-                    color = if (delta != null && delta >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(20.dp))
-                NetSparkline(nets.takeLast(10), Modifier.fillMaxWidth().height(184.dp))
-                Spacer(Modifier.height(12.dp))
-                Text("Son ${minOf(nets.size, 10)} denemenin net eğilimi", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    listOf("7G", "30G", "90G", "Tümü").forEachIndexed { index, label ->
+                        val active = period == index
+                        Text(label,
+                            modifier = Modifier.weight(1f).background(
+                                if (active) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface.copy(alpha = 0f),
+                                RoundedCornerShape(12.dp)
+                            ).clickable { period = index }.padding(vertical = 10.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            color = if (active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+                Spacer(Modifier.height(18.dp))
+                NetTrendChart(nets, visible.map { it.date }, Modifier.fillMaxWidth(), if (showTarget) targetNet else null)
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column {
+                        Text("Hedef çizgisi", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
+                        Text("Grafikte hedef neti göster", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                    }
+                    androidx.compose.material3.Switch(checked = showTarget, onCheckedChange = { showTarget = it }, enabled = targetNet != null)
+                }
             }
         }
         item {
