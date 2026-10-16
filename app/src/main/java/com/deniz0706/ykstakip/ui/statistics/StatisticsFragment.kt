@@ -361,59 +361,52 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
     }
 
     private fun renderRanking() {
-        val v = view ?: return
-
-        val card = v.findViewById<View>(R.id.rankingCard)
-        val empty = v.findViewById<TextView>(R.id.tvRankingEmpty)
-
         val obp = AppSettings.getObp(requireContext())?.toDouble()
-
         if (obp == null) {
-            card.visibility = View.VISIBLE
-            empty.visibility = View.VISIBLE
-            empty.text = "Sıralama tahmini için Ayarlar'dan OBP gir."
-            clearRankingStats()
-            renderRankingTrend()
+            showRankingEmpty("Sıralama tahmini için Ayarlar'dan OBP gir.")
             return
         }
 
+        // Calculate once per refresh, then reuse for both summary and trend.
+        // The previous implementation recalculated the full ranking twice.
         val exams = repository.getAllExams()
-
+        val points: List<LineChartView.Point>
+        val estimates: List<RankingEstimate>
         if (examType == ExamType.TYT) {
-            val results =
-                YksRankingCalculator.calculateTyt(
-                    exams = exams,
-                    obp = obp
-                )
-
-            if (results.isEmpty()) {
-                showRankingEmpty("Henüz hesaplanabilecek TYT denemesi yok.")
-                return
+            val results = YksRankingCalculator.calculateTyt(exams, obp)
+            estimates = results.map { it.estimate }
+            points = results.map {
+                rankingPoint(it.exam.date, it.exam.title, it.estimate)
             }
-
-            val estimates = results.map { it.estimate }
-
-            showRankingStats(estimates)
-            renderRankingTrend()
         } else {
-            val results =
-                YksRankingCalculator.calculateAyt(
-                    exams = exams,
-                    obp = obp,
-                    field = aytField
-                )
-
-            if (results.isEmpty()) {
-                showRankingEmpty(
-                    "Seçili alan için eşleşen TYT + AYT denemesi yok."
-                )
-                return
+            val results = YksRankingCalculator.calculateAyt(exams, obp, aytField)
+            estimates = results.map { it.estimate }
+            points = results.map {
+                rankingPoint(it.aytExam.date, it.aytExam.title, it.estimate)
             }
+        }
 
-            val estimates = results.map { it.estimate }
+        if (estimates.isEmpty()) {
+            showRankingEmpty(
+                if (examType == ExamType.TYT) "Henüz hesaplanabilecek TYT denemesi yok."
+                else "Seçili alan için eşleşen TYT + AYT denemesi yok."
+            )
+            return
+        }
+        showRankingStats(estimates)
+        renderRankingPoints(points)
+    }
 
-            showRankingStats(estimates)
-            renderRankingTrend()
+    private fun renderRankingPoints(points: List<LineChartView.Point>) {
+        val v = view ?: return
+        val chart = v.findViewById<LineChartView>(R.id.rankingChart)
+        val empty = v.findViewById<TextView>(R.id.tvEmptyRankingChart)
+        chart.visibility = if (points.isEmpty()) View.GONE else View.VISIBLE
+        empty.visibility = if (points.isEmpty()) View.VISIBLE else View.GONE
+        if (points.isNotEmpty()) {
+            chart.reverseY = true
+            chart.targetValue = null
+            chart.points = points
         }
     }
 
@@ -470,7 +463,7 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         empty.text = message
 
         clearRankingStats()
-        renderRankingTrend()
+        renderRankingPoints(emptyList())
     }
 
     private fun clearRankingStats() {
@@ -482,70 +475,6 @@ class StatisticsFragment : Fragment(R.layout.fragment_statistics) {
         v.findViewById<TextView>(R.id.tvRankingAvgAll).text = "—"
         v.findViewById<TextView>(R.id.tvRankingBest).text = "—"
         v.findViewById<TextView>(R.id.tvRankingWorst).text = "—"
-    }
-
-    private fun renderRankingTrend() {
-        val v = view ?: return
-
-        val chart =
-            v.findViewById<LineChartView>(R.id.rankingChart)
-
-        val empty =
-            v.findViewById<TextView>(R.id.tvEmptyRankingChart)
-
-        val obp =
-            AppSettings.getObp(requireContext())?.toDouble()
-
-        if (obp == null) {
-            chart.visibility = View.GONE
-            empty.visibility = View.VISIBLE
-            return
-        }
-
-        val exams = repository.getAllExams()
-
-        val points =
-            if (examType == ExamType.TYT) {
-                YksRankingCalculator
-                    .calculateTyt(
-                        exams = exams,
-                        obp = obp
-                    )
-                    .map { result ->
-                        rankingPoint(
-                            date = result.exam.date,
-                            title = result.exam.title,
-                            estimate = result.estimate
-                        )
-                    }
-            } else {
-                YksRankingCalculator
-                    .calculateAyt(
-                        exams = exams,
-                        obp = obp,
-                        field = aytField
-                    )
-                    .map { result ->
-                        rankingPoint(
-                            date = result.aytExam.date,
-                            title = result.aytExam.title,
-                            estimate = result.estimate
-                        )
-                    }
-            }
-
-        if (points.isEmpty()) {
-            chart.visibility = View.GONE
-            empty.visibility = View.VISIBLE
-            return
-        }
-
-        chart.visibility = View.VISIBLE
-        empty.visibility = View.GONE
-
-        chart.reverseY = true
-        chart.targetValue = null
-        chart.points = points
     }
 
     private fun rankingPoint(
