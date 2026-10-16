@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -30,6 +31,7 @@ import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
 import com.deniz0706.ykstakip.ui.components.SubjectMomentumPanel
+import com.deniz0706.ykstakip.ui.components.ExamComparisonPanel
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.YksRankingCalculator
 import com.deniz0706.ykstakip.util.RankingEstimate
@@ -44,6 +46,9 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
     var branch by remember { mutableStateOf("") }
     var metric by remember { mutableStateOf("net") }
     var range by remember { mutableStateOf("10") }
+    var section by remember { mutableStateOf("general") }
+    val listState = rememberLazyListState()
+    LaunchedEffect(section, type) { listState.scrollToItem(0) }
     var field by remember { mutableStateOf(AytField.SAYISAL) }
     var showMetric by remember { mutableStateOf(false) }
     var showBranch by remember { mutableStateOf(false) }
@@ -78,9 +83,12 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
         }
         if (range == "all") raw else raw.takeLast(range.toInt())
     }
-    val weak = remember(all) { WeakTopicAnalyzer.findWeakSpots(all, sampleSize = 5, top = 3) }
-    val ranking = remember(exams, type, field, obp) {
-        if (obp == null) emptyList() else if (type == ExamType.TYT)
+    val weak = remember(all, section) {
+        if (section == "branches") WeakTopicAnalyzer.findWeakSpots(all, sampleSize = 5, top = 3)
+        else emptyList()
+    }
+    val ranking = remember(exams, type, field, obp, section) {
+        if (section != "ranking" || obp == null) emptyList() else if (type == ExamType.TYT)
             YksRankingCalculator.calculateTyt(exams, obp).map { it.estimate }
         else YksRankingCalculator.calculateAyt(exams, obp, field).map { it.estimate }
     }
@@ -88,12 +96,16 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
     fun rank(v: Double): String = "~" + nf.format(v.toInt())
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
             Text("PERFORMANS ANALİZİ", color = colors.secondary, style = MaterialTheme.typography.labelLarge)
-            Text("İstatistik", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            Text("Deneme Analizi", color = colors.onBackground,
+                fontSize = 30.sp, fontWeight = FontWeight.Bold)
+            Text("Grafik, branş gelişimi ve sıralamanı ayrı ayrı keşfet.",
+                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -101,6 +113,19 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                     FilterChip(selected = type == t, onClick = { type = t; branch = "" },
                         label = { Text(t.name) }, modifier = Modifier.weight(1f))
                 }
+            }
+        }
+        item(key = "analytics-categories") {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                listOf("general" to "Genel", "branches" to "Branş", "ranking" to "Sıralama")
+                    .forEachIndexed { index, (key, label) ->
+                        SegmentedButton(
+                            selected = section == key,
+                            onClick = { section = key },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+                            label = { Text(label, maxLines = 1) }
+                        )
+                    }
             }
         }
         item {
@@ -112,7 +137,7 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                     Modifier.weight(1f), "Tüm denemeler", colors.primary)
             }
         }
-        item {
+        if (section == "general") item {
             DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
                 val last = all.lastOrNull()
                 val maxQuestions = if (type == ExamType.TYT) 120f else 80f
@@ -147,7 +172,7 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                     style = MaterialTheme.typography.labelSmall)
             }
         }
-        item {
+        if (section == "general") item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Net ve performans trendi", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -200,10 +225,13 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                 }
             }
         }
-        item(key = "subject-momentum") {
+        if (section == "general") item(key = "exam-duel") {
+            ExamComparisonPanel(all, Modifier.fillMaxWidth())
+        }
+        if (section == "branches") item(key = "subject-momentum") {
             SubjectMomentumPanel(all, Modifier.fillMaxWidth())
         }
-        item {
+        if (section == "ranking") item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Sıralama tahmini", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Text("Tahmini değerlerdir; gerçek YKS sıralaması farklı olabilir.",
@@ -243,7 +271,7 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                 }
             }
         }
-        if (weak.isNotEmpty()) item {
+        if (section == "branches" && weak.isNotEmpty()) item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Tekrar gerektiren konular", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
