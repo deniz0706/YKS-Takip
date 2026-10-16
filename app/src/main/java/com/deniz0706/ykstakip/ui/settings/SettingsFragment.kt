@@ -193,24 +193,35 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 .toString()
                 .trim()
 
-        val tyt =
-            tytText
-                .replace(',', '.')
-                .toFloatOrNull()
+        val tyt = tytText.replace(',', '.').toFloatOrNull()
+        val ayt = aytText.replace(',', '.').toFloatOrNull()
+        val dailyGoal = dailyGoalText.toIntOrNull()
+        val obp = obpText.replace(',', '.').toFloatOrNull()
 
-        val ayt =
-            aytText
-                .replace(',', '.')
-                .toFloatOrNull()
+        fun invalid(fieldId: Int, message: String): Boolean {
+            v.findViewById<EditText>(fieldId).apply {
+                error = message
+                requestFocus()
+            }
+            return true
+        }
 
-        val dailyGoal =
-            dailyGoalText.toIntOrNull()
-
-        val obp =
-            obpText
-                .replace(',', '.')
-                .toFloatOrNull()
-                ?.takeIf { it in 0f..100f }
+        if (tytText.isNotEmpty() && (tyt == null || !tyt.isFinite() || tyt !in 0f..120f)) {
+            invalid(R.id.etTargetTyt, "TYT hedefi 0–120 arasında olmalı")
+            return
+        }
+        if (aytText.isNotEmpty() && (ayt == null || !ayt.isFinite() || ayt !in 0f..80f)) {
+            invalid(R.id.etTargetAyt, "AYT hedefi 0–80 arasında olmalı")
+            return
+        }
+        if (dailyGoalText.isNotEmpty() && (dailyGoal == null || dailyGoal !in 0..100000)) {
+            invalid(R.id.etDailyGoal, "Geçerli bir soru hedefi gir")
+            return
+        }
+        if (obpText.isNotEmpty() && (obp == null || !obp.isFinite() || obp !in 0f..100f)) {
+            invalid(R.id.etObp, "OBP 0–100 arasında olmalı")
+            return
+        }
 
         AppSettings.setTargetNet(
             requireContext(),
