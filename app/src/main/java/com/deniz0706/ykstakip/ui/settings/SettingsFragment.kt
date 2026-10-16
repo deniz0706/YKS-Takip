@@ -60,13 +60,23 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 )
             ) {
                 is BackupManager.ImportResult.Success -> {
-                    repository.replaceAll(result.exams)
-
-                    Toast.makeText(
-                        requireContext(),
-                        "${result.exams.size} deneme içe aktarıldı.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setTitle("Yedeği içe aktar")
+                        .setMessage(
+                            "Bu yedekte ${result.exams.size} deneme var. " +
+                                "Mevcut ${repository.getAllExams().size} deneme kaydının tamamı " +
+                                "yedekteki kayıtlarla değiştirilecek. Devam edilsin mi?"
+                        )
+                        .setNegativeButton("Vazgeç", null)
+                        .setPositiveButton("İçe aktar") { _, _ ->
+                            repository.replaceAll(result.exams)
+                            Toast.makeText(
+                                requireContext(),
+                                "${result.exams.size} deneme içe aktarıldı.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .show()
                 }
 
                 is BackupManager.ImportResult.Error -> {
