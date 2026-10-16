@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.ui.home
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
