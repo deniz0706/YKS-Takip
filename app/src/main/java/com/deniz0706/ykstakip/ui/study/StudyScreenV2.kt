@@ -46,6 +46,7 @@ fun StudyScreenV2(
     plan: List<StudyPlanItem>,
     goal: Int?,
     onEditToday: () -> Unit,
+    onFocusSaved: () -> Unit,
     onEditDay: (String) -> Unit,
     onPickDay: () -> Unit,
     onAddPlan: (Int) -> Unit,
@@ -193,6 +194,9 @@ fun StudyScreenV2(
                 }
             }
         }
+        }
+        if (section == "today") item(key = "focus-session") {
+            FocusSessionCard(onSaved = onFocusSaved, modifier = Modifier.fillMaxWidth())
         }
         if (section == "today") {
         item {

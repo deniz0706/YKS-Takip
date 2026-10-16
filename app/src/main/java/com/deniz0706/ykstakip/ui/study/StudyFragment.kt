@@ -56,6 +56,7 @@ class StudyFragment : Fragment() {
                         plan = plan.value,
                         goal = goal.value,
                         onEditToday = { editDay(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())) },
+                        onFocusSaved = { refresh() },
                         onEditDay = { editDay(it) },
                         onPickDay = { pickDay() },
                         onAddPlan = { addPlan(it) },

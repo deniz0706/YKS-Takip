@@ -26,6 +26,7 @@ import com.deniz0706.ykstakip.util.Fmt
 fun HomeScreenV2(
     exams: List<Exam>,
     onNewExam: (ExamType) -> Unit,
+    onOpenStudy: () -> Unit,
     modifier: Modifier = Modifier,
     daysLeft: Long? = null,
     todayQuestions: Int = 0,
@@ -236,6 +237,12 @@ fun HomeScreenV2(
                     Spacer(Modifier.height(14.dp))
                     DashboardProgress(todayQuestions.toFloat() / dailyGoal,
                         Modifier.fillMaxWidth())
+                }
+                Spacer(Modifier.height(13.dp))
+                OutlinedButton(onClick = onOpenStudy,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(15.dp)) {
+                    Text("◷  Odak seansı aç  ↗")
                 }
             }
         }

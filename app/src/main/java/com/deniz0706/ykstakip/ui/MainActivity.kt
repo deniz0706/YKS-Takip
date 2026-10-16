@@ -3,6 +3,7 @@ package com.deniz0706.ykstakip.ui
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import com.deniz0706.ykstakip.R
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.history.ExamHubFragment
@@ -100,13 +101,22 @@ class MainActivity : AppCompatActivity() {
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
         manager.fragments.filter {
             it.isAdded && it.id == R.id.fragmentContainer && it !== fragment
-        }.forEach { transaction.hide(it) }
+        }.forEach {
+            transaction.hide(it)
+            transaction.setMaxLifecycle(it, Lifecycle.State.STARTED)
+        }
         if (fragment.isAdded) {
             transaction.show(fragment)
         } else {
             transaction.add(R.id.fragmentContainer, fragment, tag)
         }
+        transaction.setMaxLifecycle(fragment, Lifecycle.State.RESUMED)
         transaction.commit()
+    }
+
+    fun openStudy() {
+        nav.select(NAV_STUDY)
+        showFragment(NAV_STUDY)
     }
 
     fun openNewExam(type: ExamType) {

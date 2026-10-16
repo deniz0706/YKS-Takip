@@ -9,6 +9,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import com.deniz0706.ykstakip.ui.statistics.StatisticsFragment
 
 /**
@@ -112,10 +113,15 @@ class ExamHubFragment : Fragment() {
         val tag = if (selectedTab == 0) "archive" else "analysis"
         val existing = childFragmentManager.findFragmentByTag(tag)
         val transaction = childFragmentManager.beginTransaction()
-        childFragmentManager.fragments.forEach { transaction.hide(it) }
-        if (existing != null) transaction.show(existing)
-        else transaction.add(containerId,
-            if (selectedTab == 0) HistoryFragment() else StatisticsFragment(), tag)
+        childFragmentManager.executePendingTransactions()
+        childFragmentManager.fragments.forEach {
+            transaction.hide(it)
+            transaction.setMaxLifecycle(it, Lifecycle.State.STARTED)
+        }
+        val destination = existing ?: if (selectedTab == 0) HistoryFragment() else StatisticsFragment()
+        if (existing != null) transaction.show(destination)
+        else transaction.add(containerId, destination, tag)
+        transaction.setMaxLifecycle(destination, Lifecycle.State.RESUMED)
         transaction.commit()
     }
 

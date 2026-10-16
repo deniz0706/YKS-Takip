@@ -50,6 +50,7 @@ class HomeFragment : Fragment() {
                     HomeScreenV2(
                         exams = exams.value,
                         onNewExam = { (activity as? MainActivity)?.openNewExam(it) },
+                        onOpenStudy = { (activity as? MainActivity)?.openStudy() },
                         daysLeft = daysUntilExam(19),
                         daysLeftAyt = daysUntilExam(20),
                         targetTyt = AppSettings.getTargetNet(context, ExamType.TYT),
