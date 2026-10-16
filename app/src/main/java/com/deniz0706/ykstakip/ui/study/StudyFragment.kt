@@ -10,6 +10,8 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import com.deniz0706.ykstakip.R
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
@@ -77,6 +79,11 @@ class StudyFragment : Fragment() {
 
     private fun input(hintText: String, initial: String = "", number: Boolean = false): EditText =
         EditText(requireContext()).apply {
+            // The study editor is a native Android dialog, not Compose.
+            // Resolve user-selected DayNight colors explicitly instead of
+            // relying on the platform's default (often black) EditText style.
+            setTextColor(ContextCompat.getColor(context, R.color.on_background))
+            setHintTextColor(ContextCompat.getColor(context, R.color.on_surface_secondary))
             hint = hintText
             setText(initial)
             isSingleLine = true
