@@ -1,7 +1,8 @@
 package com.deniz0706.ykstakip.ui.components
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -76,13 +77,21 @@ fun DashboardProgress(
     foreground: Color = MaterialTheme.colorScheme.primary
 ) {
     val c = MaterialTheme.colorScheme
-    val progress = animateFloatAsState(fraction.coerceIn(0f, 1f),
-        animationSpec = spring(stiffness = 350f), label = "goal-progress")
-    Box(modifier.height(9.dp).clip(RoundedCornerShape(100.dp))
-        .background(c.surfaceVariant)) {
-        Box(Modifier.fillMaxWidth(progress.value).fillMaxHeight()
-            .clip(RoundedCornerShape(100.dp)).background(foreground))
-    }
+    val progress = remember { Animatable(0f) }
+    val target = fraction.coerceIn(0f, 1f)
+    LaunchedEffect(target) { progress.animateTo(target, tween(700)) }
+    Box(modifier.height(9.dp).drawWithCache {
+        val radius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f)
+        val track = c.surfaceVariant
+        onDrawBehind {
+            drawRoundRect(track, cornerRadius = radius)
+            if (progress.value > 0f) {
+                drawRoundRect(foreground,
+                    size = androidx.compose.ui.geometry.Size(size.width * progress.value, size.height),
+                    cornerRadius = radius)
+            }
+        }
+    })
 }
 
 @Composable
@@ -94,8 +103,9 @@ fun DashboardRing(
     diameter: androidx.compose.ui.unit.Dp = 106.dp
 ) {
     val c = MaterialTheme.colorScheme
-    val progress = animateFloatAsState(fraction.coerceIn(0f, 1f),
-        animationSpec = spring(stiffness = 250f), label = "ring-progress")
+    val progress = remember { Animatable(0f) }
+    val target = fraction.coerceIn(0f, 1f)
+    LaunchedEffect(target) { progress.animateTo(target, tween(850)) }
     val track = c.outline.copy(alpha = .36f)
     Box(modifier.size(diameter), contentAlignment = Alignment.Center) {
         Box(Modifier.fillMaxSize().drawWithCache {

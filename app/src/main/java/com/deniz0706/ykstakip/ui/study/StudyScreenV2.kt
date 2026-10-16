@@ -4,6 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -567,6 +570,11 @@ private fun StudyBars(
         }
     }
     if (display.isEmpty()) return
+    val reveal = remember { Animatable(0f) }
+    LaunchedEffect(display) {
+        reveal.snapTo(0f)
+        reveal.animateTo(1f, tween(850))
+    }
     var selected by remember(display) { mutableIntStateOf(display.lastIndex) }
     val max = (display.maxOfOrNull { it.second } ?: 1f).coerceAtLeast(1f)
     val chosen = display[selected.coerceIn(0, display.lastIndex)]
@@ -614,14 +622,20 @@ private fun StudyBars(
                     androidx.compose.ui.geometry.Rect(x, size.height - height, x + barWidth, size.height)
                 }
                 onDrawBehind {
-                    bars.forEachIndexed { index, rect ->
+                    bars.forEachIndexed { index, _ ->
                         val x = index * slot + gap / 2f
                         drawRoundRect(base, topLeft = Offset(x, 0f),
                             size = androidx.compose.ui.geometry.Size(barWidth, size.height),
                             cornerRadius = rounding)
-                        if (rect.height > 0f) {
-                            drawRoundRect(fill, topLeft = rect.topLeft,
-                                size = rect.size, cornerRadius = rounding)
+                    }
+                    // The bars rise from the baseline; cached geometry stays static.
+                    clipRect(left = 0f, top = size.height * (1f - reveal.value),
+                        right = size.width, bottom = size.height) {
+                        bars.forEach { rect ->
+                            if (rect.height > 0f) {
+                                drawRoundRect(fill, topLeft = rect.topLeft,
+                                    size = rect.size, cornerRadius = rounding)
+                            }
                         }
                     }
                     val x = (animatedSelection + .5f) * slot

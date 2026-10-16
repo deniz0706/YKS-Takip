@@ -9,6 +9,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -272,6 +275,11 @@ private fun StatsTrend(
         }
     }
     if (plotted.isEmpty()) return
+    val reveal = remember { Animatable(0f) }
+    LaunchedEffect(plotted) {
+        reveal.snapTo(0f)
+        reveal.animateTo(1f, tween(950))
+    }
 
     var selected by remember(plotted) { mutableIntStateOf(plotted.lastIndex) }
     val min = minOf(plotted.minOf { it.second }, target ?: Float.POSITIVE_INFINITY)
@@ -350,8 +358,11 @@ private fun StatsTrend(
                             Offset(0f, targetY), Offset(size.width, targetY),
                             strokeWidth = targetWidth)
                     }
-                    drawPath(area, areaBrush)
-                    drawPath(line, colors.primary, style = stroke)
+                    val revealX = size.width * reveal.value
+                    clipRect(left = 0f, top = 0f, right = revealX, bottom = size.height) {
+                        drawPath(area, areaBrush)
+                        drawPath(line, colors.primary, style = stroke)
+                    }
                     val left = animatedIndex.toInt().coerceIn(0, plotted.lastIndex)
                     val right = (left + 1).coerceAtMost(plotted.lastIndex)
                     val fraction = (animatedIndex - left).coerceIn(0f, 1f)
@@ -359,10 +370,12 @@ private fun StatsTrend(
                     val b = pos(right, plotted[right].second)
                     val point = Offset(a.x + (b.x - a.x) * fraction,
                         a.y + (b.y - a.y) * fraction)
-                    drawLine(colors.outline, Offset(point.x, 0f),
-                        Offset(point.x, size.height), strokeWidth = guideWidth)
-                    drawCircle(colors.primary, radius = outerRadius, center = point)
-                    drawCircle(colors.surface, radius = innerRadius, center = point)
+                    if (point.x <= revealX + 1f) {
+                        drawLine(colors.outline, Offset(point.x, 0f),
+                            Offset(point.x, size.height), strokeWidth = guideWidth)
+                        drawCircle(colors.primary, radius = outerRadius, center = point)
+                        drawCircle(colors.surface, radius = innerRadius, center = point)
+                    }
                 }
             }
     )
