@@ -3,6 +3,7 @@ package com.deniz0706.ykstakip.ui.home
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -158,6 +159,54 @@ fun HomeScreenV2(
                 DashboardMetric("Sınava kalan", countdown?.let {
                     if (it >= 0) "$it" else "—"
                 } ?: "—", Modifier.weight(1f), "gün")
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth()) {
+                Text("PERFORMANS RADARI", color = c.secondary,
+                    style = MaterialTheme.typography.labelSmall, letterSpacing = 1.3.sp)
+                Spacer(Modifier.height(9.dp))
+                val recent = all.takeLast(5)
+                val older = all.dropLast(5).takeLast(5)
+                val recentAvg = recent.takeIf { it.isNotEmpty() }?.map { it.totalNet }?.average()
+                val olderAvg = older.takeIf { it.isNotEmpty() }?.map { it.totalNet }?.average()
+                val trend = if (recentAvg != null && olderAvg != null) recentAvg - olderAvg else null
+                Text(when {
+                    recentAvg == null -> "İlk denemeni eklediğinde gelişim analizin burada görünecek."
+                    trend == null -> "İlk ${recent.size} denemen kaydedildi. Birkaç deneme daha ekleyince dönemleri karşılaştırabileceksin."
+                    trend > 0.5 -> "Son 5 denemede yükseliş var. Önceki 5 denemeye göre ortalaman arttı."
+                    trend < -0.5 -> "Son 5 denemede ortalama geriledi. Zayıf branşlarını inceleyebilirsin."
+                    else -> "Son 5 denemede performansın dengeli seyrediyor."
+                }, color = c.onSurface, style = MaterialTheme.typography.bodyMedium)
+                if (trend != null) {
+                    Spacer(Modifier.height(13.dp))
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column {
+                            Text("ÖNCEKİ 5", color = c.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelSmall)
+                            Text(Fmt.net(olderAvg!!), color = c.onSurface,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold)
+                        }
+                        Text(if (trend >= 0) "↗ +${Fmt.net(trend)}" else "↘ ${Fmt.net(trend)}",
+                            color = if (trend >= 0) c.primary else c.error,
+                            fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("SON 5", color = c.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelSmall)
+                            Text(Fmt.net(recentAvg!!), color = c.onSurface,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    DashboardProgress(
+                        (recentAvg!! / type.totalQuestions).toFloat(),
+                        Modifier.fillMaxWidth(),
+                        foreground = if (trend >= 0) c.primary else c.tertiary
+                    )
+                }
             }
         }
         item {
