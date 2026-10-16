@@ -371,11 +371,14 @@ class StudyFragment : Fragment(R.layout.fragment_study) {
                 val end =
                     endInput.text.toString().trim()
 
-                if (
-                    subject.isEmpty() ||
-                    start.isEmpty() ||
-                    end.isEmpty()
-                ) {
+                val timePattern = Regex("^(?:[01]\\d|2[0-3]):[0-5]\\d$")
+                if (subject.isEmpty() || !timePattern.matches(start) ||
+                    !timePattern.matches(end) || start >= end) {
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        "Ders adı ve geçerli saat aralığı gerekli (örn. 10:00–11:30).",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
                     return@setPositiveButton
                 }
 
