@@ -14,6 +14,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +48,7 @@ fun DashboardPanel(
         modifier.background(fill, shape)
             .border(1.dp, c.outline.copy(alpha = .38f), shape)
             .padding(18.dp),
-        content = content
+        content = { CompositionLocalProvider(LocalContentColor provides c.onSurface) { content() } }
     )
 }
 
