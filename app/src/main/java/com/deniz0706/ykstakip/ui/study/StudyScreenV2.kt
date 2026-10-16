@@ -2,6 +2,8 @@ package com.deniz0706.ykstakip.ui.study
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -168,10 +170,15 @@ fun StudyScreenV2(
                 Spacer(Modifier.height(13.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     activeLast7.forEach { (date, active) ->
+                        val tileColor by animateColorAsState(
+                            targetValue = if (active) colors.primaryContainer
+                                else colors.surfaceVariant,
+                            animationSpec = spring(stiffness = 350f),
+                            label = "study-day-tile"
+                        )
                         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(Modifier.fillMaxWidth().height(26.dp)
-                                .background(if (active) colors.primaryContainer
-                                    else colors.surfaceVariant, RoundedCornerShape(9.dp))
+                            Box(Modifier.fillMaxWidth().height(30.dp)
+                                .background(tileColor, RoundedCornerShape(10.dp))
                                 .clickable { onEditDay(date) },
                                 contentAlignment = Alignment.Center) {
                                 Text(if (active) "✓" else "·",
