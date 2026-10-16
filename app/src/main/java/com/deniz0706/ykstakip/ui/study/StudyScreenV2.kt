@@ -53,7 +53,7 @@ fun StudyScreenV2(
     val current = days.firstOrNull { it.date == today }
     val questions = current?.questionCount ?: 0
     val minutes = current?.studyMinutes ?: 0
-    val weekdays = listOf(2 to "Pzt", 3 to "Sal", 4 to "Çar", 5 to "Per", 6 to "Cum", 7 to "Cmt", 1 to "Paz")
+    val weekdays = remember { listOf(2 to "Pzt", 3 to "Sal", 4 to "Çar", 5 to "Per", 6 to "Cum", 7 to "Cmt", 1 to "Paz") }
     var selectedDay by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) }
     var metric by remember { mutableStateOf("questions") }
     var range by remember { mutableStateOf("7") }
@@ -74,12 +74,16 @@ fun StudyScreenV2(
             }
         }
     }
-    val chartValues = chartDays.map {
-        it.date to if (metric == "questions") it.questionCount.toFloat() else it.studyMinutes.toFloat()
+    val chartValues = remember(chartDays, metric) {
+        chartDays.map {
+            it.date to if (metric == "questions") it.questionCount.toFloat() else it.studyMinutes.toFloat()
+        }
     }
-    val selectedPlans = plan.filter { it.dayOfWeek == selectedDay }.sortedBy { it.startTime }
-    val totalQuestions = sorted.sumOf { it.questionCount }
-    val totalMinutes = sorted.sumOf { it.studyMinutes }
+    val selectedPlans = remember(plan, selectedDay) {
+        plan.filter { it.dayOfWeek == selectedDay }.sortedBy { it.startTime }
+    }
+    val totalQuestions = remember(sorted) { sorted.sumOf { it.questionCount } }
+    val totalMinutes = remember(sorted) { sorted.sumOf { it.studyMinutes } }
     val weeklyComparison = remember(sorted, today) {
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         val calendar = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -13) }

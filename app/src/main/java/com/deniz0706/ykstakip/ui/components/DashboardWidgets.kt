@@ -90,13 +90,14 @@ fun DashboardRing(
     fraction: Float,
     center: String,
     modifier: Modifier = Modifier,
-    caption: String = ""
+    caption: String = "",
+    diameter: androidx.compose.ui.unit.Dp = 106.dp
 ) {
     val c = MaterialTheme.colorScheme
     val progress = animateFloatAsState(fraction.coerceIn(0f, 1f),
         animationSpec = spring(stiffness = 250f), label = "ring-progress")
     val track = c.outline.copy(alpha = .36f)
-    Box(modifier.size(106.dp), contentAlignment = Alignment.Center) {
+    Box(modifier.size(diameter), contentAlignment = Alignment.Center) {
         Box(Modifier.fillMaxSize().drawWithCache {
             val style = Stroke(9.dp.toPx(), cap = StrokeCap.Round)
             onDrawBehind {

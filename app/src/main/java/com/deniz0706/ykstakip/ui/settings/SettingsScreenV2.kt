@@ -64,13 +64,13 @@ fun SettingsScreenV2(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    DashboardRing(tytTarget / 120f, "${tytTarget.toInt()}", caption = "TYT / 120")
+                    DashboardRing(tytTarget / 120f, "${tytTarget.toInt()}", caption = "TYT", diameter = 78.dp)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    DashboardRing(aytTarget / 80f, "${aytTarget.toInt()}", caption = "AYT / 80")
+                    DashboardRing(aytTarget / 80f, "${aytTarget.toInt()}", caption = "AYT", diameter = 78.dp)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    DashboardRing(obpTarget / 100f, "${obpTarget.toInt()}", caption = "OBP / 100")
+                    DashboardRing(obpTarget / 100f, "${obpTarget.toInt()}", caption = "OBP", diameter = 78.dp)
                 }
             }
             Spacer(Modifier.height(12.dp))
