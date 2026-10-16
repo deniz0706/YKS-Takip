@@ -371,7 +371,7 @@ class StudyFragment : Fragment(R.layout.fragment_study) {
                 val end =
                     endInput.text.toString().trim()
 
-                val timePattern = Regex("^(?:[01]\\d|2[0-3]):[0-5]\\d$")
+                val timePattern = Regex("""^(?:[01][0-9]|2[0-3]):[0-5][0-9]$""")
                 if (subject.isEmpty() || !timePattern.matches(start) ||
                     !timePattern.matches(end) || start >= end) {
                     android.widget.Toast.makeText(
