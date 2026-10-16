@@ -14,7 +14,7 @@ import android.content.res.Configuration
 import com.deniz0706.ykstakip.data.ThemeManager
 import androidx.compose.ui.graphics.Color
 
-private val DarkPalette = darkColorScheme(
+private val AuroraPalette = darkColorScheme(
     primary = YksColors.Mint,
     onPrimary = YksColors.Background,
     primaryContainer = Color(0xFF174A49),
@@ -45,6 +45,40 @@ private val DarkPalette = darkColorScheme(
     onError = Color(0xFF330812),
     errorContainer = Color(0xFF612333),
     onErrorContainer = Color(0xFFFFDCE3)
+)
+
+/** Graphite-black appearance, intentionally separate from the former navy Aurora. */
+private val DarkPalette = darkColorScheme(
+    primary = Color(0xFFCBB7FF),
+    onPrimary = Color(0xFF27173A),
+    primaryContainer = Color(0xFF38284D),
+    onPrimaryContainer = Color(0xFFEFE4FF),
+    secondary = Color(0xFFE6C38F),
+    onSecondary = Color(0xFF302111),
+    secondaryContainer = Color(0xFF493923),
+    onSecondaryContainer = Color(0xFFFFE8C6),
+    tertiary = Color(0xFF93C7EE),
+    onTertiary = Color(0xFF102A42),
+    tertiaryContainer = Color(0xFF20394B),
+    onTertiaryContainer = Color(0xFFD6F0FF),
+    background = Color(0xFF090B10),
+    onBackground = Color(0xFFF5F6FA),
+    surface = Color(0xFF15181F),
+    surfaceVariant = Color(0xFF242831),
+    surfaceTint = Color(0xFFCBB7FF),
+    surfaceContainer = Color(0xFF191C24),
+    surfaceContainerHigh = Color(0xFF222630),
+    surfaceContainerHighest = Color(0xFF2D313D),
+    onSurface = Color(0xFFF5F6FA),
+    onSurfaceVariant = Color(0xFFA8ADBC),
+    outline = Color(0xFF525663),
+    outlineVariant = Color(0xFF343744),
+    inverseSurface = Color(0xFFDFE2EA),
+    inverseOnSurface = Color(0xFF222630),
+    error = Color(0xFFFF90A5),
+    onError = Color(0xFF4C1220),
+    errorContainer = Color(0xFF64283A),
+    onErrorContainer = Color(0xFFFFDCE5)
 )
 
 private val LightPalette = lightColorScheme(
@@ -79,7 +113,14 @@ fun YksTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val palette = if (darkTheme) DarkPalette else LightPalette
+    // selectedMode is observable: Aurora -> Graphite switches with no uiMode
+    // change and must still update every retained Compose screen.
+    val palette = when (ThemeManager.selectedMode.value) {
+        "light" -> LightPalette
+        "aurora" -> AuroraPalette
+        "dark" -> DarkPalette
+        else -> if (darkTheme) DarkPalette else LightPalette
+    }
     MaterialTheme(colorScheme = palette) {
         // MaterialTheme does not itself create a Surface. Without a root Surface,
         // Text outside cards can inherit the platform's default BLACK content
@@ -102,8 +143,8 @@ fun YksTheme(
 @Composable
 fun activeDarkTheme(context: Context): Boolean {
     val configuration = LocalConfiguration.current
-    return when (ThemeManager.currentTheme(context)) {
-        "dark" -> true
+    return when (ThemeManager.selectedMode.value) {
+        "dark", "aurora" -> true
         "light" -> false
         else -> (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
             Configuration.UI_MODE_NIGHT_YES

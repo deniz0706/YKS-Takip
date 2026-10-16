@@ -95,7 +95,7 @@ fun SettingsScreenV2(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
-            Text("Bir görünüm seçtiğinde değişiklik anında uygulanır.",
+            Text("Açık özgün görünümünü korur. Aurora önceki lacivert–mint temamız; Koyu ise yeni grafit tasarım.",
                 color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
         }

@@ -21,7 +21,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** Lightweight live theme previews; renders miniature dashboards, not screenshots. */
+private data class PreviewOption(
+    val id: String, val title: String, val subtitle: String,
+    val background: Color, val surface: Color, val text: Color, val accent: Color,
+    val splitPreview: Boolean = false
+)
+
+/** Two-column, tappable theme gallery. Each preview reflects its real palette. */
 @Composable
 fun ThemePreviewSelector(
     selected: String,
@@ -30,66 +36,81 @@ fun ThemePreviewSelector(
 ) {
     val scheme = MaterialTheme.colorScheme
     val systemDark = isSystemInDarkTheme()
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-        listOf("light" to "Açık", "dark" to "Koyu", "system" to "Sistem")
-            .forEach { (key, label) ->
-                val darkPreview = when (key) {
-                    "light" -> false
-                    "dark" -> true
-                    else -> systemDark
-                }
-                val background = if (darkPreview) Color(0xFF101B2D) else Color(0xFFF4F6FB)
-                val surface = if (darkPreview) Color(0xFF20344C) else Color.White
-                val foreground = if (darkPreview) Color(0xFFEAF3FF) else Color(0xFF14243D)
-                val accent = if (darkPreview) Color(0xFF69DAC6) else Color(0xFF087E72)
-                val active = selected == key
-                Column(
-                    Modifier.weight(1f)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(if (active) scheme.primaryContainer else scheme.surfaceVariant)
-                        .border(
-                            if (active) 2.dp else 1.dp,
-                            if (active) scheme.primary else scheme.outline.copy(alpha = .45f),
-                            RoundedCornerShape(18.dp)
-                        )
-                        .clickable { onSelect(key) }
-                        .padding(7.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+    val options = listOf(
+        PreviewOption("light", "Açık", "Ferahlık",
+            Color(0xFFF5F7FC), Color.White, Color(0xFF152238), Color(0xFF087E72)),
+        PreviewOption("dark", "Koyu", "Grafit",
+            Color(0xFF090B10), Color(0xFF15181F), Color(0xFFF5F6FA), Color(0xFFCBB7FF)),
+        PreviewOption("aurora", "Aurora", "Mint & lila",
+            Color(0xFF0B1220), Color(0xFF172337), Color(0xFFF3F8FF), Color(0xFF57D6C1)),
+        PreviewOption("system", "Sistem", "Otomatik",
+            if (systemDark) Color(0xFF090B10) else Color(0xFFF5F7FC),
+            if (systemDark) Color(0xFF15181F) else Color.White,
+            if (systemDark) Color(0xFFF5F6FA) else Color(0xFF152238),
+            if (systemDark) Color(0xFFCBB7FF) else Color(0xFF087E72),
+            splitPreview = true)
+    )
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        options.chunked(2).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                row.forEach { option ->
+                    val isSelected = selected == option.id
                     Column(
-                        Modifier.fillMaxWidth().height(89.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(background)
-                            .padding(7.dp)
+                        Modifier.weight(1f)
+                            .clip(RoundedCornerShape(19.dp))
+                            .background(if (isSelected) scheme.primaryContainer else scheme.surfaceVariant)
+                            .border(if (isSelected) 2.dp else 1.dp,
+                                if (isSelected) scheme.primary else scheme.outline.copy(alpha = .5f),
+                                RoundedCornerShape(19.dp))
+                            .clickable { onSelect(option.id) }
+                            .padding(9.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("YKS", color = foreground, fontWeight = FontWeight.Bold,
-                            fontSize = 9.sp, lineHeight = 12.sp)
-                        Spacer(Modifier.height(5.dp))
-                        Box(Modifier.fillMaxWidth().height(11.dp)
-                            .clip(RoundedCornerShape(3.dp)).background(surface)) {
-                            Box(Modifier.fillMaxWidth(.62f).fillMaxHeight()
-                                .background(accent.copy(alpha = .9f)))
-                        }
-                        Spacer(Modifier.height(5.dp))
-                        Canvas(Modifier.fillMaxWidth().weight(1f)) {
-                            val line = Path().apply {
-                                moveTo(0f, size.height * .83f)
-                                lineTo(size.width * .23f, size.height * .55f)
-                                lineTo(size.width * .46f, size.height * .66f)
-                                lineTo(size.width * .70f, size.height * .25f)
-                                lineTo(size.width, size.height * .18f)
+                        Box(
+                            Modifier.fillMaxWidth().height(94.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(option.background)
+                        ) {
+                            if (option.splitPreview) {
+                                Box(Modifier.align(Alignment.CenterEnd)
+                                    .fillMaxWidth(.5f).fillMaxHeight()
+                                    .background(if (systemDark) Color(0xFFF5F7FC) else Color(0xFF090B10)))
                             }
-                            drawPath(line, accent, style = Stroke(2.dp.toPx()))
-                            drawCircle(accent, radius = 2.6.dp.toPx(),
-                                center = Offset(size.width, size.height * .18f))
+                            Column(Modifier.fillMaxSize().padding(10.dp)) {
+                                Text("YKS", color = option.text, fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold, lineHeight = 12.sp)
+                                Spacer(Modifier.height(7.dp))
+                                Box(Modifier.fillMaxWidth().height(13.dp)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(option.surface)) {
+                                    Box(Modifier.fillMaxWidth(.6f).fillMaxHeight()
+                                        .background(option.accent.copy(alpha = .87f)))
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                Canvas(Modifier.fillMaxWidth().weight(1f)) {
+                                    val line = Path().apply {
+                                        moveTo(0f, size.height * .88f)
+                                        lineTo(size.width * .2f, size.height * .56f)
+                                        lineTo(size.width * .43f, size.height * .7f)
+                                        lineTo(size.width * .72f, size.height * .22f)
+                                        lineTo(size.width, size.height * .14f)
+                                    }
+                                    drawPath(line, option.accent, style = Stroke(2.3.dp.toPx()))
+                                    drawCircle(option.accent, radius = 3.dp.toPx(),
+                                        center = Offset(size.width, size.height * .14f))
+                                }
+                            }
                         }
+                        Spacer(Modifier.height(8.dp))
+                        Text(if (isSelected) "✓ ${option.title}" else option.title,
+                            color = scheme.onSurface,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            style = MaterialTheme.typography.titleSmall)
+                        Text(option.subtitle, color = scheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
                     }
-                    Spacer(Modifier.height(8.dp))
-                    Text(if (active) "✓ $label" else label,
-                        color = scheme.onSurface,
-                        fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-                        style = MaterialTheme.typography.labelMedium)
                 }
             }
+        }
     }
 }
