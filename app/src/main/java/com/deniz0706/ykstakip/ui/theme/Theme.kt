@@ -2,6 +2,9 @@ package com.deniz0706.ykstakip.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -72,8 +75,18 @@ fun YksTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkPalette else LightPalette,
-        content = content
-    )
+    val palette = if (darkTheme) DarkPalette else LightPalette
+    MaterialTheme(colorScheme = palette) {
+        // MaterialTheme does not itself create a Surface. Without a root Surface,
+        // Text outside cards can inherit the platform's default BLACK content
+        // color even while our Compose palette uses a dark background.
+        // Keep this one source of truth for every Compose fragment and dialog.
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = palette.background,
+            contentColor = palette.onBackground
+        ) {
+            content()
+        }
+    }
 }

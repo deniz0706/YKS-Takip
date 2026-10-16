@@ -29,9 +29,16 @@ class ExamHubFragment : Fragment() {
         selectedTab = savedInstanceState?.getInt("exam_hub_tab") ?: selectedTab
         val density = resources.displayMetrics.density
         fun dp(v: Int) = (v * density).toInt()
-        val night = (resources.configuration.uiMode and
-            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val night = com.deniz0706.ykstakip.data.ThemeManager.currentTheme(requireContext())
+            .let { mode ->
+                when (mode) {
+                    "dark" -> true
+                    "light" -> false
+                    else -> (resources.configuration.uiMode and
+                        android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                        android.content.res.Configuration.UI_MODE_NIGHT_YES
+                }
+            }
         val surface = if (night) Color.rgb(23, 35, 55) else Color.rgb(247, 248, 252)
         val text = if (night) Color.rgb(235, 240, 250) else Color.rgb(30, 40, 60)
         val accent = if (night) Color.rgb(185, 164, 245) else Color.rgb(112, 85, 165)
