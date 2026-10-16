@@ -1,6 +1,5 @@
 package com.deniz0706.ykstakip.ui.history
 
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
@@ -18,7 +17,7 @@ import com.deniz0706.ykstakip.ui.statistics.StatisticsFragment
  */
 class ExamHubFragment : Fragment() {
     private var selectedTab = 0
-    private val containerId = View.generateViewId()
+    private val containerId = 0x00A71B42
     private lateinit var archiveTab: TextView
     private lateinit var analysisTab: TextView
 
