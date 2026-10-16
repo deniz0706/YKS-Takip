@@ -16,7 +16,6 @@ import com.deniz0706.ykstakip.data.*
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.ui.theme.YksTheme
-import com.deniz0706.ykstakip.util.ThemeTransitionHelper
 
 class SettingsFragment : Fragment() {
     private lateinit var repository: ExamRepository
@@ -75,10 +74,12 @@ class SettingsFragment : Fragment() {
                 YksTheme(darkTheme = dark) {
                     SettingsScreenV2(
                         selectedTheme = selected,
-                        onThemeChange = {
-                            (activity as? MainActivity)?.let { main -> ThemeTransitionHelper.captureSnapshot(main) }
-                            theme.value = it
-                            ThemeManager.setTheme(requireContext(), it)
+                        onThemeChange = { selected ->
+                            if (theme.value != selected) {
+                                theme.value = selected
+                                ThemeManager.setTheme(requireContext(), selected)
+                                // The Activity now handles uiMode itself rather than recreating.
+                            }
                         },
                         tyt = AppSettings.getTargetNet(context, ExamType.TYT)?.toString().orEmpty(),
                         ayt = AppSettings.getTargetNet(context, ExamType.AYT)?.toString().orEmpty(),

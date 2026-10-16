@@ -74,6 +74,12 @@ class FloatingBottomNavView @JvmOverloads constructor(
         updateSelectionVisuals()
     }
 
+    /** Recolor the existing views after a DayNight configuration change. */
+    fun refreshTheme() {
+        updateBackground()
+        updateSelectionVisuals(animate = false)
+    }
+
     private fun symbol(id: Int) = when (id) {
         1 -> "⌂"
         2 -> "▤"

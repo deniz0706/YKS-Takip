@@ -113,7 +113,6 @@ class ExamHubFragment : Fragment() {
         val tag = if (selectedTab == 0) "archive" else "analysis"
         val existing = childFragmentManager.findFragmentByTag(tag)
         val transaction = childFragmentManager.beginTransaction()
-        childFragmentManager.executePendingTransactions()
         childFragmentManager.fragments.forEach {
             transaction.hide(it)
             transaction.setMaxLifecycle(it, Lifecycle.State.STARTED)
@@ -122,7 +121,7 @@ class ExamHubFragment : Fragment() {
         if (existing != null) transaction.show(destination)
         else transaction.add(containerId, destination, tag)
         transaction.setMaxLifecycle(destination, Lifecycle.State.RESUMED)
-        transaction.commit()
+        transaction.commitNow()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

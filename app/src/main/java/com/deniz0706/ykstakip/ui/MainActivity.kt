@@ -1,6 +1,10 @@
 package com.deniz0706.ykstakip.ui
 
 import android.os.Bundle
+import android.content.res.Configuration
+import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -12,7 +16,6 @@ import com.deniz0706.ykstakip.ui.nav.FloatingBottomNavView
 import com.deniz0706.ykstakip.ui.newexam.NewExamFragment
 import com.deniz0706.ykstakip.ui.settings.SettingsFragment
 import com.deniz0706.ykstakip.ui.study.StudyFragment
-import com.deniz0706.ykstakip.util.ThemeTransitionHelper
 
 class MainActivity : AppCompatActivity() {
 
@@ -52,16 +55,34 @@ class MainActivity : AppCompatActivity() {
 
         // Restore the selected tab without rebuilding every screen.
         showFragment(currentNavId)
-    
-        window.decorView.viewTreeObserver.addOnPreDrawListener(
-            object : android.view.ViewTreeObserver.OnPreDrawListener {
-                override fun onPreDraw(): Boolean {
-                    window.decorView.viewTreeObserver.removeOnPreDrawListener(this)
-                    ThemeTransitionHelper.applyPendingSnapshot(this@MainActivity)
-                    return true
-                }
-            }
-        )
+        updateThemeChrome()
+    }
+
+    /**
+     * Handling uiMode in place avoids destroying the Activity, its fragments and
+     * all Compose scroll/input state on each appearance change.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateThemeChrome()
+    }
+
+    private fun updateThemeChrome() {
+        val isDark = when (com.deniz0706.ykstakip.data.ThemeManager.currentTheme(this)) {
+            "dark" -> true
+            "light" -> false
+            else -> (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+        }
+        val bg = ContextCompat.getColor(this, R.color.background)
+        findViewById<View>(R.id.mainRoot)?.setBackgroundColor(bg)
+        window.statusBarColor = bg
+        window.navigationBarColor = bg
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !isDark
+            isAppearanceLightNavigationBars = !isDark
+        }
+        if (::nav.isInitialized) nav.refreshTheme()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -79,9 +100,6 @@ class MainActivity : AppCompatActivity() {
         }
         currentNavId = navId
         val manager = supportFragmentManager
-        // Flush rapid taps before inspecting the fragment list. Otherwise two
-        // queued transactions can both believe the preceding tab is absent.
-        manager.executePendingTransactions()
         val tag = "main_tab_$navId"
         val fragment = fragmentCache.getOrPut(navId) {
             manager.findFragmentByTag(tag) ?: when (navId) {
@@ -98,7 +116,6 @@ class MainActivity : AppCompatActivity() {
         // replace() discarded the view and rebuilt the entire page on each tab tap.
         val transaction = manager.beginTransaction()
             .setReorderingAllowed(true)
-            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
         manager.fragments.filter {
             it.isAdded && it.id == R.id.fragmentContainer && it !== fragment
         }.forEach {
@@ -111,7 +128,9 @@ class MainActivity : AppCompatActivity() {
             transaction.add(R.id.fragmentContainer, fragment, tag)
         }
         transaction.setMaxLifecycle(fragment, Lifecycle.State.RESUMED)
-        transaction.commit()
+        // This tab transaction has no back-stack entry: execute it synchronously
+        // to avoid queued swaps and a secondary fade on rapid taps.
+        transaction.commitNow()
     }
 
     fun openStudy() {
