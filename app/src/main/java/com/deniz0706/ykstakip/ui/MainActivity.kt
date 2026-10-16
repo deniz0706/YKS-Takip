@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.R
 import com.deniz0706.ykstakip.model.ExamType
-import com.deniz0706.ykstakip.ui.history.HistoryFragment
+import com.deniz0706.ykstakip.ui.history.ExamHubFragment
 import com.deniz0706.ykstakip.ui.home.HomeFragment
 import com.deniz0706.ykstakip.ui.nav.FloatingBottomNavView
 import com.deniz0706.ykstakip.ui.newexam.NewExamFragment
@@ -40,9 +40,8 @@ class MainActivity : AppCompatActivity() {
         nav.setItems(
             items = listOf(
                 FloatingBottomNavView.NavItem(NAV_HOME, "Ana Sayfa"),
-                FloatingBottomNavView.NavItem(NAV_HISTORY, "Geçmiş"),
+                FloatingBottomNavView.NavItem(NAV_HISTORY, "Denemeler"),
                 FloatingBottomNavView.NavItem(NAV_STUDY, "Çalışma"),
-                FloatingBottomNavView.NavItem(NAV_STATS, "İstatistik"),
                 FloatingBottomNavView.NavItem(NAV_SETTINGS, "Ayarlar")
             ),
             initialSelectedId = currentNavId,
@@ -75,9 +74,9 @@ class MainActivity : AppCompatActivity() {
         val fragment = fragmentCache.getOrPut(navId) {
             when (navId) {
                 NAV_HOME -> HomeFragment()
-                NAV_HISTORY -> HistoryFragment()
+                NAV_HISTORY -> ExamHubFragment()
                 NAV_STUDY -> StudyFragment()
-                NAV_STATS -> StatisticsFragment()
+                NAV_STATS -> ExamHubFragment()
                 NAV_SETTINGS -> SettingsFragment()
                 else -> HomeFragment()
             }
