@@ -1,6 +1,13 @@
 package com.deniz0706.ykstakip.ui.statistics
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -164,7 +171,7 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                     Text("Hesaplanabilecek uygun deneme bulunamadı.", color = colors.onSurfaceVariant)
                 } else {
                     val numbers = ranking.map { it.center.toFloat() }
-                    StatsTrend(numbers.mapIndexed { index, n -> index.toString() to -n }, null)
+                    StatsTrend(numbers.mapIndexed { index, n -> "Deneme ${index + 1}" to -n }, null, rankingMode = true)
                     Spacer(Modifier.height(12.dp))
                     Text("Son tahmin: ${rank(ranking.last().center.toDouble())}", fontWeight = FontWeight.Bold,
                         color = colors.primary, fontSize = 22.sp)
@@ -192,36 +199,89 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
 }
 
 @Composable
-private fun StatsTrend(values: List<Pair<String, Float>>, target: Float?) {
+private fun StatsTrend(
+    values: List<Pair<String, Float>>,
+    target: Float?,
+    rankingMode: Boolean = false
+) {
     val colors = MaterialTheme.colorScheme
-    val maxPoints = 80
     val plotted = remember(values) {
-        if (values.size <= maxPoints) values else {
-            val step = (values.size + maxPoints - 1) / maxPoints
-            values.chunked(step).map { it.last().first to it.map { p -> p.second }.average().toFloat() }
+        if (values.size <= 80) values
+        else {
+            val step = (values.size + 79) / 80
+            values.chunked(step).map { chunk ->
+                chunk.last().first to chunk.map { it.second }.average().toFloat()
+            }
         }
     }
+    if (plotted.isEmpty()) return
+
+    var selected by remember(plotted) { mutableIntStateOf(plotted.lastIndex) }
     val min = minOf(plotted.minOf { it.second }, target ?: Float.POSITIVE_INFINITY)
     val max = maxOf(plotted.maxOf { it.second }, target ?: Float.NEGATIVE_INFINITY)
     val spread = (max - min).coerceAtLeast(1f)
-    androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(190.dp)) {
-        val line = androidx.compose.ui.graphics.Path()
+    val selectedPoint = plotted[selected.coerceIn(0, plotted.lastIndex)]
+    val selectedValue = if (rankingMode) -selectedPoint.second else selectedPoint.second
+    val formatted = if (rankingMode) {
+        "~" + NumberFormat.getIntegerInstance(Locale("tr", "TR")).format(selectedValue.toLong())
+    } else "%.2f".format(Locale("tr", "TR"), selectedValue)
+
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(selectedPoint.first, style = MaterialTheme.typography.labelMedium,
+            color = colors.onSurfaceVariant)
+        Text(formatted, style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold, color = colors.primary)
+    }
+    Spacer(Modifier.height(8.dp))
+
+    fun indexFor(x: Float, width: Float): Int =
+        if (plotted.size == 1 || width <= 0f) 0
+        else ((x / width).coerceIn(0f, 1f) * plotted.lastIndex).toInt().coerceIn(0, plotted.lastIndex)
+
+    androidx.compose.foundation.Canvas(
+        Modifier.fillMaxWidth().height(210.dp)
+            .pointerInput(plotted) {
+                detectTapGestures { offset ->
+                    selected = indexFor(offset.x, size.width.toFloat())
+                }
+            }
+            .pointerInput(plotted) {
+                detectDragGestures(
+                    onDragStart = { selected = indexFor(it.x, size.width.toFloat()) },
+                    onDrag = { change, _ ->
+                        selected = indexFor(change.position.x, size.width.toFloat())
+                        change.consume()
+                    }
+                )
+            }
+    ) {
+        val path = Path()
+        fun pos(i: Int, v: Float): Offset {
+            val x = if (plotted.size == 1) size.width / 2f
+                else size.width * i / plotted.lastIndex
+            val y = size.height * (1f - (v - min) / spread) * .85f + size.height * .075f
+            return Offset(x, y)
+        }
         plotted.forEachIndexed { index, pair ->
-            val x = if (plotted.size == 1) size.width / 2f else size.width * index / (plotted.size - 1)
-            val y = size.height * (1f - (pair.second - min) / spread) * .85f + size.height * .075f
-            if (index == 0) line.moveTo(x, y) else line.lineTo(x, y)
+            val p = pos(index, pair.second)
+            if (index == 0) path.moveTo(p.x, p.y) else path.lineTo(p.x, p.y)
         }
         if (target != null) {
-            val y = size.height * (1f - (target - min) / spread) * .85f + size.height * .075f
-            drawLine(colors.secondary.copy(alpha = .65f), androidx.compose.ui.geometry.Offset(0f, y),
-                androidx.compose.ui.geometry.Offset(size.width, y), strokeWidth = 2.dp.toPx())
+            val y = pos(0, target).y
+            drawLine(colors.secondary.copy(alpha = .65f),
+                Offset(0f, y), Offset(size.width, y), strokeWidth = 2.dp.toPx())
         }
-        drawPath(line, colors.primary, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx()))
+        drawPath(path, colors.primary, style = Stroke(width = 3.dp.toPx()))
+        val point = pos(selected.coerceIn(0, plotted.lastIndex), selectedPoint.second)
+        drawLine(colors.outline, Offset(point.x, 0f), Offset(point.x, size.height),
+            strokeWidth = 1.dp.toPx())
+        drawCircle(colors.primary, radius = 6.dp.toPx(), center = point)
+        drawCircle(colors.surface, radius = 2.5.dp.toPx(), center = point)
     }
-    if (values.isNotEmpty()) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(values.first().first, color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-            Text(values.last().first, color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-        }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(plotted.first().first, color = colors.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall)
+        Text(plotted.last().first, color = colors.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall)
     }
 }
