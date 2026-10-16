@@ -1,35 +1,25 @@
 package com.deniz0706.ykstakip.ui.home
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
-import com.deniz0706.ykstakip.ui.components.ExamTypeTabs
-import com.deniz0706.ykstakip.ui.components.MetricTile
-import com.deniz0706.ykstakip.ui.components.YksCard
-import com.deniz0706.ykstakip.ui.components.NetTrendChart
+import com.deniz0706.ykstakip.ui.components.*
 import com.deniz0706.ykstakip.util.Fmt
+import java.time.LocalDate
 
 @Composable
 fun HomeScreenV2(
@@ -43,175 +33,163 @@ fun HomeScreenV2(
     targetAyt: Float? = null,
     daysLeftAyt: Long? = null
 ) {
-    var selected by remember { mutableStateOf(ExamType.TYT) }
-    var period by remember { mutableStateOf(0) }
+    val c = MaterialTheme.colorScheme
+    var type by remember { mutableStateOf(ExamType.TYT) }
+    var period by remember { mutableIntStateOf(1) }
     var showTarget by remember { mutableStateOf(true) }
-    val filtered = remember(exams, selected) { exams.filter { it.type == selected }.sortedBy { it.date } }
-    val visible = remember(filtered, period) {
-        val cutoff = when (period) { 0 -> 7L; 1 -> 30L; 2 -> 90L; else -> null }
-        if (cutoff == null) filtered else {
-            val limit = java.time.LocalDate.now().minusDays(cutoff - 1)
-            filtered.filter { runCatching { java.time.LocalDate.parse(it.date).isBefore(limit) }.getOrDefault(false).not() }
+    val all = remember(exams, type) {
+        exams.filter { it.type == type }.sortedBy { it.date }
+    }
+    val shown = remember(all, period) {
+        val days = when (period) { 0 -> 7L; 1 -> 30L; 2 -> 90L; else -> null }
+        if (days == null) all else {
+            val start = LocalDate.now().minusDays(days - 1)
+            all.filter { runCatching { LocalDate.parse(it.date) >= start }.getOrDefault(false) }
         }
     }
-    val nets = remember(visible) { visible.map { it.totalNet } }
-    val targetNet = if (selected == ExamType.TYT) targetTyt else targetAyt
-    val remainingDays = if (selected == ExamType.TYT) daysLeft else daysLeftAyt
-    val last = nets.lastOrNull()
-    val delta = if (nets.size >= 2) nets.last() - nets[nets.lastIndex - 1] else null
+    val nets = remember(shown) { shown.map { it.totalNet } }
+    val latest = all.lastOrNull()?.totalNet
+    val previous = all.getOrNull(all.lastIndex - 1)?.totalNet
+    val change = if (latest != null && previous != null) latest - previous else null
+    val goal = if (type == ExamType.TYT) targetTyt else targetAyt
+    val countdown = if (type == ExamType.TYT) daysLeft else daysLeftAyt
+    val average = remember(all) { all.map { it.totalNet }.takeIf { it.isNotEmpty() }?.average() }
+    val best = remember(all) { all.maxOfOrNull { it.totalNet } }
+    val lastFive = remember(all) { all.takeLast(5).map { it.totalNet }.takeIf { it.isNotEmpty() }?.average() }
+
     LazyColumn(
-        modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier.fillMaxSize().background(c.background),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 22.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text("YKS TAKİP", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.labelLarge)
-                Text("Genel Bakış", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("YKS / KONTROL MERKEZİ", style = MaterialTheme.typography.labelSmall,
+                        color = c.secondary, letterSpacing = 1.8.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text("Genel Bakış", fontSize = 31.sp, fontWeight = FontWeight.Bold,
+                        color = c.onBackground)
+                }
+                Surface(shape = RoundedCornerShape(15.dp), color = c.surfaceVariant) {
+                    Text("${all.size} deneme", Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                        color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
-        item { ExamTypeTabs(selected.name, { selected = ExamType.valueOf(it) }) }
+        item { ExamTypeTabs(type.name, { type = ExamType.valueOf(it) }) }
         item {
-            YksCard(highlighted = true) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column {
-                        Text("SON ${selected.name} DENEMESİ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
+            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.weight(1f)) {
+                        Text("SON ${type.name} NETİ", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.3.sp)
                         Spacer(Modifier.height(7.dp))
-                        AnimatedContent(last?.let(Fmt::net) ?: "—", label = "last-net") { value ->
-                            Text(value, fontSize = 42.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        AnimatedContent(latest?.let(Fmt::net) ?: "—",
+                            transitionSpec = { androidx.compose.animation.fadeIn(tween(220)) togetherWith androidx.compose.animation.fadeOut(tween(150)) },
+                            label = "hero-net") { value ->
+                            Text(value, fontSize = 52.sp, lineHeight = 60.sp,
+                                fontWeight = FontWeight.Bold, color = c.onSurface)
                         }
+                        Text(if (change == null) "Önceki deneme yok"
+                            else "${if (change >= 0) "↗ +" else "↘ "}${Fmt.net(change)} net / önceki",
+                            color = if (change != null && change >= 0) c.primary else c.secondary,
+                            style = MaterialTheme.typography.bodySmall)
                     }
-                    Column {
-                        Text("DEĞİŞİM", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-                        Text(delta?.let { "${if (it >= 0) "↗" else "↘"} ${Fmt.netWithSign(it)}" } ?: "—",
-                            color = if (delta != null && delta >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                            fontWeight = FontWeight.SemiBold)
+                    if (goal != null && goal > 0f && latest != null) {
+                        DashboardRing((latest / goal).toFloat(),
+                            "${((latest / goal) * 100).toInt()}%",
+                            caption = "hedef")
                     }
                 }
-                Spacer(Modifier.height(22.dp))
-                Text("Net gelişimi", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(18.dp))
+                HorizontalDivider(color = c.outline.copy(alpha = .4f))
+                Spacer(Modifier.height(14.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text("NET TRENDİ", color = c.onSurface,
+                        fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp,
+                        style = MaterialTheme.typography.labelMedium)
+                    Text("${shown.size} kayıt", color = c.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall)
+                }
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     listOf("7G", "30G", "90G", "Tümü").forEachIndexed { index, label ->
                         val active = period == index
-                        Text(label,
-                            modifier = Modifier.weight(1f).background(
-                                if (active) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface.copy(alpha = 0f),
-                                RoundedCornerShape(12.dp)
-                            ).clickable { period = index }.padding(vertical = 10.dp),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            color = if (active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                        Text(label, Modifier.weight(1f)
+                            .background(if (active) c.secondary.copy(alpha = .17f)
+                                else c.surfaceVariant.copy(alpha = .35f), RoundedCornerShape(12.dp))
+                            .clickable { period = index }
+                            .padding(vertical = 10.dp),
+                            textAlign = TextAlign.Center,
+                            color = if (active) c.secondary else c.onSurfaceVariant,
                             style = MaterialTheme.typography.labelMedium)
                     }
                 }
-                Spacer(Modifier.height(18.dp))
-                NetTrendChart(nets, visible.map { it.date }, Modifier.fillMaxWidth(), if (showTarget) targetNet else null)
-                Spacer(Modifier.height(16.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                        Text("Hedef çizgisi", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
-                        Text("Grafikte hedef neti göster", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(14.dp))
+                NetTrendChart(nets, shown.map { it.date }, Modifier.fillMaxWidth(),
+                    if (showTarget) goal else null)
+                if (goal != null) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Hedef çizgisini göster", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall)
+                        Switch(checked = showTarget, onCheckedChange = { showTarget = it })
                     }
-                    androidx.compose.material3.Switch(checked = showTarget, onCheckedChange = { showTarget = it }, enabled = targetNet != null)
                 }
             }
         }
         item {
-            YksCard {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Performans özeti", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text("${filtered.size} deneme", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                DashboardMetric("Ortalama", average?.let(Fmt::net) ?: "—",
+                    Modifier.weight(1f), "Tüm denemeler", c.onSurface)
+                DashboardMetric("En iyi", best?.let(Fmt::net) ?: "—",
+                    Modifier.weight(1f), "Kişisel rekor", c.primary)
+            }
+        }
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                DashboardMetric("Son 5", lastFive?.let(Fmt::net) ?: "—",
+                    Modifier.weight(1f), "Güncel ortalama")
+                DashboardMetric("Sınava kalan", countdown?.let {
+                    if (it >= 0) "$it" else "—"
+                } ?: "—", Modifier.weight(1f), "gün")
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column {
+                        Text("BUGÜNÜN HEDEFİ", style = MaterialTheme.typography.labelSmall,
+                            color = c.secondary, letterSpacing = 1.sp)
+                        Spacer(Modifier.height(7.dp))
+                        Text("$todayQuestions soru", fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold)
+                        Text(dailyGoal?.let { "$it soru hedefi" } ?: "Hedefini Ayarlar'dan belirle",
+                            color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (dailyGoal != null && dailyGoal > 0)
+                        DashboardRing(todayQuestions.toFloat() / dailyGoal,
+                            "${(todayQuestions * 100L / dailyGoal)}%", caption = "bugün")
                 }
-                Spacer(Modifier.height(16.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CompactMetric("Ortalama", if (filtered.isEmpty()) "—" else Fmt.net(filtered.map { it.totalNet }.average()), "◉", Modifier.weight(1f))
-                    CompactMetric("En iyi", filtered.maxOfOrNull { it.totalNet }?.let(Fmt::net) ?: "—", "★", Modifier.weight(1f))
-                    CompactMetric("Son 5", if (filtered.isEmpty()) "—" else Fmt.net(filtered.takeLast(5).map { it.totalNet }.average()), "↗", Modifier.weight(1f))
+                if (dailyGoal != null && dailyGoal > 0) {
+                    Spacer(Modifier.height(14.dp))
+                    DashboardProgress(todayQuestions.toFloat() / dailyGoal,
+                        Modifier.fillMaxWidth())
                 }
             }
         }
         item {
-            YksCard {
-                Text("HEDEFE İLERLEME", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    targetNet?.let { "${last?.let(Fmt::net) ?: "—"} / ${Fmt.net(it.toDouble())} net" } ?: "Hedef netini Ayarlar'dan belirleyebilirsin",
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (targetNet != null && targetNet > 0f && last != null) {
-                    Spacer(Modifier.height(12.dp))
-                    androidx.compose.material3.LinearProgressIndicator(
-                        progress = { (last / targetNet).toFloat().coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+            Button(onClick = { onNewExam(type) },
+                modifier = Modifier.fillMaxWidth().height(58.dp),
+                shape = RoundedCornerShape(19.dp)) {
+                Text("+  Yeni ${type.name} Denemesi", fontWeight = FontWeight.SemiBold)
             }
         }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricTile("Sınava kalan", remainingDays?.let { if (it >= 0) "$it gün" else "Geçti" } ?: "—", Modifier.weight(1f))
-                MetricTile("Bugün çözülen", dailyGoal?.let { "$todayQuestions / $it" } ?: "$todayQuestions", Modifier.weight(1f))
-            }
-        }
-        item {
-            Button(onClick = { onNewExam(selected) }, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(18.dp)) {
-                Text("Yeni ${selected.name} Denemesi")
-            }
-        }
-    }
-}
-
-@Composable
-private fun NetSparkline(values: List<Double>, modifier: Modifier = Modifier) {
-    val lineColor = MaterialTheme.colorScheme.secondary
-    val guideColor = MaterialTheme.colorScheme.outline
-    var selectedIndex by remember(values) { mutableIntStateOf(-1) }
-    Column {
-    Canvas(modifier.pointerInput(values) {
-        detectTapGestures { tap ->
-            if (values.isNotEmpty()) {
-                val padding = 8.dp.toPx()
-                val fraction = ((tap.x - padding) / (size.width - 2 * padding).coerceAtLeast(1f)).coerceIn(0f, 1f)
-                selectedIndex = (fraction * (values.size - 1)).toInt().coerceIn(0, values.lastIndex)
-            }
-        }
-    }) {
-        drawLine(guideColor, Offset(0f, size.height * 0.8f), Offset(size.width, size.height * 0.8f), 1.dp.toPx())
-        if (values.isEmpty()) return@Canvas
-        val min = values.minOrNull() ?: return@Canvas
-        val max = values.maxOrNull() ?: return@Canvas
-        val range = (max - min).coerceAtLeast(1.0)
-        val padding = 8.dp.toPx()
-        val points = values.mapIndexed { index, value ->
-            Offset(
-                if (values.size == 1) size.width / 2 else padding + index * (size.width - 2 * padding) / (values.size - 1),
-                padding + ((max - value) / range).toFloat() * (size.height - 2 * padding)
-            )
-        }
-        if (points.size > 1) {
-            val path = Path().apply {
-                moveTo(points.first().x, points.first().y)
-                points.drop(1).forEach { lineTo(it.x, it.y) }
-            }
-            drawPath(path, lineColor, style = Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
-        }
-        points.forEachIndexed { index, point ->
-            if (index == selectedIndex || index == points.lastIndex) {
-                drawCircle(lineColor, if (index == selectedIndex) 6.dp.toPx() else 4.dp.toPx(), point)
-            }
-        }
-    }
-    if (selectedIndex in values.indices) {
-        Text("Seçilen deneme: ${Fmt.net(values[selectedIndex])} net", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
-    }
-    }
-}
-
-@Composable
-private fun CompactMetric(label: String, value: String, symbol: String, modifier: Modifier = Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        Text(symbol + "  " + label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-        Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 21.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        item { Spacer(Modifier.height(96.dp)) }
     }
 }
