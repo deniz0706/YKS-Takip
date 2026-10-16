@@ -8,12 +8,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardRing
+import com.deniz0706.ykstakip.ui.components.DashboardProgress
 
 @Composable
 fun SettingsScreenV2(
@@ -44,6 +47,41 @@ fun SettingsScreenV2(
         Text("Ayarlar", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = colors.onBackground)
         Text("Hedeflerini, görünümü ve verilerini tek yerden yönet.",
             color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+
+        DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+            Text("HEDEF PANOSU", color = colors.secondary,
+                style = MaterialTheme.typography.labelSmall, letterSpacing = 1.4.sp)
+            Spacer(Modifier.height(5.dp))
+            Text("Hedeflerini bir bakışta gör", color = colors.onSurface,
+                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
+            Text("Aşağıdaki göstergeler hedeflerinin sınavın tam puanına oranını gösterir.",
+                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(16.dp))
+            val tytTarget = tytValue.replace(',', '.').toFloatOrNull()?.coerceIn(0f, 120f) ?: 0f
+            val aytTarget = aytValue.replace(',', '.').toFloatOrNull()?.coerceIn(0f, 80f) ?: 0f
+            val obpTarget = obpValue.replace(',', '.').toFloatOrNull()?.coerceIn(0f, 100f) ?: 0f
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    DashboardRing(tytTarget / 120f, "${tytTarget.toInt()}", caption = "TYT / 120")
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    DashboardRing(aytTarget / 80f, "${aytTarget.toInt()}", caption = "AYT / 80")
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    DashboardRing(obpTarget / 100f, "${obpTarget.toInt()}", caption = "OBP / 100")
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            Text("GÜNLÜK SORU HEDEFİ", color = colors.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
+            Spacer(Modifier.height(5.dp))
+            Text(dailyValue.toIntOrNull()?.takeIf { it > 0 }?.let { "$it soru / gün" }
+                ?: "Henüz belirlenmedi", color = colors.onSurface,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold)
+        }
 
         DashboardPanel(Modifier.fillMaxWidth()) {
             Text("01  /  GÖRÜNÜM", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
