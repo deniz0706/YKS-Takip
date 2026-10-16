@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,6 +29,15 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
     val store = remember(context) { FocusSessionRepository(context) }
     var state by remember(store) { mutableStateOf(store.snapshot()) }
     var message by remember { mutableStateOf<String?>(null) }
+    var savedSuccessfully by remember { mutableStateOf(false) }
+    val owner = LocalLifecycleOwner.current
+    DisposableEffect(owner, store) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) state = store.snapshot()
+        }
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(state.running) {
         while (state.running) {
@@ -84,6 +96,7 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
                 onClick = {
                     state = if (state.running) store.pause() else store.start()
                     message = null
+                    savedSuccessfully = false
                 },
                 enabled = !state.completed,
                 shape = RoundedCornerShape(15.dp),
@@ -95,18 +108,34 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
             }
             OutlinedButton(
                 onClick = {
-                    val saved = store.saveToToday()
+                    val result = store.saveToToday()
                     state = store.snapshot()
-                    if (saved != null) {
-                        onSaved()
-                        message = "$saved dakika bugünkü çalışma kaydına eklendi."
-                    } else {
-                        message = if (state.savedMinutes < 1)
-                            "Kaydetmek için en az 1 dakika çalışmalısın."
-                        else "Bugünkü toplam çalışma 1440 dakikayı geçemez."
+                    when (result) {
+                        is FocusSessionRepository.SaveResult.Saved -> {
+                            onSaved()
+                            savedSuccessfully = true
+                            message = when {
+                                result.loggedMinutes > 0 && result.carriedSeconds > 0 ->
+                                    "${result.loggedMinutes} dk günlüğe eklendi; ${result.carriedSeconds} sn sonraki seansa taşındı."
+                                result.loggedMinutes > 0 ->
+                                    "${result.loggedMinutes} dk bugünkü çalışma günlüğüne eklendi."
+                                else ->
+                                    "Kalan ${result.carriedSeconds} sn kaydedildi; sonraki seansa eklenecek."
+                            }
+                        }
+                        FocusSessionRepository.SaveResult.NoTime -> {
+                            savedSuccessfully = false
+                            message = "Önce sayacı başlat."
+                        }
+                        FocusSessionRepository.SaveResult.DailyLimit -> {
+                            savedSuccessfully = false
+                            message = "Günlük çalışma süresi 1440 dakikayı aşamaz."
+                        }
                     }
                 },
-                enabled = state.elapsedMs >= 60_000L,
+                // Saving a paused session must never require completing the preset
+                // or even its first full minute.
+                enabled = !state.running && state.elapsedMs > 0L,
                 shape = RoundedCornerShape(15.dp),
                 modifier = Modifier.weight(1f).height(49.dp)
             ) { Text("✓  Kaydet", maxLines = 1) }
@@ -115,6 +144,7 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
             TextButton(onClick = {
                 state = store.discard()
                 message = null
+                savedSuccessfully = false
             }, modifier = Modifier.align(Alignment.End)) {
                 Text("Seansı sıfırla", color = colors.error,
                     style = MaterialTheme.typography.labelMedium)
@@ -122,11 +152,11 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
         }
         if (message != null) {
             Text(message.orEmpty(),
-                color = if (message!!.contains("eklendi")) colors.primary else colors.error,
+                color = if (savedSuccessfully) colors.primary else colors.error,
                 style = MaterialTheme.typography.bodySmall)
         }
         if (state.elapsedMs == 0L) {
-            Text("Kaydedilen süre, günlük çalışma dakikana eklenir. Soru sayın değişmez.",
+            Text("Duraklatıp istediğin an kaydet. Tam dakikaya ulaşmayan saniyeler sonraki seansa eklenir.",
                 color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.labelSmall)
         }

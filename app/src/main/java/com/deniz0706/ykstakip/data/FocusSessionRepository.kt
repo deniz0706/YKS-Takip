@@ -63,20 +63,41 @@ class FocusSessionRepository(context: Context) {
         return snapshot()
     }
 
+    sealed class SaveResult {
+        data class Saved(val loggedMinutes: Int, val carriedSeconds: Int) : SaveResult()
+        object NoTime : SaveResult()
+        object DailyLimit : SaveResult()
+    }
+
     /**
-     * Append completed minutes to the current study day without overwriting its
-     * question count. Discard only after writing succeeds, to prevent lost sessions.
-     * The journal currently supports a maximum of 1440 recorded minutes per day.
+     * Paused sessions can be saved even before a full minute has elapsed.
+     * The journal stores whole minutes, so remaining seconds are carried into
+     * the next session saved on the SAME day rather than rounded away or inflated.
+     * A successful save clears the session; failed saves leave its time intact.
      */
-    fun saveToToday(): Int? {
-        val state = pause()
-        val minutes = state.savedMinutes
-        if (minutes < 1) return null
+    fun saveToToday(): SaveResult {
+        val session = pause()
+        if (session.elapsedMs <= 0L) return SaveResult.NoTime
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val remainder = if (prefs.getString("carry_date", null) == date) {
+            prefs.getLong("carry_ms", 0L).coerceIn(0L, 59_999L)
+        } else 0L
+        val combinedMs = session.elapsedMs + remainder
+        val wholeMinutes = (combinedMs / 60_000L).toInt()
+        val remainingMs = combinedMs % 60_000L
         val previous = studyRepository.get(date) ?: StudyDay(date, 0, 0)
-        if (previous.studyMinutes + minutes > 1440) return null
-        studyRepository.save(previous.copy(studyMinutes = previous.studyMinutes + minutes))
-        discard()
-        return minutes
+        if (previous.studyMinutes + wholeMinutes > 1440) return SaveResult.DailyLimit
+        if (wholeMinutes > 0) {
+            studyRepository.save(previous.copy(
+                studyMinutes = previous.studyMinutes + wholeMinutes
+            ))
+        }
+        prefs.edit()
+            .putString("carry_date", date)
+            .putLong("carry_ms", remainingMs)
+            .putLong("accumulated", 0L)
+            .remove("started_at")
+            .apply()
+        return SaveResult.Saved(wholeMinutes, (remainingMs / 1000L).toInt())
     }
 }
