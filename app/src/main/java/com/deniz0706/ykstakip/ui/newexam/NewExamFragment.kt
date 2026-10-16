@@ -4,6 +4,8 @@ import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.deniz0706.ykstakip.data.ThemeManager
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.ExamValidator
@@ -36,6 +38,12 @@ class NewExamFragment : Fragment() {
             setViewCompositionStrategy(
                 androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
+                val dark = when (ThemeManager.currentTheme(context)) {
+                    "dark" -> true
+                    "light" -> false
+                    else -> isSystemInDarkTheme()
+                }
+                YksTheme(darkTheme = dark) {
                 NewExamScreenV2(
                     initialType = initialType,
                     existing = existing,
@@ -71,6 +79,7 @@ class NewExamFragment : Fragment() {
                         }
                     }
                 )
+                }
             }
         }
     }
