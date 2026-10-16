@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -434,6 +435,23 @@ class StudyFragment : Fragment(R.layout.fragment_study) {
             } else {
                 "Hedef: —"
             }
+
+        val progress = v.findViewById<ProgressBar>(R.id.studyGoalProgress)
+        val progressLabel = v.findViewById<TextView>(R.id.studyGoalPercent)
+        if (goal != null && goal > 0) {
+            val percent = questions.toDouble() / goal * 100.0
+            progress.visibility = View.VISIBLE
+            progressLabel.visibility = View.VISIBLE
+            progress.progress = (questions.toDouble() / goal * 1000).toInt().coerceIn(0, 1000)
+            progressLabel.text = if (questions >= goal) {
+                "✓ Günlük hedef tamamlandı · %${percent.toInt()}"
+            } else {
+                "Hedefin %${percent.toInt()} tamamlandı"
+            }
+        } else {
+            progress.visibility = View.GONE
+            progressLabel.visibility = View.GONE
+        }
 
         refreshChartSelection()
         renderChart()

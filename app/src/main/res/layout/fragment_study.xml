@@ -116,6 +116,27 @@
                 android:textSize="@dimen/text_body"
                 android:textColor="@color/on_surface_secondary" />
 
+            <ProgressBar
+                android:id="@+id/studyGoalProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="9dp"
+                android:layout_marginTop="12dp"
+                android:max="1000"
+                android:progress="0"
+                android:progressTint="@color/positive"
+                android:progressBackgroundTint="@color/input_bg"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/studyGoalPercent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/positive"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
         </LinearLayout>
 
         <TextView
