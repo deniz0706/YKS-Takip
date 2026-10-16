@@ -58,6 +58,7 @@ fun StudyScreenV2(
     var metric by remember { mutableStateOf("questions") }
     var range by remember { mutableStateOf("7") }
     var showAllDays by remember { mutableStateOf(false) }
+    var section by remember { mutableStateOf("today") }
     val sorted = remember(days) { days.sortedBy { it.date } }
     val chartDays = remember(sorted, range, today) {
         if (range == "all") sorted
@@ -111,9 +112,23 @@ fun StudyScreenV2(
         item {
             Text("ÇALIŞMA GÜNLÜĞÜ", color = colors.secondary, style = MaterialTheme.typography.labelLarge)
             Text("Çalışma", color = colors.onBackground, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-            Text("Günlük ilerlemeni ve ders planını tek yerden takip et.",
+            Text("Günün, haftalık planın ve gelişimin artık ayrı bölümlerde.",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
+        item(key = "study-sections") {
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                listOf("today" to "Bugün", "plan" to "Plan", "analysis" to "Analiz")
+                    .forEachIndexed { index, (key, label) ->
+                        SegmentedButton(
+                            selected = section == key,
+                            onClick = { section = key },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+                            label = { Text(label, maxLines = 1) }
+                        )
+                    }
+            }
+        }
+        if (section == "today") {
         item {
             DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
@@ -153,6 +168,8 @@ fun StudyScreenV2(
                 }
             }
         }
+        }
+        if (section == "today") {
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
@@ -202,6 +219,7 @@ fun StudyScreenV2(
                     style = MaterialTheme.typography.labelSmall)
             }
         }
+        if (section == "analysis") {
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 DashboardMetric("Toplam soru", "%,d".format(Locale("tr", "TR"), totalQuestions),
@@ -210,6 +228,8 @@ fun StudyScreenV2(
                     Modifier.weight(1f), "Toplam süre", colors.primary)
             }
         }
+        }
+        if (section == "analysis") {
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
@@ -259,6 +279,8 @@ fun StudyScreenV2(
                 }
             }
         }
+        }
+        if (section == "analysis") {
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Çalışma grafiği", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
@@ -282,6 +304,8 @@ fun StudyScreenV2(
                 }
             }
         }
+        }
+        if (section == "plan") {
         item {
             val completed = remember(plan) { plan.count { it.completed } }
             val total = plan.size
@@ -340,6 +364,8 @@ fun StudyScreenV2(
                     style = MaterialTheme.typography.labelSmall)
             }
         }
+        }
+        if (section == "plan") {
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -367,6 +393,8 @@ fun StudyScreenV2(
                 }
             }
         }
+        }
+        if (section == "plan") {
         items(selectedPlans, key = { it.id }) { item ->
             YksCard(Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -383,6 +411,8 @@ fun StudyScreenV2(
                 }
             }
         }
+        }
+        if (section == "analysis") {
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Genel özet", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
@@ -400,6 +430,7 @@ fun StudyScreenV2(
                     if (goal != null && goal > 0) Text("Hedefe ulaşılan gün: ${sorted.count { it.questionCount >= goal }}")
                 }
             }
+        }
         }
     }
 }
