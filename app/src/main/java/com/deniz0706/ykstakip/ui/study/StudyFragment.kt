@@ -354,32 +354,32 @@ class StudyFragment : Fragment(R.layout.fragment_study) {
             }
         )
 
-        AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext())
             .setTitle("Ders Ekle")
             .setView(container)
-            .setPositiveButton("Ekle") { _, _ ->
+            .setPositiveButton("Ekle", null)
+            .setNegativeButton("İptal", null)
+            .create()
 
-                val subject =
-                    subjectInput.text.toString().trim()
-
-                val topic =
-                    topicInput.text.toString().trim()
-
-                val start =
-                    startInput.text.toString().trim()
-
-                val end =
-                    endInput.text.toString().trim()
-
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val subject = subjectInput.text.toString().trim()
+                val topic = topicInput.text.toString().trim()
+                val start = startInput.text.toString().trim()
+                val end = endInput.text.toString().trim()
                 val timePattern = Regex("""^(?:[01][0-9]|2[0-3]):[0-5][0-9]$""")
-                if (subject.isEmpty() || !timePattern.matches(start) ||
-                    !timePattern.matches(end) || start >= end) {
-                    android.widget.Toast.makeText(
-                        requireContext(),
-                        "Ders adı ve geçerli saat aralığı gerekli (örn. 10:00–11:30).",
-                        android.widget.Toast.LENGTH_LONG
-                    ).show()
-                    return@setPositiveButton
+
+                if (subject.isEmpty()) {
+                    subjectInput.error = "Ders adı gerekli"
+                    return@setOnClickListener
+                }
+                if (!timePattern.matches(start)) {
+                    startInput.error = "Saat HH:mm biçiminde olmalı"
+                    return@setOnClickListener
+                }
+                if (!timePattern.matches(end) || start >= end) {
+                    endInput.error = "Bitiş saati başlangıçtan sonra olmalı"
+                    return@setOnClickListener
                 }
 
                 planRepository.save(
@@ -393,11 +393,11 @@ class StudyFragment : Fragment(R.layout.fragment_study) {
                         completed = false
                     )
                 )
-
                 renderPlan()
+                dialog.dismiss()
             }
-            .setNegativeButton("İptal", null)
-            .show()
+        }
+        dialog.show()
     }
 
     private fun showDeletePlanDialog(
