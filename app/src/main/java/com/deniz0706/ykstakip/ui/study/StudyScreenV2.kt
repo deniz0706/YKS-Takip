@@ -308,6 +308,9 @@ fun StudyScreenV2(
             }
         }
         }
+        if (section == "analysis") item(key = "study-calendar") {
+            StudyActivityHeatmap(sorted, onEditDay, Modifier.fillMaxWidth())
+        }
         if (section == "analysis") {
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
