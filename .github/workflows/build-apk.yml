@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - master
+      - '2.0'
 
 jobs:
   build:
@@ -27,7 +28,7 @@ jobs:
           gradle-version: '8.11.1'
 
       - name: Build APK
-        run: gradle assembleDebug
+        run: gradle --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
