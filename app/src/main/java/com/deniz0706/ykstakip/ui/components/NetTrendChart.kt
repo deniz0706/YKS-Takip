@@ -2,6 +2,8 @@ package com.deniz0706.ykstakip.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -30,7 +32,15 @@ fun NetTrendChart(values: List<Double>, labels: List<String>, modifier: Modifier
     val guide = colors.outline.copy(alpha = .26f)
     val surface = colors.background
     val animation = remember { Animatable(0f) }
+    val axisPaint = remember {
+        android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.argb(180, 155, 172, 190)
+        }
+    }
     var selected by remember(values) { mutableIntStateOf(if (values.isEmpty()) -1 else values.lastIndex) }
+    val animatedSelection by animateFloatAsState(
+        selected.coerceAtLeast(0).toFloat(),
+        animationSpec = spring(stiffness = 600f), label = "home-trend-cursor")
     LaunchedEffect(values) {
         animation.snapTo(0f)
         animation.animateTo(1f, tween(850))
@@ -58,6 +68,9 @@ fun NetTrendChart(values: List<Double>, labels: List<String>, modifier: Modifier
         val minY = low - margin
         val maxY = high + margin
         fun valueAt(index: Int) = values[index]
+        val chartBrush = remember(line) {
+            Brush.verticalGradient(listOf(line.copy(alpha = .25f), line.copy(alpha = 0f)))
+        }
         Canvas(
             Modifier.fillMaxWidth().height(250.dp)
                 .pointerInput(values) {
@@ -86,16 +99,14 @@ fun NetTrendChart(values: List<Double>, labels: List<String>, modifier: Modifier
             val pts = values.mapIndexed { i, v ->
                 Offset(if (values.size == 1) (left + right) / 2 else left + (right - left) * i / (values.size - 1), y(v))
             }
+            axisPaint.textSize = 10.sp.toPx()
             repeat(4) { i ->
                 val v = minY + (maxY - minY) * i / 3.0
                 val yy = y(v)
                 drawLine(guide, Offset(left, yy), Offset(right, yy), strokeWidth = 1.dp.toPx())
                 drawContext.canvas.nativeCanvas.drawText(
                     Fmt.net(v), 0f, yy + 4.dp.toPx(),
-                    android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                        color = android.graphics.Color.argb(160, 155, 172, 190)
-                        textSize = 10.sp.toPx()
-                    }
+                    axisPaint
                 )
             }
             target?.let {
@@ -117,10 +128,16 @@ fun NetTrendChart(values: List<Double>, labels: List<String>, modifier: Modifier
                 lineTo(pts.first().x, bottom)
                 close()
             }
-            drawPath(area, Brush.verticalGradient(listOf(line.copy(alpha = .25f), line.copy(alpha = 0f)), startY = top, endY = bottom), alpha = animation.value)
+            drawPath(area, chartBrush, alpha = animation.value)
             drawPath(path, line, style = Stroke(width = 2.7.dp.toPx(), cap = StrokeCap.Round), alpha = animation.value)
             if (selected in pts.indices) {
-                val p = pts[selected]
+                val index = animatedSelection.toInt().coerceIn(0, pts.lastIndex)
+                val next = (index + 1).coerceAtMost(pts.lastIndex)
+                val fraction = (animatedSelection - index).coerceIn(0f, 1f)
+                val a = pts[index]
+                val b = pts[next]
+                val p = Offset(a.x + (b.x - a.x) * fraction,
+                    a.y + (b.y - a.y) * fraction)
                 drawLine(line.copy(alpha = .5f), Offset(p.x, top), Offset(p.x, bottom), 1.dp.toPx())
                 drawCircle(surface, 7.dp.toPx(), p)
                 drawCircle(line, 5.dp.toPx(), p)
