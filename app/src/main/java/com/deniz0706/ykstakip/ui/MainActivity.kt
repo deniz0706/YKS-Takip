@@ -10,7 +10,6 @@ import com.deniz0706.ykstakip.ui.home.HomeFragment
 import com.deniz0706.ykstakip.ui.nav.FloatingBottomNavView
 import com.deniz0706.ykstakip.ui.newexam.NewExamFragment
 import com.deniz0706.ykstakip.ui.settings.SettingsFragment
-import com.deniz0706.ykstakip.ui.statistics.StatisticsFragment
 import com.deniz0706.ykstakip.ui.study.StudyFragment
 import com.deniz0706.ykstakip.util.ThemeTransitionHelper
 
@@ -34,6 +33,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         currentNavId = savedInstanceState?.getInt(KEY_CURRENT_NAV, NAV_HOME) ?: NAV_HOME
+        // Older saved sessions may still point at the retired Statistics tab.
+        if (currentNavId == NAV_STATS) currentNavId = NAV_HISTORY
 
         nav = findViewById(R.id.bottomNav)
 
