@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.*
 import com.deniz0706.ykstakip.ui.components.YksCard
+import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.YksRankingCalculator
 import com.deniz0706.ykstakip.util.RankingEstimate
@@ -91,7 +93,16 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
             }
         }
         item {
-            YksCard(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                DashboardMetric("Deneme", "${all.size}", Modifier.weight(1f), "Toplam kayıt")
+                DashboardMetric("Ortalama net",
+                    all.takeIf { it.isNotEmpty() }?.map { it.totalNet }?.average()
+                        ?.let { "%.1f".format(Locale("tr", "TR"), it) } ?: "—",
+                    Modifier.weight(1f), "Tüm denemeler", colors.primary)
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Net ve performans trendi", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(selected = !branchMode, onClick = { branchMode = false }, label = { Text("Toplam") })
@@ -144,7 +155,7 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
             }
         }
         item {
-            YksCard(Modifier.fillMaxWidth()) {
+            DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Sıralama tahmini", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Text("Tahmini değerlerdir; gerçek YKS sıralaması farklı olabilir.",
                     color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
@@ -184,7 +195,7 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
             }
         }
         if (weak.isNotEmpty()) item {
-            YksCard(Modifier.fillMaxWidth()) {
+            DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Tekrar gerektiren konular", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
                 weak.forEach { spot ->
