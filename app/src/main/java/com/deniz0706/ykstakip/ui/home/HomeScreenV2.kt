@@ -117,15 +117,17 @@ fun HomeScreenV2(
             }
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricTile("Ortalama", if (nets.isEmpty()) "—" else Fmt.net(nets.average()), Modifier.weight(1f))
-                MetricTile("En yüksek", nets.maxOrNull()?.let(Fmt::net) ?: "—", Modifier.weight(1f))
-            }
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricTile("Son 5 ort.", if (nets.isEmpty()) "—" else Fmt.net(nets.takeLast(5).average()), Modifier.weight(1f))
-                MetricTile("Deneme", filtered.size.toString(), Modifier.weight(1f))
+            YksCard {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Performans özeti", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("${filtered.size} deneme", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+                }
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    CompactMetric("Ortalama", if (filtered.isEmpty()) "—" else Fmt.net(filtered.map { it.totalNet }.average()), "◉", Modifier.weight(1f))
+                    CompactMetric("En iyi", filtered.maxOfOrNull { it.totalNet }?.let(Fmt::net) ?: "—", "★", Modifier.weight(1f))
+                    CompactMetric("Son 5", if (filtered.isEmpty()) "—" else Fmt.net(filtered.takeLast(5).map { it.totalNet }.average()), "↗", Modifier.weight(1f))
+                }
             }
         }
         item {
@@ -203,5 +205,13 @@ private fun NetSparkline(values: List<Double>, modifier: Modifier = Modifier) {
     if (selectedIndex in values.indices) {
         Text("Seçilen deneme: ${Fmt.net(values[selectedIndex])} net", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
     }
+    }
+}
+
+@Composable
+private fun CompactMetric(label: String, value: String, symbol: String, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        Text(symbol + "  " + label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+        Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 21.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }
