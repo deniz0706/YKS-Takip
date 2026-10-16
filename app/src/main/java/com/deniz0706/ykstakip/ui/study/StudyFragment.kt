@@ -1,6 +1,8 @@
 package com.deniz0706.ykstakip.ui.study
 
 import android.os.Bundle
+import android.app.DatePickerDialog
+import java.util.Calendar
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
@@ -51,7 +53,9 @@ class StudyFragment : Fragment() {
                         days = days.value,
                         plan = plan.value,
                         goal = goal.value,
-                        onEditToday = { editToday() },
+                        onEditToday = { editDay(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())) },
+                        onEditDay = { editDay(it) },
+                        onPickDay = { pickDay() },
                         onAddPlan = { addPlan(it) },
                         onTogglePlan = { planRepository.toggleCompleted(it); refresh() },
                         onDeletePlan = { deletePlan(it) }
@@ -87,12 +91,11 @@ class StudyFragment : Fragment() {
             fields.forEach { addView(it) }
         }
 
-    private fun editToday() {
-        val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+    private fun editDay(date: String) {
         val current = repository.get(date)
         val q = input("Soru sayısı", current?.questionCount?.toString().orEmpty(), true)
         val m = input("Çalışma dakikası", current?.studyMinutes?.toString().orEmpty(), true)
-        val dialog = AlertDialog.Builder(requireContext()).setTitle("Bugünkü çalışma")
+        val dialog = AlertDialog.Builder(requireContext()).setTitle("$date · Çalışma kaydı")
             .setView(form(q, m)).setNegativeButton("Vazgeç", null)
             .setPositiveButton("Kaydet", null).create()
         dialog.setOnShowListener {
@@ -113,6 +116,17 @@ class StudyFragment : Fragment() {
             }
         }
         dialog.show()
+    }
+
+    private fun pickDay() {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(requireContext(), { _, year, month, day ->
+            val key = "%04d-%02d-%02d".format(Locale.US, year, month + 1, day)
+            editDay(key)
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)).apply {
+            datePicker.maxDate = System.currentTimeMillis()
+        }.show()
     }
 
     private fun addPlan(day: Int) {

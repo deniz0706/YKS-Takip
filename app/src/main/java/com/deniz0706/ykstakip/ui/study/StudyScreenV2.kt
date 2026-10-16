@@ -34,6 +34,8 @@ fun StudyScreenV2(
     plan: List<StudyPlanItem>,
     goal: Int?,
     onEditToday: () -> Unit,
+    onEditDay: (String) -> Unit,
+    onPickDay: () -> Unit,
     onAddPlan: (Int) -> Unit,
     onTogglePlan: (Long) -> Unit,
     onDeletePlan: (StudyPlanItem) -> Unit
@@ -125,6 +127,48 @@ fun StudyScreenV2(
                     Modifier.weight(1f), "Tüm zamanlar")
                 DashboardMetric("Çalışma", "${totalMinutes / 60} sa",
                     Modifier.weight(1f), "Toplam süre", colors.primary)
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Çalışma arşivi", style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold, color = colors.onSurface)
+                        Text("Önceki günlerini seç, incele ve düzenle.",
+                            color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                    Button(onClick = onPickDay, shape = RoundedCornerShape(14.dp)) {
+                        Text("+ Gün")
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                if (sorted.isEmpty()) {
+                    Text("Henüz kayıtlı çalışma günü yok.", color = colors.onSurfaceVariant)
+                } else {
+                    sorted.asReversed().take(7).forEach { day ->
+                        Row(Modifier.fillMaxWidth()
+                            .clickable { onEditDay(day.date) }
+                            .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(day.date, fontWeight = FontWeight.SemiBold,
+                                    color = colors.onSurface)
+                                Text("${day.studyMinutes / 60} sa ${day.studyMinutes % 60} dk",
+                                    color = colors.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
+                            Text("${day.questionCount} soru", color = colors.primary,
+                                fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.width(10.dp))
+                            Text("Düzenle ›", color = colors.secondary,
+                                style = MaterialTheme.typography.labelMedium)
+                        }
+                        HorizontalDivider(color = colors.outline.copy(alpha = .25f))
+                    }
+                }
             }
         }
         item {
