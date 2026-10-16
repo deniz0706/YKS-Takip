@@ -14,6 +14,7 @@ import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.StudyRepository
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.ui.theme.YksTheme
 import java.text.SimpleDateFormat
@@ -47,7 +48,10 @@ class HomeFragment : Fragment() {
                     HomeScreenV2(
                         exams = exams.value,
                         onNewExam = { (activity as? MainActivity)?.openNewExam(it) },
-                        daysLeft = daysUntilExam(),
+                        daysLeft = daysUntilExam(19),
+                        daysLeftAyt = daysUntilExam(20),
+                        targetTyt = AppSettings.getTargetNet(context, ExamType.TYT),
+                        targetAyt = AppSettings.getTargetNet(context, ExamType.AYT),
                         todayQuestions = studyRepository.get(today)?.questionCount ?: 0,
                         dailyGoal = AppSettings.getDailyGoal(context)
                     )
@@ -71,9 +75,9 @@ class HomeFragment : Fragment() {
         exams.value = repository.getAllExams()
     }
 
-    private fun daysUntilExam(): Long {
+    private fun daysUntilExam(dayOfMonth: Int): Long {
         val exam = Calendar.getInstance().apply {
-            set(2027, Calendar.JUNE, 19, 0, 0, 0)
+            set(2027, Calendar.JUNE, dayOfMonth, 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }
         val today = Calendar.getInstance().apply {
