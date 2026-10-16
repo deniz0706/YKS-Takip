@@ -23,6 +23,8 @@ import com.deniz0706.ykstakip.ui.components.ExamTypeTabs
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
+import com.deniz0706.ykstakip.ui.components.DashboardRing
+import com.deniz0706.ykstakip.ui.components.DashboardProgress
 import com.deniz0706.ykstakip.util.Fmt
 
 @Composable
@@ -64,6 +66,46 @@ fun HistoryScreenV2(
                 DashboardMetric("Ortalama", average?.let(Fmt::net) ?: "—", Modifier.weight(1f))
                 DashboardMetric("En iyi", best?.let(Fmt::net) ?: "—", Modifier.weight(1f),
                     color = MaterialTheme.colorScheme.primary)
+            }
+        }
+        item {
+            val c = MaterialTheme.colorScheme
+            val recent = filtered.take(5)
+            val previous = filtered.drop(5).take(5)
+            val recentAverage = recent.takeIf { it.isNotEmpty() }
+                ?.map { it.totalNet }?.average()
+            val previousAverage = previous.takeIf { it.isNotEmpty() }
+                ?.map { it.totalNet }?.average()
+            val delta = if (recentAverage != null && previousAverage != null)
+                recentAverage - previousAverage else null
+            val maximum = if (type == ExamType.TYT) 120f else 80f
+            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                Text("ARŞİVİN NABZI", color = c.secondary,
+                    style = MaterialTheme.typography.labelSmall, letterSpacing = 1.2.sp)
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    DashboardRing(((latest ?: 0.0) / maximum).toFloat(),
+                        latest?.let(Fmt::net) ?: "—", caption = "son net")
+                    Column(Modifier.weight(1f)) {
+                        Text("SON 5 DENEME", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                        Text(recentAverage?.let(Fmt::net) ?: "—",
+                            color = c.onSurface, fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold)
+                        Text(when {
+                            delta == null -> "Karşılaştırma için 6+ deneme gerekli"
+                            delta > 0.5 -> "↗ +${Fmt.net(delta)} net yükseliş"
+                            delta < -0.5 -> "↘ ${Fmt.net(delta)} net gerileme"
+                            else -> "→ Ortalama dengeli"
+                        }, color = if (delta != null && delta < -.5) c.error
+                            else c.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                DashboardProgress(((latest ?: 0.0) / maximum).toFloat(),
+                    Modifier.fillMaxWidth())
             }
         }
         item {
