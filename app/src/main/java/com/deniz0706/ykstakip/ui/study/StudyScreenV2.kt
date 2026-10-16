@@ -73,6 +73,29 @@ fun StudyScreenV2(
     val selectedPlans = plan.filter { it.dayOfWeek == selectedDay }.sortedBy { it.startTime }
     val totalQuestions = sorted.sumOf { it.questionCount }
     val totalMinutes = sorted.sumOf { it.studyMinutes }
+    val activeDates = remember(sorted) {
+        sorted.filter { it.questionCount > 0 || it.studyMinutes > 0 }.map { it.date }.toSet()
+    }
+    val streak = remember(activeDates, today) {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val cursor = Calendar.getInstance()
+        if (today !in activeDates) cursor.add(Calendar.DAY_OF_YEAR, -1)
+        var count = 0
+        while (count < activeDates.size && formatter.format(cursor.time) in activeDates) {
+            count++
+            cursor.add(Calendar.DAY_OF_YEAR, -1)
+        }
+        count
+    }
+    val activeLast7 = remember(activeDates, today) {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val cursor = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -6) }
+        List(7) {
+            val key = formatter.format(cursor.time)
+            cursor.add(Calendar.DAY_OF_YEAR, 1)
+            key to (key in activeDates)
+        }
+    }
 
     LazyColumn(
         Modifier.fillMaxSize().background(colors.background),
@@ -122,6 +145,50 @@ fun StudyScreenV2(
                         else "$questions / $goal soru · hedefe ilerleme",
                         color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                 }
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column {
+                        Text("ÇALIŞMA RİTMİ", color = colors.secondary,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.2.sp)
+                        Spacer(Modifier.height(5.dp))
+                        Text("$streak günlük seri", color = colors.onSurface,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold)
+                        Text("${activeLast7.count { it.second }} / 7 aktif gün",
+                            color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                    DashboardRing(activeLast7.count { it.second } / 7f,
+                        "${activeLast7.count { it.second }}/7", caption = "hafta")
+                }
+                Spacer(Modifier.height(13.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    activeLast7.forEach { (date, active) ->
+                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(Modifier.fillMaxWidth().height(26.dp)
+                                .background(if (active) colors.primaryContainer
+                                    else colors.surfaceVariant, RoundedCornerShape(9.dp))
+                                .clickable { onEditDay(date) },
+                                contentAlignment = Alignment.Center) {
+                                Text(if (active) "✓" else "·",
+                                    color = if (active) colors.onPrimaryContainer
+                                        else colors.onSurfaceVariant,
+                                    fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(Modifier.height(5.dp))
+                            Text(date.takeLast(2), color = colors.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(7.dp))
+                Text("Bir güne dokunarak kaydını düzenleyebilirsin.",
+                    color = colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall)
             }
         }
         item {
