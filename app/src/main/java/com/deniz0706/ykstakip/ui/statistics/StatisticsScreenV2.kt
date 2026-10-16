@@ -1,0 +1,227 @@
+package com.deniz0706.ykstakip.ui.statistics
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.deniz0706.ykstakip.model.*
+import com.deniz0706.ykstakip.ui.components.YksCard
+import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
+import com.deniz0706.ykstakip.util.YksRankingCalculator
+import com.deniz0706.ykstakip.util.RankingEstimate
+import java.text.NumberFormat
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targetAyt: Float?) {
+    var type by remember { mutableStateOf(ExamType.TYT) }
+    var branchMode by remember { mutableStateOf(false) }
+    var branch by remember { mutableStateOf("") }
+    var metric by remember { mutableStateOf("net") }
+    var range by remember { mutableStateOf("10") }
+    var field by remember { mutableStateOf(AytField.SAYISAL) }
+    var showMetric by remember { mutableStateOf(false) }
+    var showBranch by remember { mutableStateOf(false) }
+    var showField by remember { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
+    val subjects = remember(type) { SubjectConfigs.subjectsFor(type).map { it.name } }
+    val selectedBranch = branch.takeIf { it in subjects } ?: subjects.firstOrNull().orEmpty()
+    val metrics = listOf("net" to "Net", "correct" to "Doğru", "wrong" to "Yanlış",
+        "blank" to "Boş", "time" to "Süre", "mpq" to "Dakika/Soru")
+    val all = remember(exams, type) { exams.filter { it.type == type }.sortedBy { it.date } }
+    val series = remember(all, branchMode, selectedBranch, metric, range) {
+        val raw = all.mapNotNull { exam ->
+            val subject = if (branchMode) exam.subject(selectedBranch) else null
+            val value = if (branchMode) {
+                when (metric) {
+                    "net" -> subject?.net?.toFloat()
+                    "correct" -> subject?.correct?.toFloat()
+                    "wrong" -> subject?.wrong?.toFloat()
+                    "blank" -> subject?.blank?.toFloat()
+                    "time" -> subject?.timeMinutes?.toFloat()
+                    else -> subject?.minutesPerQuestion?.toFloat()
+                }
+            } else when (metric) {
+                "net" -> exam.totalNet.toFloat()
+                "correct" -> exam.totalCorrect.toFloat()
+                "wrong" -> exam.totalWrong.toFloat()
+                "blank" -> exam.totalBlank.toFloat()
+                "time" -> exam.totalTimeMinutes.toFloat()
+                else -> exam.overallMinutesPerQuestion?.toFloat()
+            }
+            value?.let { exam.date to it }
+        }
+        if (range == "all") raw else raw.takeLast(range.toInt())
+    }
+    val weak = remember(all) { WeakTopicAnalyzer.findWeakSpots(all, sampleSize = 5, top = 3) }
+    val ranking = remember(exams, type, field, obp) {
+        if (obp == null) emptyList() else if (type == ExamType.TYT)
+            YksRankingCalculator.calculateTyt(exams, obp).map { it.estimate }
+        else YksRankingCalculator.calculateAyt(exams, obp, field).map { it.estimate }
+    }
+    val nf = remember { NumberFormat.getIntegerInstance(Locale("tr", "TR")) }
+    fun rank(v: Double): String = "~" + nf.format(v.toInt())
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Text("PERFORMANS ANALİZİ", color = colors.secondary, style = MaterialTheme.typography.labelLarge)
+            Text("İstatistik", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(ExamType.TYT, ExamType.AYT).forEach { t ->
+                    FilterChip(selected = type == t, onClick = { type = t; branch = "" },
+                        label = { Text(t.name) }, modifier = Modifier.weight(1f))
+                }
+            }
+        }
+        item {
+            YksCard(Modifier.fillMaxWidth()) {
+                Text("Net ve performans trendi", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = !branchMode, onClick = { branchMode = false }, label = { Text("Toplam") })
+                    FilterChip(selected = branchMode, onClick = { branchMode = true }, label = { Text("Branş") })
+                }
+                if (branchMode) {
+                    Box {
+                        OutlinedButton(onClick = { showBranch = true }) { Text("Branş: $selectedBranch") }
+                        DropdownMenu(expanded = showBranch, onDismissRequest = { showBranch = false }) {
+                            subjects.forEach { name ->
+                                DropdownMenuItem(text = { Text(name) }, onClick = { branch = name; showBranch = false })
+                            }
+                        }
+                    }
+                }
+                Box {
+                    OutlinedButton(onClick = { showMetric = true }) {
+                        Text("Metrik: ${metrics.first { it.first == metric }.second}")
+                    }
+                    DropdownMenu(expanded = showMetric, onDismissRequest = { showMetric = false }) {
+                        metrics.forEach { (key, label) ->
+                            DropdownMenuItem(text = { Text(label) }, onClick = { metric = key; showMetric = false })
+                        }
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("5", "10", "20", "all").forEach { r ->
+                        FilterChip(selected = range == r, onClick = { range = r },
+                            label = { Text(if (r == "all") "Tümü" else r) })
+                    }
+                }
+                if (series.isEmpty()) {
+                    Text("Bu seçim için deneme kaydı bulunamadı.", color = colors.onSurfaceVariant)
+                } else {
+                    val target = if (!branchMode && metric == "net")
+                        if (type == ExamType.TYT) targetTyt else targetAyt else null
+                    StatsTrend(series, target)
+                    Spacer(Modifier.height(12.dp))
+                    val values = series.map { it.second }
+                    val suffix = if (metric == "time") " dk" else if (metric == "mpq") " dk/soru" else ""
+                    val decimals = if (metric == "mpq") 2 else 1
+                    fun fmt(v: Float) = "%.${decimals}f".format(Locale.US, v) + suffix
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column { Text("Son", color = colors.onSurfaceVariant); Text(fmt(values.last()), fontWeight = FontWeight.Bold) }
+                        Column { Text("Ortalama", color = colors.onSurfaceVariant); Text(fmt(values.average().toFloat()), fontWeight = FontWeight.Bold) }
+                        Column { Text("En yüksek", color = colors.onSurfaceVariant); Text(fmt(values.max()), fontWeight = FontWeight.Bold) }
+                        Column { Text("En düşük", color = colors.onSurfaceVariant); Text(fmt(values.min()), fontWeight = FontWeight.Bold) }
+                    }
+                }
+            }
+        }
+        item {
+            YksCard(Modifier.fillMaxWidth()) {
+                Text("Sıralama tahmini", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text("Tahmini değerlerdir; gerçek YKS sıralaması farklı olabilir.",
+                    color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                if (type == ExamType.AYT) {
+                    Box {
+                        OutlinedButton(onClick = { showField = true }) {
+                            Text(when (field) {
+                                AytField.SAYISAL -> "Sayısal"
+                                AytField.ESIT_AGIRLIK -> "Eşit Ağırlık"
+                                AytField.SOZEL -> "Sözel"
+                            })
+                        }
+                        DropdownMenu(expanded = showField, onDismissRequest = { showField = false }) {
+                            listOf(AytField.SAYISAL to "Sayısal", AytField.ESIT_AGIRLIK to "Eşit Ağırlık",
+                                AytField.SOZEL to "Sözel").forEach { (f, label) ->
+                                DropdownMenuItem(text = { Text(label) }, onClick = { field = f; showField = false })
+                            }
+                        }
+                    }
+                }
+                if (obp == null) {
+                    Text("Sıralama için Ayarlar ekranından OBP gir.", color = colors.onSurfaceVariant)
+                } else if (ranking.isEmpty()) {
+                    Text("Hesaplanabilecek uygun deneme bulunamadı.", color = colors.onSurfaceVariant)
+                } else {
+                    val numbers = ranking.map { it.center.toFloat() }
+                    StatsTrend(numbers.mapIndexed { index, n -> index.toString() to -n }, null)
+                    Spacer(Modifier.height(12.dp))
+                    Text("Son tahmin: ${rank(ranking.last().center.toDouble())}", fontWeight = FontWeight.Bold,
+                        color = colors.primary, fontSize = 22.sp)
+                    Text("Son 7 ortalama: ${rank(ranking.takeLast(7).map { it.center }.average())}")
+                    Text("Son 30 ortalama: ${rank(ranking.takeLast(30).map { it.center }.average())}")
+                    Text("Genel ortalama: ${rank(ranking.map { it.center }.average())}")
+                    Text("En iyi: ${rank(ranking.minOf { it.center }.toDouble())}")
+                    Text("En kötü: ${rank(ranking.maxOf { it.center }.toDouble())}")
+                }
+            }
+        }
+        if (weak.isNotEmpty()) item {
+            YksCard(Modifier.fillMaxWidth()) {
+                Text("Tekrar gerektiren konular", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(8.dp))
+                weak.forEach { spot ->
+                    Text("${spot.subject} · ${spot.topic}", fontWeight = FontWeight.Medium)
+                    Text("Son ${spot.outOf} denemede ${spot.count} kez",
+                        color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatsTrend(values: List<Pair<String, Float>>, target: Float?) {
+    val colors = MaterialTheme.colorScheme
+    val maxPoints = 80
+    val plotted = remember(values) {
+        if (values.size <= maxPoints) values else {
+            val step = (values.size + maxPoints - 1) / maxPoints
+            values.chunked(step).map { it.last().first to it.map { p -> p.second }.average().toFloat() }
+        }
+    }
+    val min = minOf(plotted.minOf { it.second }, target ?: Float.POSITIVE_INFINITY)
+    val max = maxOf(plotted.maxOf { it.second }, target ?: Float.NEGATIVE_INFINITY)
+    val spread = (max - min).coerceAtLeast(1f)
+    androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(190.dp)) {
+        val line = androidx.compose.ui.graphics.Path()
+        plotted.forEachIndexed { index, pair ->
+            val x = if (plotted.size == 1) size.width / 2f else size.width * index / (plotted.size - 1)
+            val y = size.height * (1f - (pair.second - min) / spread) * .85f + size.height * .075f
+            if (index == 0) line.moveTo(x, y) else line.lineTo(x, y)
+        }
+        if (target != null) {
+            val y = size.height * (1f - (target - min) / spread) * .85f + size.height * .075f
+            drawLine(colors.secondary.copy(alpha = .65f), androidx.compose.ui.geometry.Offset(0f, y),
+                androidx.compose.ui.geometry.Offset(size.width, y), strokeWidth = 2.dp.toPx())
+        }
+        drawPath(line, colors.primary, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx()))
+    }
+    if (values.isNotEmpty()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(values.first().first, color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+            Text(values.last().first, color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
