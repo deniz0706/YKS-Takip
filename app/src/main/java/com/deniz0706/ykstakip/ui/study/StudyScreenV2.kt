@@ -16,7 +16,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -363,39 +367,68 @@ private fun StudyBars(
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.primary)
     Spacer(Modifier.height(8.dp))
-    var widthPx by remember { mutableFloatStateOf(1f) }
-    Row(
-        Modifier.fillMaxWidth().height(185.dp)
-            .onSizeChanged { widthPx = it.width.toFloat().coerceAtLeast(1f) }
+    val animatedSelection by animateFloatAsState(
+        selected.toFloat(), animationSpec = spring(stiffness = 550f),
+        label = "study-chart-selection"
+    )
+    Box(
+        Modifier.fillMaxWidth().height(205.dp)
             .pointerInput(display) {
                 detectTapGestures { offset ->
-                    selected = ((offset.x / widthPx) * display.size).toInt().coerceIn(0, display.lastIndex)
+                    selected = ((offset.x / size.width.coerceAtLeast(1) * display.size)
+                        .toInt()).coerceIn(0, display.lastIndex)
                 }
             }
             .pointerInput(display) {
                 detectDragGestures(
-                    onDragStart = { selected = ((it.x / widthPx) * display.size).toInt().coerceIn(0, display.lastIndex) },
+                    onDragStart = {
+                        selected = ((it.x / size.width.coerceAtLeast(1) * display.size)
+                            .toInt()).coerceIn(0, display.lastIndex)
+                    },
                     onDrag = { change, _ ->
-                        selected = ((change.position.x / widthPx) * display.size).toInt().coerceIn(0, display.lastIndex)
+                        selected = ((change.position.x / size.width.coerceAtLeast(1) * display.size)
+                            .toInt()).coerceIn(0, display.lastIndex)
                         change.consume()
                     }
                 )
-            },
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        display.forEachIndexed { index, entry ->
-            val value = entry.second
-            Box(Modifier.weight(1f).fillMaxHeight()
-                .background(background.copy(alpha = .25f), RoundedCornerShape(5.dp)),
-                contentAlignment = Alignment.BottomCenter) {
-                Box(Modifier.fillMaxWidth()
-                    .fillMaxHeight((value / max).coerceIn(0f, 1f))
-                    .background(if (index == selected) MaterialTheme.colorScheme.secondary else foreground,
-                        RoundedCornerShape(5.dp)))
             }
-        }
-    }
+            .drawWithCache {
+                val count = display.size
+                val slot = size.width / count
+                val gap = 3.dp.toPx().coerceAtMost(slot * .3f)
+                val barWidth = (slot - gap).coerceAtLeast(1f)
+                val rounding = androidx.compose.ui.geometry.CornerRadius(5.dp.toPx())
+                val fill = Brush.verticalGradient(
+                    listOf(foreground, foreground.copy(alpha = .65f)))
+                val base = background.copy(alpha = .23f)
+                val bars = display.mapIndexed { index, pair ->
+                    val height = (pair.second / max).coerceIn(0f, 1f) * size.height
+                    val x = index * slot + gap / 2f
+                    androidx.compose.ui.geometry.Rect(x, size.height - height, x + barWidth, size.height)
+                }
+                onDrawBehind {
+                    bars.forEachIndexed { index, rect ->
+                        val x = index * slot + gap / 2f
+                        drawRoundRect(base, topLeft = Offset(x, 0f),
+                            size = androidx.compose.ui.geometry.Size(barWidth, size.height),
+                            cornerRadius = rounding)
+                        if (rect.height > 0f) {
+                            drawRoundRect(fill, topLeft = rect.topLeft,
+                                size = rect.size, cornerRadius = rounding)
+                        }
+                    }
+                    val x = (animatedSelection + .5f) * slot
+                    drawLine(foreground.copy(alpha = .65f),
+                        Offset(x, 0f), Offset(x, size.height),
+                        strokeWidth = 1.dp.toPx())
+                    val selectedBar = bars[selected.coerceIn(0, bars.lastIndex)]
+                    drawCircle(foreground,
+                        radius = 4.dp.toPx(),
+                        center = Offset(x, selectedBar.top.coerceIn(4.dp.toPx(),
+                            size.height - 4.dp.toPx())))
+                }
+            }
+    )
     Spacer(Modifier.height(8.dp))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(display.first().first, color = MaterialTheme.colorScheme.onSurfaceVariant,
