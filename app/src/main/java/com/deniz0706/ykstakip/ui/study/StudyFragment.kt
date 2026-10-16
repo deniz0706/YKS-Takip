@@ -60,6 +60,7 @@ class StudyFragment : Fragment() {
                         onEditDay = { editDay(it) },
                         onPickDay = { pickDay() },
                         onAddPlan = { addPlan(it) },
+                        onEditPlan = { editPlan(it) },
                         onTogglePlan = { planRepository.toggleCompleted(it); refresh() },
                         onDeletePlan = { deletePlan(it) }
                     )
@@ -137,14 +138,22 @@ class StudyFragment : Fragment() {
         }.show()
     }
 
-    private fun addPlan(day: Int) {
-        val subject = input("Ders (örn. AYT Matematik)")
-        val topic = input("Konu")
-        val start = input("Başlangıç (09:00)")
-        val end = input("Bitiş (10:30)")
-        val dialog = AlertDialog.Builder(requireContext()).setTitle("Ders ekle")
+    private fun addPlan(day: Int) = showPlanEditor(day, null)
+
+    private fun editPlan(item: StudyPlanItem) = showPlanEditor(item.dayOfWeek, item)
+
+    private fun showPlanEditor(day: Int, existing: StudyPlanItem?) {
+        val subject = input("Ders (örn. AYT Matematik)", existing?.subject.orEmpty())
+        val topic = input("Konu", existing?.topic.orEmpty())
+        val start = input("Başlangıç (09:00)", existing?.startTime ?: "09:00")
+        val end = input("Bitiş (10:30)", existing?.endTime ?: "10:30")
+        val editing = existing != null
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle(if (editing) "Dersi düzenle" else "Yeni ders")
             .setView(form(subject, topic, start, end))
-            .setNegativeButton("Vazgeç", null).setPositiveButton("Ekle", null).create()
+            .setNegativeButton("Vazgeç", null)
+            .setPositiveButton(if (editing) "Değişiklikleri kaydet" else "Ekle", null)
+            .create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val a = start.text.toString().trim()
@@ -162,14 +171,22 @@ class StudyFragment : Fragment() {
                     end.error = "Başlangıçtan sonraki bir saat gir"
                     return@setOnClickListener
                 }
+                val clash = planRepository.getForDay(day).any { other ->
+                    other.id != existing?.id && a < other.endTime && b > other.startTime
+                }
+                if (clash) {
+                    start.error = "Başka bir dersle saatler çakışıyor"
+                    return@setOnClickListener
+                }
                 planRepository.save(StudyPlanItem(
-                    id = System.currentTimeMillis(),
+                    id = existing?.id ?: System.currentTimeMillis(),
                     dayOfWeek = day,
                     startTime = a,
                     endTime = b,
                     subject = subject.text.toString().trim(),
                     topic = topic.text.toString().trim(),
-                    completed = false
+                    completed = existing?.completed ?: false,
+                    completedWeek = existing?.completedWeek
                 ))
                 refresh()
                 dialog.dismiss()
