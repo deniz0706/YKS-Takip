@@ -27,7 +27,11 @@ import com.deniz0706.ykstakip.util.Fmt
 fun HomeScreenV2(
     exams: List<Exam>,
     onNewExam: (ExamType) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    daysLeft: Long? = null,
+    todayQuestions: Int = 0,
+    dailyGoal: Int? = null,
+    targetNet: Float? = null
 ) {
     var selected by remember { mutableStateOf(ExamType.TYT) }
     val filtered = remember(exams, selected) { exams.filter { it.type == selected }.sortedBy { it.date } }
@@ -71,6 +75,30 @@ fun HomeScreenV2(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MetricTile("Son 5 ort.", if (nets.isEmpty()) "—" else Fmt.net(nets.takeLast(5).average()), Modifier.weight(1f))
                 MetricTile("Deneme", filtered.size.toString(), Modifier.weight(1f))
+            }
+        }
+        item {
+            YksCard {
+                Text("HEDEFE İLERLEME", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    targetNet?.let { "${last?.let(Fmt::net) ?: "—"} / ${Fmt.net(it.toDouble())} net" } ?: "Hedef netini Ayarlar'dan belirleyebilirsin",
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (targetNet != null && targetNet > 0f && last != null) {
+                    Spacer(Modifier.height(12.dp))
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { (last / targetNet).toFloat().coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                MetricTile("Sınava kalan", daysLeft?.let { if (it >= 0) "$it gün" else "Geçti" } ?: "—", Modifier.weight(1f))
+                MetricTile("Bugün çözülen", dailyGoal?.let { "$todayQuestions / $it" } ?: "$todayQuestions", Modifier.weight(1f))
             }
         }
         item {
