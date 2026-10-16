@@ -135,7 +135,7 @@ private fun NetSparkline(values: List<Double>, modifier: Modifier = Modifier) {
                 moveTo(points.first().x, points.first().y)
                 points.drop(1).forEach { lineTo(it.x, it.y) }
             }
-            drawPath(path, lineColor, style = Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.PathJoin.Round))
+            drawPath(path, lineColor, style = Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
         }
         points.lastOrNull()?.let { drawCircle(lineColor, 5.dp.toPx(), it) }
     }
