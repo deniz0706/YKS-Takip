@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -59,6 +60,8 @@ fun StudyScreenV2(
     var range by remember { mutableStateOf("7") }
     var showAllDays by remember { mutableStateOf(false) }
     var section by remember { mutableStateOf("today") }
+    val listState = rememberLazyListState()
+    LaunchedEffect(section) { listState.scrollToItem(0) }
     val sorted = remember(days) { days.sortedBy { it.date } }
     val chartDays = remember(sorted, range, today) {
         if (range == "all") sorted
@@ -124,6 +127,7 @@ fun StudyScreenV2(
 
     LazyColumn(
         Modifier.fillMaxSize().background(colors.background),
+        state = listState,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
