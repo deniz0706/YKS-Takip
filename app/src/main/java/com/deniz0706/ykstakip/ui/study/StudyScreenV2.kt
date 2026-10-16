@@ -219,6 +219,7 @@ fun StudyScreenV2(
                     style = MaterialTheme.typography.labelSmall)
             }
         }
+        }
         if (section == "analysis") {
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
