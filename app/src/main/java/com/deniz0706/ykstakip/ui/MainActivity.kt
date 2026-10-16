@@ -49,9 +49,8 @@ class MainActivity : AppCompatActivity() {
             onSelected = { id -> showFragment(id) }
         )
 
-        if (savedInstanceState == null) {
-            showFragment(NAV_HOME)
-        }
+        // Restore the selected tab without rebuilding every screen.
+        showFragment(currentNavId)
     
         window.decorView.viewTreeObserver.addOnPreDrawListener(
             object : android.view.ViewTreeObserver.OnPreDrawListener {
@@ -70,10 +69,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFragment(navId: Int) {
+        // Detail/editor pages use the back stack. Clear them before switching tabs
+        // so hidden tab fragments are not stranded behind an editor.
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStackImmediate(
+                null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+            )
+        }
         currentNavId = navId
-
+        val manager = supportFragmentManager
+        val tag = "main_tab_$navId"
         val fragment = fragmentCache.getOrPut(navId) {
-            when (navId) {
+            manager.findFragmentByTag(tag) ?: when (navId) {
                 NAV_HOME -> HomeFragment()
                 NAV_HISTORY -> ExamHubFragment()
                 NAV_STUDY -> StudyFragment()
@@ -83,13 +90,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        supportFragmentManager.beginTransaction()
-            .setCustomAnimations(
-                android.R.anim.fade_in,
-                android.R.anim.fade_out
-            )
-            .replace(R.id.fragmentContainer, fragment)
-            .commit()
+        // Hide/show retains Compose views and their scroll/filter state. Previously
+        // replace() discarded the view and rebuilt the entire page on each tab tap.
+        val transaction = manager.beginTransaction()
+            .setReorderingAllowed(true)
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+        manager.fragments.filter {
+            it.isAdded && it.id == R.id.fragmentContainer && it !== fragment
+        }.forEach { transaction.hide(it) }
+        if (fragment.isAdded) {
+            transaction.show(fragment)
+        } else {
+            transaction.add(R.id.fragmentContainer, fragment, tag)
+        }
+        transaction.commit()
     }
 
     fun openNewExam(type: ExamType) {
@@ -139,7 +153,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun closeAndReturnHome() {
-        supportFragmentManager.popBackStack(
+        supportFragmentManager.popBackStackImmediate(
             null,
             androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
         )
