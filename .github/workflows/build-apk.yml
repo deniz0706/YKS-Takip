@@ -8,6 +8,9 @@ on:
       - master
       - '2.0'
 
+permissions:
+  contents: write
+
 concurrency:
   group: apk-build-${{ github.ref }}
   cancel-in-progress: true
@@ -34,3 +37,17 @@ jobs:
         with:
           name: YKS-Takip-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish 2.0 preview release
+        if: github.ref == 'refs/heads/2.0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v2.0-preview"
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "YKS Takip 2.0 · Önizleme" --prerelease --latest=false
+          else
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 2.0 · Önizleme" --notes "Jetpack Compose arayüzünün geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
+          fi
+          gh release upload "$TAG" "$APK#YKS-Takip-2.0-preview.apk" --clobber
