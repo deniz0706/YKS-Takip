@@ -283,6 +283,64 @@ fun StudyScreenV2(
             }
         }
         item {
+            val completed = remember(plan) { plan.count { it.completed } }
+            val total = plan.size
+            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    DashboardRing(if (total == 0) 0f else completed.toFloat() / total,
+                        if (total == 0) "—" else "${completed * 100 / total}%",
+                        caption = "plan")
+                    Column(Modifier.weight(1f)) {
+                        Text("HAFTALIK PLAN DURUMU", color = colors.secondary,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
+                        Spacer(Modifier.height(6.dp))
+                        Text("$completed / $total tamamlandı", color = colors.onSurface,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold)
+                        Text(if (total == 0) "Haftaya ders ekleyerek planını oluştur."
+                            else if (completed == total) "Bu haftanın planı tamamlandı!"
+                            else "${total - completed} görev daha tamamlanmayı bekliyor.",
+                            color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
+                DashboardProgress(if (total == 0) 0f else completed.toFloat() / total,
+                    Modifier.fillMaxWidth())
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    weekdays.forEach { (day, label) ->
+                        val tasks = plan.filter { it.dayOfWeek == day }
+                        val done = tasks.count { it.completed }
+                        val ratio = if (tasks.isEmpty()) 0f else done.toFloat() / tasks.size
+                        Column(Modifier.weight(1f).clickable { selectedDay = day },
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(label, color = if (selectedDay == day) colors.primary
+                                else colors.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelSmall)
+                            Spacer(Modifier.height(6.dp))
+                            Box(Modifier.fillMaxWidth().height(34.dp)
+                                .background(colors.surfaceVariant, RoundedCornerShape(9.dp)),
+                                contentAlignment = Alignment.BottomCenter) {
+                                Box(Modifier.fillMaxWidth().fillMaxHeight(ratio)
+                                    .background(colors.primary, RoundedCornerShape(9.dp)))
+                                Text(if (tasks.isEmpty()) "·" else "$done/${tasks.size}",
+                                    color = if (ratio >= .5f) colors.onPrimary
+                                        else colors.onSurface,
+                                    fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.align(Alignment.Center))
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text("Bir güne dokunarak o günün derslerini aç.",
+                    color = colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall)
+            }
+        }
+        item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("Haftalık ders planı", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
