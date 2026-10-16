@@ -1,6 +1,9 @@
 package com.deniz0706.ykstakip.ui.history
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +21,8 @@ import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.components.ExamTypeTabs
 import com.deniz0706.ykstakip.ui.components.YksCard
+import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.util.Fmt
 
 @Composable
@@ -41,6 +46,9 @@ fun HistoryScreenV2(
                 (toDate == null || exam.date <= toDate)
         }.sortedByDescending { it.date }
     }
+    val average = remember(filtered) { filtered.takeIf { it.isNotEmpty() }?.map { it.totalNet }?.average() }
+    val best = remember(filtered) { filtered.maxOfOrNull { it.totalNet } }
+    val latest = filtered.firstOrNull()?.totalNet
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 42.dp),
@@ -51,6 +59,13 @@ fun HistoryScreenV2(
             Text("Geçmiş", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
         }
         item { ExamTypeTabs(type.name, { type = ExamType.valueOf(it) }) }
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                DashboardMetric("Ortalama", average?.let(Fmt::net) ?: "—", Modifier.weight(1f))
+                DashboardMetric("En iyi", best?.let(Fmt::net) ?: "—", Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.primary)
+            }
+        }
         item {
             OutlinedTextField(
                 value = query,
@@ -92,26 +107,63 @@ fun HistoryScreenV2(
             }
         }
         items(filtered, key = { it.id }) { exam ->
-            YksCard(Modifier.fillMaxWidth().clickable { onExamClick(exam.id) }) {
+            val c = MaterialTheme.colorScheme
+            val shape = RoundedCornerShape(22.dp)
+            Column(
+                Modifier.fillMaxWidth()
+                    .background(c.surface, shape)
+                    .border(1.dp, c.outline.copy(alpha = .4f), shape)
+                    .clickable { onExamClick(exam.id) }
+                    .padding(horizontal = 16.dp, vertical = 15.dp)
+            ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(exam.title, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(exam.title, fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.height(5.dp))
                         Text(exam.date + if (exam.publisher.isBlank()) "" else " · " + exam.publisher,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                            color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    Spacer(Modifier.width(12.dp))
+                    Spacer(Modifier.width(10.dp))
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(Fmt.net(exam.totalNet), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        Text("NET", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                        Text(Fmt.net(exam.totalNet), fontSize = 29.sp,
+                            fontWeight = FontWeight.Bold, color = c.primary)
+                        Text("NET", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
                     }
                 }
                 Spacer(Modifier.height(13.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = .4f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    HistoryPill("${exam.totalCorrect} doğru", c.primary.copy(alpha = .12f), c.primary, Modifier.weight(1f))
+                    HistoryPill("${exam.totalWrong} yanlış", c.error.copy(alpha = .10f), c.error, Modifier.weight(1f))
+                    HistoryPill("${exam.totalBlank} boş", c.surfaceVariant, c.onSurfaceVariant, Modifier.weight(1f))
+                }
                 Spacer(Modifier.height(10.dp))
-                Text("${exam.totalCorrect} doğru  ·  ${exam.totalWrong} yanlış  ·  ${exam.totalBlank} boş  ·  ${exam.totalTimeMinutes} dk",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("${exam.totalTimeMinutes} dakika", style = MaterialTheme.typography.labelSmall,
+                        color = c.onSurfaceVariant)
+                    Text("Detayları gör  ↗", style = MaterialTheme.typography.labelSmall,
+                        color = c.secondary, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
+        item { Spacer(Modifier.height(90.dp)) }
+    }
+}
+
+@Composable
+private fun HistoryPill(
+    label: String,
+    background: androidx.compose.ui.graphics.Color,
+    foreground: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier.background(background, RoundedCornerShape(11.dp))
+        .padding(horizontal = 5.dp, vertical = 9.dp),
+        contentAlignment = Alignment.Center) {
+        Text(label, color = foreground, style = MaterialTheme.typography.labelSmall,
+            maxLines = 1)
     }
 }
