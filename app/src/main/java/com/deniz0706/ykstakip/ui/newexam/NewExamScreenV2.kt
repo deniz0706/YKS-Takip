@@ -141,6 +141,27 @@ fun NewExamScreenV2(
         }
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
+                Text("SÜRE DAĞILIMI", color = colors.secondary,
+                    style = MaterialTheme.typography.labelSmall, letterSpacing = 1.2.sp)
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = {
+                        (totalTime.toFloat() / type.totalTimeMinutes.coerceAtLeast(1))
+                            .coerceIn(0f, 1f)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(9.dp),
+                    color = if (totalTime > type.totalTimeMinutes) colors.error else colors.primary,
+                    trackColor = colors.surfaceVariant
+                )
+                Spacer(Modifier.height(7.dp))
+                Text("$totalTime / ${type.totalTimeMinutes} dakika",
+                    color = if (totalTime > type.totalTimeMinutes) colors.error
+                        else colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("BRANŞLAR", color = colors.secondary,
                     style = MaterialTheme.typography.labelSmall, letterSpacing = 1.4.sp)
                 Spacer(Modifier.height(5.dp))
@@ -163,6 +184,20 @@ fun NewExamScreenV2(
                     Text("${Fmt.net(row.net)} net", color = colors.primary,
                         fontSize = 21.sp, fontWeight = FontWeight.Bold)
                 }
+                Spacer(Modifier.height(10.dp))
+                LinearProgressIndicator(
+                    progress = {
+                        ((row.c + row.w).toFloat() / row.config.questionCount.coerceAtLeast(1))
+                            .coerceIn(0f, 1f)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(5.dp),
+                    color = colors.primary,
+                    trackColor = colors.surfaceVariant
+                )
+                Spacer(Modifier.height(5.dp))
+                Text("${row.c + row.w} / ${row.config.questionCount} soru girildi",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.onSurfaceVariant)
                 Spacer(Modifier.height(11.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     NumericEntry("Doğru", row.correct, { row.correct = it }, Modifier.weight(1f))
