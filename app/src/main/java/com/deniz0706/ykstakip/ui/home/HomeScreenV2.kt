@@ -21,7 +21,6 @@ import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.components.*
 import com.deniz0706.ykstakip.util.Fmt
-import java.time.LocalDate
 
 @Composable
 fun HomeScreenV2(
@@ -37,18 +36,22 @@ fun HomeScreenV2(
 ) {
     val c = MaterialTheme.colorScheme
     var type by remember { mutableStateOf(ExamType.TYT) }
+    // The timeline follows exam attempts, not calendar days; weekly mock exams
+    // should remain meaningful even when only one exam happened this week.
     var period by remember { mutableIntStateOf(1) }
     var showTarget by remember { mutableStateOf(true) }
     val all = remember(exams, type) {
         exams.filter { it.type == type }.sortedBy { it.date }
     }
     val shown = remember(all, period) {
-        val days = when (period) { 0 -> 7L; 1 -> 30L; 2 -> 90L; else -> null }
-        if (days == null) all else {
-            val start = LocalDate.now().minusDays(days - 1)
-            all.filter { runCatching { LocalDate.parse(it.date) >= start }.getOrDefault(false) }
+        when (period) {
+            0 -> all.takeLast(5)
+            1 -> all.takeLast(10)
+            2 -> all.takeLast(20)
+            else -> all
         }
     }
+    val shownDates = remember(shown) { shown.map { it.date } }
     val nets = remember(shown) { shown.map { it.totalNet } }
     val latest = all.lastOrNull()?.totalNet
     val previous = all.getOrNull(all.lastIndex - 1)?.totalNet
@@ -119,7 +122,7 @@ fun HomeScreenV2(
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    listOf("7G", "30G", "90G", "Tümü").forEachIndexed { index, label ->
+                    listOf("Son 5", "Son 10", "Son 20", "Tümü").forEachIndexed { index, label ->
                         val active = period == index
                         Text(label, Modifier.weight(1f)
                             .background(if (active) c.secondary.copy(alpha = .17f)
@@ -132,7 +135,7 @@ fun HomeScreenV2(
                     }
                 }
                 Spacer(Modifier.height(14.dp))
-                NetTrendChart(nets, shown.map { it.date }, Modifier.fillMaxWidth(),
+                NetTrendChart(nets, shownDates, Modifier.fillMaxWidth(),
                     if (showTarget) goal else null)
                 if (goal != null) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
@@ -160,6 +163,9 @@ fun HomeScreenV2(
                     if (it >= 0) "$it" else "—"
                 } ?: "—", Modifier.weight(1f), "gün")
             }
+        }
+        item(key = "exam-rhythm") {
+            ExamRhythmPanel(all, Modifier.fillMaxWidth())
         }
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {

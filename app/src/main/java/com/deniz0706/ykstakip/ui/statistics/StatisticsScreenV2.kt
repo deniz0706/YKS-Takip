@@ -26,6 +26,7 @@ import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
+import com.deniz0706.ykstakip.ui.components.SubjectMomentumPanel
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.YksRankingCalculator
 import com.deniz0706.ykstakip.util.RankingEstimate
@@ -195,6 +196,9 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                     }
                 }
             }
+        }
+        item(key = "subject-momentum") {
+            SubjectMomentumPanel(all, Modifier.fillMaxWidth())
         }
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
