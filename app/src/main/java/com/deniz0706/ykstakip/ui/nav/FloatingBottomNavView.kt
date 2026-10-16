@@ -24,6 +24,9 @@ class FloatingBottomNavView @JvmOverloads constructor(
     private val cells = mutableMapOf<Int, LinearLayout>()
     private val titles = mutableMapOf<Int, TextView>()
     private val icons = mutableMapOf<Int, TextView>()
+    private val selectionAnimators = mutableMapOf<Int, ValueAnimator>()
+    private val cellBackgrounds = mutableMapOf<Int, GradientDrawable>()
+    private val backgroundColors = mutableMapOf<Int, Int>()
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private val dark: Boolean get() = when (ThemeManager.currentTheme(context)) {
@@ -81,6 +84,10 @@ class FloatingBottomNavView @JvmOverloads constructor(
     }
 
     private fun rebuild() {
+        selectionAnimators.values.forEach { it.cancel() }
+        selectionAnimators.clear()
+        cellBackgrounds.clear()
+        backgroundColors.clear()
         removeAllViews()
         cells.clear()
         titles.clear()
@@ -125,12 +132,20 @@ class FloatingBottomNavView @JvmOverloads constructor(
             }
             cell.addView(icon, LayoutParams(LayoutParams.MATCH_PARENT, dp(28)))
             cell.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, dp(18)))
+            cellBackgrounds[item.id] = cell.background as GradientDrawable
+            backgroundColors[item.id] = Color.TRANSPARENT
             cells[item.id] = cell
             titles[item.id] = title
             icons[item.id] = icon
             addView(cell)
         }
         updateSelectionVisuals(animate = false)
+    }
+
+    override fun onDetachedFromWindow() {
+        selectionAnimators.values.forEach { it.cancel() }
+        selectionAnimators.clear()
+        super.onDetachedFromWindow()
     }
 
     private fun updateSelectionVisuals(animate: Boolean = true) {
@@ -144,14 +159,24 @@ class FloatingBottomNavView @JvmOverloads constructor(
             val targetBackground = if (selected) {
                 if (dark) Color.rgb(45,52,79) else Color.rgb(238,232,250)
             } else Color.TRANSPARENT
-            if (animate) {
-                val old = (cell.background as? GradientDrawable)?.let { if (selected) Color.TRANSPARENT else targetBackground } ?: Color.TRANSPARENT
-                ValueAnimator.ofObject(ArgbEvaluator(), old, targetBackground).apply {
-                    duration = 180
-                    addUpdateListener { cell.background = pill(it.animatedValue as Int) }
+            selectionAnimators.remove(item.id)?.cancel()
+            val drawable = cellBackgrounds[item.id] ?: return@forEach
+            val startColor = backgroundColors[item.id] ?: Color.TRANSPARENT
+            if (animate && startColor != targetBackground) {
+                ValueAnimator.ofObject(ArgbEvaluator(), startColor, targetBackground).apply {
+                    duration = 190
+                    addUpdateListener {
+                        val color = it.animatedValue as Int
+                        drawable.setColor(color)
+                        backgroundColors[item.id] = color
+                    }
+                    selectionAnimators[item.id] = this
                     start()
                 }
-            } else cell.background = pill(targetBackground)
+            } else {
+                drawable.setColor(targetBackground)
+                backgroundColors[item.id] = targetBackground
+            }
             title.setTextColor(end)
             icon.setTextColor(end)
         }
