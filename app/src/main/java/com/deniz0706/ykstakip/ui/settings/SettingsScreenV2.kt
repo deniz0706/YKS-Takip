@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.components.YksCard
+import com.deniz0706.ykstakip.ui.components.DashboardPanel
 
 @Composable
 fun SettingsScreenV2(
@@ -41,10 +42,12 @@ fun SettingsScreenV2(
     ) {
         Text("KİŞİSELLEŞTİRME", color = colors.secondary, style = MaterialTheme.typography.labelLarge)
         Text("Ayarlar", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = colors.onBackground)
-        Text("Hedeflerini ve uygulamanın görünümünü yönet.",
+        Text("Hedeflerini, görünümü ve verilerini tek yerden yönet.",
             color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
 
-        YksCard(Modifier.fillMaxWidth()) {
+        DashboardPanel(Modifier.fillMaxWidth()) {
+            Text("01  /  GÖRÜNÜM", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
+            Spacer(Modifier.height(8.dp))
             Text("Görünüm", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(14.dp))
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
@@ -59,7 +62,9 @@ fun SettingsScreenV2(
             }
         }
 
-        YksCard(Modifier.fillMaxWidth(), highlighted = true) {
+        DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+            Text("02  /  HEDEFLER", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
+            Spacer(Modifier.height(8.dp))
             Text("Hedeflerin", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text("Boş bıraktığın hedefler kaldırılır.", color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
@@ -92,7 +97,9 @@ fun SettingsScreenV2(
             ) { Text("Hedefleri kaydet") }
         }
 
-        YksCard(Modifier.fillMaxWidth()) {
+        DashboardPanel(Modifier.fillMaxWidth()) {
+            Text("03  /  VERİ YÖNETİMİ", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
+            Spacer(Modifier.height(8.dp))
             Text("Verilerin", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text("Deneme arşivini JSON dosyası olarak yedekle veya geri yükle.",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
