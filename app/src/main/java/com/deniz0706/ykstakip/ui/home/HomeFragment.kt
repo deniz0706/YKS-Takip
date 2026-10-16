@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.StudyRepository
+import com.deniz0706.ykstakip.data.FocusSessionRepository
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
@@ -26,14 +27,25 @@ import java.util.Locale
 class HomeFragment : Fragment() {
     private lateinit var repository: ExamRepository
     private lateinit var studyRepository: StudyRepository
+    private lateinit var focusRepository: FocusSessionRepository
     private val exams = mutableStateOf<List<Exam>>(emptyList())
-    private val dashboardRevision = mutableStateOf(0)
+    private data class Summary(
+        val daysTyt: Long? = null,
+        val daysAyt: Long? = null,
+        val goalTyt: Float? = null,
+        val goalAyt: Float? = null,
+        val todayQuestions: Int = 0,
+        val dailyGoal: Int? = null,
+        val hasFocusSession: Boolean = false
+    )
+    private val dashboardSummary = mutableStateOf(Summary())
     private val refreshListener: () -> Unit = { refresh() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         repository = ExamRepository.getInstance(requireContext())
         studyRepository = StudyRepository(requireContext())
+        focusRepository = FocusSessionRepository(requireContext())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -42,18 +54,18 @@ class HomeFragment : Fragment() {
             setContent {
                 val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
-                    val revision = dashboardRevision.value
-                    val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                    val summary = dashboardSummary.value
                     HomeScreenV2(
                         exams = exams.value,
                         onNewExam = { (activity as? MainActivity)?.openNewExam(it) },
                         onOpenStudy = { (activity as? MainActivity)?.openStudy() },
-                        daysLeft = daysUntilExam(19),
-                        daysLeftAyt = daysUntilExam(20),
-                        targetTyt = AppSettings.getTargetNet(context, ExamType.TYT),
-                        targetAyt = AppSettings.getTargetNet(context, ExamType.AYT),
-                        todayQuestions = studyRepository.get(today)?.questionCount ?: 0,
-                        dailyGoal = AppSettings.getDailyGoal(context)
+                        daysLeft = summary.daysTyt,
+                        daysLeftAyt = summary.daysAyt,
+                        targetTyt = summary.goalTyt,
+                        targetAyt = summary.goalAyt,
+                        todayQuestions = summary.todayQuestions,
+                        dailyGoal = summary.dailyGoal,
+                        hasFocusSession = summary.hasFocusSession
                     )
                 }
             }
@@ -73,7 +85,17 @@ class HomeFragment : Fragment() {
 
     private fun refresh() {
         exams.value = repository.getAllExams()
-        dashboardRevision.value += 1
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val session = focusRepository.snapshot()
+        dashboardSummary.value = Summary(
+            daysTyt = daysUntilExam(19),
+            daysAyt = daysUntilExam(20),
+            goalTyt = AppSettings.getTargetNet(requireContext(), ExamType.TYT),
+            goalAyt = AppSettings.getTargetNet(requireContext(), ExamType.AYT),
+            todayQuestions = studyRepository.get(today)?.questionCount ?: 0,
+            dailyGoal = AppSettings.getDailyGoal(requireContext()),
+            hasFocusSession = session.running || session.elapsedMs > 0L
+        )
     }
 
     private fun daysUntilExam(dayOfMonth: Int): Long {

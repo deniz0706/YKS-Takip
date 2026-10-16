@@ -28,6 +28,7 @@ fun HomeScreenV2(
     onNewExam: (ExamType) -> Unit,
     onOpenStudy: () -> Unit,
     modifier: Modifier = Modifier,
+    hasFocusSession: Boolean = false,
     daysLeft: Long? = null,
     todayQuestions: Int = 0,
     dailyGoal: Int? = null,
@@ -242,7 +243,8 @@ fun HomeScreenV2(
                 OutlinedButton(onClick = onOpenStudy,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(15.dp)) {
-                    Text("◷  Odak seansı aç  ↗")
+                    Text(if (hasFocusSession) "◷  Odak seansına dön  ↗"
+                        else "◷  Odak seansı aç  ↗")
                 }
             }
         }
