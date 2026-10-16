@@ -1,6 +1,8 @@
 package com.deniz0706.ykstakip.ui.home
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -64,7 +66,7 @@ fun HomeScreenV2(
                     color = if (delta != null && delta >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(20.dp))
-                NetSparkline(nets.takeLast(10), Modifier.fillMaxWidth().height(94.dp))
+                NetSparkline(nets.takeLast(10), Modifier.fillMaxWidth().height(184.dp))
                 Spacer(Modifier.height(12.dp))
                 Text("Son ${minOf(nets.size, 10)} denemenin net eğilimi", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
@@ -117,7 +119,17 @@ fun HomeScreenV2(
 private fun NetSparkline(values: List<Double>, modifier: Modifier = Modifier) {
     val lineColor = MaterialTheme.colorScheme.secondary
     val guideColor = MaterialTheme.colorScheme.outline
-    Canvas(modifier) {
+    var selectedIndex by remember(values) { mutableIntStateOf(-1) }
+    Column {
+    Canvas(modifier.pointerInput(values) {
+        detectTapGestures { tap ->
+            if (values.isNotEmpty()) {
+                val padding = 8.dp.toPx()
+                val fraction = ((tap.x - padding) / (size.width - 2 * padding).coerceAtLeast(1f)).coerceIn(0f, 1f)
+                selectedIndex = (fraction * (values.size - 1)).toInt().coerceIn(0, values.lastIndex)
+            }
+        }
+    }) {
         drawLine(guideColor, Offset(0f, size.height * 0.8f), Offset(size.width, size.height * 0.8f), 1.dp.toPx())
         if (values.isEmpty()) return@Canvas
         val min = values.minOrNull() ?: return@Canvas
@@ -137,6 +149,14 @@ private fun NetSparkline(values: List<Double>, modifier: Modifier = Modifier) {
             }
             drawPath(path, lineColor, style = Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
         }
-        points.lastOrNull()?.let { drawCircle(lineColor, 5.dp.toPx(), it) }
+        points.forEachIndexed { index, point ->
+            if (index == selectedIndex || index == points.lastIndex) {
+                drawCircle(lineColor, if (index == selectedIndex) 6.dp.toPx() else 4.dp.toPx(), point)
+            }
+        }
+    }
+    if (selectedIndex in values.indices) {
+        Text("Seçilen deneme: ${Fmt.net(values[selectedIndex])} net", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+    }
     }
 }
