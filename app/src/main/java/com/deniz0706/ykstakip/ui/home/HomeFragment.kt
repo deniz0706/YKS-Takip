@@ -26,6 +26,7 @@ class HomeFragment : Fragment() {
     private lateinit var repository: ExamRepository
     private lateinit var studyRepository: StudyRepository
     private val exams = mutableStateOf<List<Exam>>(emptyList())
+    private val dashboardRevision = mutableStateOf(0)
     private val refreshListener: () -> Unit = { refresh() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +45,7 @@ class HomeFragment : Fragment() {
                     else -> isSystemInDarkTheme()
                 }
                 YksTheme(darkTheme = dark) {
+                    val revision = dashboardRevision.value
                     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                     HomeScreenV2(
                         exams = exams.value,
@@ -73,6 +75,7 @@ class HomeFragment : Fragment() {
 
     private fun refresh() {
         exams.value = repository.getAllExams()
+        dashboardRevision.value += 1
     }
 
     private fun daysUntilExam(dayOfMonth: Int): Long {
