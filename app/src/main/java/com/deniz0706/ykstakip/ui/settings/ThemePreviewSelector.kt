@@ -4,7 +4,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +37,12 @@ fun ThemePreviewSelector(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    val systemDark = isSystemInDarkTheme()
+    // Observe UI configuration changes, but read the application-level system
+    // configuration: Activity uiMode is deliberately overridden for Aurora/Dark.
+    val activeConfiguration = LocalConfiguration.current
+    val appContext = LocalContext.current.applicationContext
+    val systemDark = (appContext.resources.configuration.uiMode and
+        Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
     val options = listOf(
         PreviewOption("light", "Açık", "Ferahlık",
             Color(0xFFF5F7FC), Color.White, Color(0xFF152238), Color(0xFF087E72)),
