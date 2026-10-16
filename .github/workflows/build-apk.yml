@@ -31,12 +31,19 @@ jobs:
         with:
           gradle-version: '8.11.1'
       - name: Build APK
-        run: gradle --no-daemon assembleDebug
-      - name: Upload APK
+        run: gradle --no-daemon assembleDebug assembleRelease
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: YKS-Takip-APK
+          name: YKS-Takip-Debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload release APK (unsigned)
+        uses: actions/upload-artifact@v4
+        with:
+          name: YKS-Takip-Release-Unsigned
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
 
       - name: Publish 2.0 preview release
         if: github.ref == 'refs/heads/2.0'
@@ -50,4 +57,4 @@ jobs:
           else
             gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 2.0 · Önizleme" --notes "Jetpack Compose arayüzünün geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
           fi
-          gh release upload "$TAG" "$APK#YKS-Takip-2.0-preview.apk" --clobber
+          gh release upload "$TAG" "$APK#YKS-Takip-2.0-preview-debug.apk" --clobber
