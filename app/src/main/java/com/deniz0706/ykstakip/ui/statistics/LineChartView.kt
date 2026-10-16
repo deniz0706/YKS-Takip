@@ -91,7 +91,6 @@ class LineChartView @JvmOverloads constructor(
 
     private val tooltipBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = surfaceColor
-        setShadowLayer(12f, 0f, 4f, 0x33000000)
     }
 
     private val tooltipTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -116,10 +115,6 @@ class LineChartView @JvmOverloads constructor(
         color = targetColor
         textSize = 24f
         isFakeBoldText = true
-    }
-
-    init {
-        setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
     override fun onMeasure(
@@ -177,7 +172,7 @@ class LineChartView @JvmOverloads constructor(
             rect.width() / (points.size - 1)
 
         val idx =
-            ((touchX - rect.left) / stepX)
+            kotlin.math.round((touchX - rect.left) / stepX)
                 .toInt()
                 .coerceIn(0, points.size - 1)
 
