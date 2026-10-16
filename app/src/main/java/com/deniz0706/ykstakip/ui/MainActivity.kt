@@ -78,6 +78,9 @@ class MainActivity : AppCompatActivity() {
         }
         currentNavId = navId
         val manager = supportFragmentManager
+        // Flush rapid taps before inspecting the fragment list. Otherwise two
+        // queued transactions can both believe the preceding tab is absent.
+        manager.executePendingTransactions()
         val tag = "main_tab_$navId"
         val fragment = fragmentCache.getOrPut(navId) {
             manager.findFragmentByTag(tag) ?: when (navId) {
