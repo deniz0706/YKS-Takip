@@ -89,16 +89,15 @@ fun SettingsScreenV2(
             Text("Görünüm", color = colors.onSurface,
                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(14.dp))
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                listOf("light" to "Açık", "dark" to "Koyu", "system" to "Sistem").forEachIndexed { index, (value, label) ->
-                    SegmentedButton(
-                        selected = selectedTheme == value,
-                        onClick = { onThemeChange(value) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
-                        label = { Text(label, maxLines = 1) }
-                    )
-                }
-            }
+            ThemePreviewSelector(
+                selected = selectedTheme,
+                onSelect = onThemeChange,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+            Text("Bir görünüm seçtiğinde değişiklik anında uygulanır.",
+                color = colors.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall)
         }
 
         DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
