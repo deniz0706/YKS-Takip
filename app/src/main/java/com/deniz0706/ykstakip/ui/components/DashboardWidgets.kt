@@ -3,6 +3,12 @@ package com.deniz0706.ykstakip.ui.components
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Animatable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,14 +37,14 @@ fun DashboardPanel(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val c = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(26.dp)
-    val fill = if (accent) Brush.linearGradient(
-        listOf(c.surfaceVariant, c.surface, c.surface)
-    ) else Brush.linearGradient(listOf(c.surface, c.surface))
+    val shape = remember { RoundedCornerShape(26.dp) }
+    val fill = androidx.compose.runtime.remember(c.surface, c.surfaceVariant, accent) {
+        if (accent) Brush.linearGradient(listOf(c.surfaceVariant, c.surface, c.surface))
+        else Brush.linearGradient(listOf(c.surface, c.surface))
+    }
     Column(
         modifier.background(fill, shape)
             .border(1.dp, c.outline.copy(alpha = .38f), shape)
-            .animateContentSize()
             .padding(18.dp),
         content = content
     )
@@ -74,7 +81,7 @@ fun DashboardProgress(
 ) {
     val c = MaterialTheme.colorScheme
     val progress = animateFloatAsState(fraction.coerceIn(0f, 1f),
-        animationSpec = spring(stiffness = 250f), label = "goal-progress")
+        animationSpec = spring(stiffness = 350f), label = "goal-progress")
     Box(modifier.height(9.dp).clip(RoundedCornerShape(100.dp))
         .background(c.surfaceVariant)) {
         Box(Modifier.fillMaxWidth(progress.value).fillMaxHeight()
