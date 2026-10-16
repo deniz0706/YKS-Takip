@@ -8,5 +8,6 @@
         <item name="colorAccent">@color/accent</item>
         <!-- Light icons on the dark status bar. Previously forced dark icons everywhere. -->
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
     </style>
 </resources>

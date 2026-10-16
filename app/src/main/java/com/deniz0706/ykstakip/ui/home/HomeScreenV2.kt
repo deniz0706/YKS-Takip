@@ -224,7 +224,7 @@ fun HomeScreenV2(
                             color = c.secondary, letterSpacing = 1.sp)
                         Spacer(Modifier.height(7.dp))
                         Text("$todayQuestions soru", fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold)
+                            fontWeight = FontWeight.Bold, color = c.onSurface)
                         Text(dailyGoal?.let { "$it soru hedefi" } ?: "Hedefini Ayarlar'dan belirle",
                             color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     }

@@ -86,7 +86,8 @@ fun SettingsScreenV2(
         DashboardPanel(Modifier.fillMaxWidth()) {
             Text("01  /  GÖRÜNÜM", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
-            Text("Görünüm", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text("Görünüm", color = colors.onSurface,
+                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(14.dp))
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 listOf("light" to "Açık", "dark" to "Koyu", "system" to "Sistem").forEachIndexed { index, (value, label) ->
@@ -103,7 +104,8 @@ fun SettingsScreenV2(
         DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
             Text("02  /  HEDEFLER", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
-            Text("Hedeflerin", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text("Hedeflerin", color = colors.onSurface,
+                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text("Boş bıraktığın hedefler kaldırılır.", color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(12.dp))
@@ -138,7 +140,8 @@ fun SettingsScreenV2(
         DashboardPanel(Modifier.fillMaxWidth()) {
             Text("03  /  VERİ YÖNETİMİ", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
-            Text("Verilerin", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text("Verilerin", color = colors.onSurface,
+                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text("Deneme arşivini JSON dosyası olarak yedekle veya geri yükle.",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(16.dp))

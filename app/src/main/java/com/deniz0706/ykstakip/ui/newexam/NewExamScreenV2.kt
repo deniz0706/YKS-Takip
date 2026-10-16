@@ -94,7 +94,7 @@ fun NewExamScreenV2(
                     Text("DENEME / EDİTÖR", color = colors.secondary,
                         style = MaterialTheme.typography.labelSmall, letterSpacing = 1.4.sp)
                     Text(if (existing == null) "Yeni Deneme" else "Denemeyi Düzenle",
-                        fontSize = 29.sp, fontWeight = FontWeight.Bold)
+                        fontSize = 29.sp, fontWeight = FontWeight.Bold, color = colors.onBackground)
                 }
                 TextButton(onClick = onBack) { Text("Vazgeç") }
             }
@@ -176,7 +176,7 @@ fun NewExamScreenV2(
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(row.config.name, fontWeight = FontWeight.SemiBold,
-                            style = MaterialTheme.typography.titleMedium)
+                            style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
                         Text("${row.config.questionCount} soru  ·  ${row.blank} boş",
                             color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)

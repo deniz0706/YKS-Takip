@@ -174,7 +174,8 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
         }
         if (section == "general") item {
             DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("Net ve performans trendi", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text("Net ve performans trendi", color = colors.onSurface,
+                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(selected = !branchMode, onClick = { branchMode = false }, label = { Text("Toplam") })
                     FilterChip(selected = branchMode, onClick = { branchMode = true }, label = { Text("Branş") })
@@ -233,7 +234,8 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
         }
         if (section == "ranking") item {
             DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("Sıralama tahmini", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text("Sıralama tahmini", color = colors.onSurface,
+                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Text("Tahmini değerlerdir; gerçek YKS sıralaması farklı olabilir.",
                     color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 if (type == ExamType.AYT) {
@@ -263,20 +265,22 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                     Spacer(Modifier.height(12.dp))
                     Text("Son tahmin: ${rank(ranking.last().center.toDouble())}", fontWeight = FontWeight.Bold,
                         color = colors.primary, fontSize = 22.sp)
-                    Text("Son 7 ortalama: ${rank(ranking.takeLast(7).map { it.center }.average())}")
-                    Text("Son 30 ortalama: ${rank(ranking.takeLast(30).map { it.center }.average())}")
-                    Text("Genel ortalama: ${rank(ranking.map { it.center }.average())}")
-                    Text("En iyi: ${rank(ranking.minOf { it.center }.toDouble())}")
-                    Text("En kötü: ${rank(ranking.maxOf { it.center }.toDouble())}")
+                    Text("Son 7 ortalama: ${rank(ranking.takeLast(7).map { it.center }.average())}", color = colors.onSurface)
+                    Text("Son 30 ortalama: ${rank(ranking.takeLast(30).map { it.center }.average())}", color = colors.onSurface)
+                    Text("Genel ortalama: ${rank(ranking.map { it.center }.average())}", color = colors.onSurface)
+                    Text("En iyi: ${rank(ranking.minOf { it.center }.toDouble())}", color = colors.onSurface)
+                    Text("En kötü: ${rank(ranking.maxOf { it.center }.toDouble())}", color = colors.onSurface)
                 }
             }
         }
         if (section == "branches" && weak.isNotEmpty()) item {
             DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("Tekrar gerektiren konular", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text("Tekrar gerektiren konular", color = colors.onSurface,
+                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
                 weak.forEach { spot ->
-                    Text("${spot.subject} · ${spot.topic}", fontWeight = FontWeight.Medium)
+                    Text("${spot.subject} · ${spot.topic}", color = colors.onSurface,
+                        fontWeight = FontWeight.Medium)
                     Text("Son ${spot.outOf} denemede ${spot.count} kez",
                         color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))

@@ -134,14 +134,16 @@ fun HistoryScreenV2(
         }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Kayıtlar", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                Text("Kayıtlar", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium)
                 Text("${filtered.size} deneme", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
         }
         if (filtered.isEmpty()) {
             item {
                 YksCard {
-                    Text("Burada henüz deneme görünmüyor", fontWeight = FontWeight.SemiBold)
+                    Text("Burada henüz deneme görünmüyor", fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(6.dp))
                     Text("Arama ve tarih filtrelerini kontrol edebilir veya yeni bir deneme ekleyebilirsin.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
@@ -160,7 +162,7 @@ fun HistoryScreenV2(
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(exam.title, fontWeight = FontWeight.SemiBold,
+                        Text(exam.title, fontWeight = FontWeight.SemiBold, color = c.onSurface,
                             style = MaterialTheme.typography.titleMedium,
                             maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.height(5.dp))

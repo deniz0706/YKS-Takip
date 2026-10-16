@@ -176,7 +176,7 @@ fun StudyScreenV2(
                     verticalAlignment = Alignment.CenterVertically) {
                     Column {
                         Text("${minutes / 60} sa ${minutes % 60} dk",
-                            fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                            fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.onSurface)
                         Text("çalışma süresi", color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall)
                     }
@@ -365,7 +365,8 @@ fun StudyScreenV2(
         if (section == "analysis") {
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("Çalışma grafiği", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text("Çalışma grafiği", color = colors.onSurface,
+                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("questions" to "Soru", "time" to "Süre").forEach { (key, label) ->
                         FilterChip(selected = metric == key, onClick = { metric = key }, label = { Text(label) })
@@ -451,7 +452,8 @@ fun StudyScreenV2(
         item {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Haftalık ders planı", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text("Haftalık ders planı", color = colors.onSurface,
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     TextButton(onClick = { onAddPlan(selectedDay) }) { Text("+ Ders") }
                 }
                 Spacer(Modifier.height(10.dp))
