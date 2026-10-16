@@ -7,6 +7,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -249,7 +251,7 @@ private fun StatsTrend(
         if (plotted.size == 1 || width <= 0f) 0
         else ((x / width).coerceIn(0f, 1f) * plotted.lastIndex).toInt().coerceIn(0, plotted.lastIndex)
 
-    androidx.compose.foundation.Canvas(
+    Box(
         Modifier.fillMaxWidth().height(210.dp)
             .pointerInput(plotted) {
                 detectTapGestures { offset ->
@@ -265,30 +267,42 @@ private fun StatsTrend(
                     }
                 )
             }
-    ) {
-        val path = Path()
-        fun pos(i: Int, v: Float): Offset {
-            val x = if (plotted.size == 1) size.width / 2f
-                else size.width * i / plotted.lastIndex
-            val y = size.height * (1f - (v - min) / spread) * .85f + size.height * .075f
-            return Offset(x, y)
-        }
-        plotted.forEachIndexed { index, pair ->
-            val p = pos(index, pair.second)
-            if (index == 0) path.moveTo(p.x, p.y) else path.lineTo(p.x, p.y)
-        }
-        if (target != null) {
-            val y = pos(0, target).y
-            drawLine(colors.secondary.copy(alpha = .65f),
-                Offset(0f, y), Offset(size.width, y), strokeWidth = 2.dp.toPx())
-        }
-        drawPath(path, colors.primary, style = Stroke(width = 3.dp.toPx()))
-        val point = pos(selected.coerceIn(0, plotted.lastIndex), selectedPoint.second)
-        drawLine(colors.outline, Offset(point.x, 0f), Offset(point.x, size.height),
-            strokeWidth = 1.dp.toPx())
-        drawCircle(colors.primary, radius = 6.dp.toPx(), center = point)
-        drawCircle(colors.surface, radius = 2.5.dp.toPx(), center = point)
-    }
+            .drawWithCache {
+                fun pos(i: Int, v: Float): Offset {
+                    val x = if (plotted.size == 1) size.width / 2f
+                        else size.width * i / plotted.lastIndex
+                    val y = size.height * (1f - (v - min) / spread) * .85f +
+                        size.height * .075f
+                    return Offset(x, y)
+                }
+                val line = Path()
+                plotted.forEachIndexed { index, pair ->
+                    val point = pos(index, pair.second)
+                    if (index == 0) line.moveTo(point.x, point.y)
+                    else line.lineTo(point.x, point.y)
+                }
+                val targetY = target?.let { pos(0, it).y }
+                val stroke = Stroke(width = 3.dp.toPx())
+                val guideWidth = 1.dp.toPx()
+                val targetWidth = 2.dp.toPx()
+                val outerRadius = 6.dp.toPx()
+                val innerRadius = 2.5.dp.toPx()
+                onDrawBehind {
+                    if (targetY != null) {
+                        drawLine(colors.secondary.copy(alpha = .65f),
+                            Offset(0f, targetY), Offset(size.width, targetY),
+                            strokeWidth = targetWidth)
+                    }
+                    drawPath(line, colors.primary, style = stroke)
+                    val index = selected.coerceIn(0, plotted.lastIndex)
+                    val point = pos(index, plotted[index].second)
+                    drawLine(colors.outline, Offset(point.x, 0f),
+                        Offset(point.x, size.height), strokeWidth = guideWidth)
+                    drawCircle(colors.primary, radius = outerRadius, center = point)
+                    drawCircle(colors.surface, radius = innerRadius, center = point)
+                }
+            }
+    )
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(plotted.first().first, color = colors.onSurfaceVariant,
             style = MaterialTheme.typography.labelSmall)
