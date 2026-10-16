@@ -24,6 +24,8 @@ import com.deniz0706.ykstakip.model.*
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
+import com.deniz0706.ykstakip.ui.components.DashboardRing
+import com.deniz0706.ykstakip.ui.components.DashboardProgress
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.YksRankingCalculator
 import com.deniz0706.ykstakip.util.RankingEstimate
@@ -104,6 +106,41 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                     all.takeIf { it.isNotEmpty() }?.map { it.totalNet }?.average()
                         ?.let { "%.1f".format(Locale("tr", "TR"), it) } ?: "—",
                     Modifier.weight(1f), "Tüm denemeler", colors.primary)
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                val last = all.lastOrNull()
+                val maxQuestions = if (type == ExamType.TYT) 120f else 80f
+                val correct = last?.totalCorrect ?: 0
+                val wrong = last?.totalWrong ?: 0
+                val blank = last?.totalBlank ?: 0
+                Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+                    DashboardRing(correct / maxQuestions,
+                        "${(correct / maxQuestions * 100).toInt()}%", caption = "doğru")
+                    Column(Modifier.weight(1f)) {
+                        Text("SON DENEME DAĞILIMI", color = colors.secondary,
+                            style = MaterialTheme.typography.labelSmall,
+                            letterSpacing = 1.sp)
+                        Spacer(Modifier.height(6.dp))
+                        Text(if (last == null) "İlk denemeni bekliyor"
+                            else "${last.totalNet} net",
+                            color = colors.onSurface,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold)
+                        Text(if (last == null) "Deneme ekleyince halka dolacak."
+                            else "$correct doğru · $wrong yanlış · $blank boş",
+                            color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
+                DashboardProgress(correct / maxQuestions, Modifier.fillMaxWidth())
+                Spacer(Modifier.height(7.dp))
+                Text("Son denemedeki doğru oranı · ${maxQuestions.toInt()} soru üzerinden",
+                    color = colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall)
             }
         }
         item {
