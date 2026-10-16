@@ -1,5 +1,7 @@
 package com.deniz0706.ykstakip.ui.study
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -49,6 +51,7 @@ fun StudyScreenV2(
     var selectedDay by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) }
     var metric by remember { mutableStateOf("questions") }
     var range by remember { mutableStateOf("7") }
+    var showAllDays by remember { mutableStateOf(false) }
     val sorted = remember(days) { days.sortedBy { it.date } }
     val chartDays = remember(sorted, range, today) {
         if (range == "all") sorted
@@ -148,7 +151,7 @@ fun StudyScreenV2(
                 if (sorted.isEmpty()) {
                     Text("Henüz kayıtlı çalışma günü yok.", color = colors.onSurfaceVariant)
                 } else {
-                    sorted.asReversed().take(7).forEach { day ->
+                    (if (showAllDays) sorted.asReversed() else sorted.asReversed().take(7)).forEach { day ->
                         Row(Modifier.fillMaxWidth()
                             .clickable { onEditDay(day.date) }
                             .padding(vertical = 10.dp),
@@ -167,6 +170,13 @@ fun StudyScreenV2(
                                 style = MaterialTheme.typography.labelMedium)
                         }
                         HorizontalDivider(color = colors.outline.copy(alpha = .25f))
+                    }
+                    if (sorted.size > 7) {
+                        TextButton(onClick = { showAllDays = !showAllDays },
+                            modifier = Modifier.fillMaxWidth()) {
+                            Text(if (showAllDays) "Daha az göster"
+                                else "Tüm ${sorted.size} günü göster")
+                        }
                     }
                 }
             }
