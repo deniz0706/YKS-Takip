@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,11 +97,13 @@ fun DashboardRing(
         animationSpec = spring(stiffness = 250f), label = "ring-progress")
     val track = c.outline.copy(alpha = .36f)
     Box(modifier.size(106.dp), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().drawWithCache {
             val style = Stroke(9.dp.toPx(), cap = StrokeCap.Round)
-            drawArc(track, -90f, 360f, false, style = style)
-            drawArc(c.primary, -90f, 360f * progress.value, false, style = style)
-        }
+            onDrawBehind {
+                drawArc(track, -90f, 360f, false, style = style)
+                drawArc(c.primary, -90f, 360f * progress.value, false, style = style)
+            }
+        })
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(center, fontSize = 21.sp, fontWeight = FontWeight.Bold,
                 color = c.onSurface)
