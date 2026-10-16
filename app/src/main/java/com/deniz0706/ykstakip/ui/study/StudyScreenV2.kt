@@ -20,6 +20,10 @@ import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.StudyDay
 import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.ui.components.YksCard
+import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardMetric
+import com.deniz0706.ykstakip.ui.components.DashboardRing
+import com.deniz0706.ykstakip.ui.components.DashboardProgress
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -77,39 +81,54 @@ fun StudyScreenV2(
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
         item {
-            YksCard(Modifier.fillMaxWidth(), highlighted = true) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Bugün", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleLarge)
-                    TextButton(onClick = onEditToday) { Text("Düzenle") }
+            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("BUGÜNÜN PERFORMANSI", color = colors.secondary,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
+                        Spacer(Modifier.height(8.dp))
+                        Text("$questions", fontSize = 52.sp, lineHeight = 58.sp,
+                            fontWeight = FontWeight.Bold, color = colors.onSurface)
+                        Text("çözülen soru", color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (goal != null && goal > 0)
+                        DashboardRing(questions.toFloat() / goal,
+                            "${questions * 100L / goal}%", caption = "hedef")
                 }
-                Spacer(Modifier.height(10.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
                     Column {
-                        Text("$questions", fontSize = 34.sp, fontWeight = FontWeight.Bold, color = colors.primary)
-                        Text("Çözülen soru", color = colors.onSurfaceVariant)
+                        Text("${minutes / 60} sa ${minutes % 60} dk",
+                            fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Text("çalışma süresi", color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall)
                     }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text("${minutes / 60} sa ${minutes % 60} dk", fontSize = 23.sp, fontWeight = FontWeight.Bold)
-                        Text("Çalışma süresi", color = colors.onSurfaceVariant)
-                    }
+                    OutlinedButton(onClick = onEditToday,
+                        shape = RoundedCornerShape(14.dp)) { Text("Düzenle") }
                 }
                 if (goal != null && goal > 0) {
-                    Spacer(Modifier.height(18.dp))
-                    Text("Günlük hedef · $questions / $goal", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                    Spacer(Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = { (questions.toFloat() / goal).coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth().height(8.dp),
-                        color = colors.primary, trackColor = colors.surfaceVariant
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(if (questions >= goal) "Hedef tamamlandı ✓" else "%${questions * 100L / goal} tamamlandı",
-                        color = colors.primary, style = MaterialTheme.typography.labelMedium)
+                    Spacer(Modifier.height(17.dp))
+                    DashboardProgress(questions.toFloat() / goal, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(7.dp))
+                    Text(if (questions >= goal) "Günlük hedef tamamlandı ✓"
+                        else "$questions / $goal soru · hedefe ilerleme",
+                        color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
         item {
-            YksCard(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                DashboardMetric("Toplam soru", "%,d".format(Locale("tr", "TR"), totalQuestions),
+                    Modifier.weight(1f), "Tüm zamanlar")
+                DashboardMetric("Çalışma", "${totalMinutes / 60} sa",
+                    Modifier.weight(1f), "Toplam süre", colors.primary)
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Çalışma grafiği", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("questions" to "Soru", "time" to "Süre").forEach { (key, label) ->
@@ -132,7 +151,7 @@ fun StudyScreenV2(
             }
         }
         item {
-            YksCard(Modifier.fillMaxWidth()) {
+            DashboardPanel(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("Haftalık ders planı", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     TextButton(onClick = { onAddPlan(selectedDay) }) { Text("+ Ders") }
@@ -175,7 +194,7 @@ fun StudyScreenV2(
             }
         }
         item {
-            YksCard(Modifier.fillMaxWidth()) {
+            DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("Genel özet", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(12.dp))
                 Text("Toplam soru: $totalQuestions")
