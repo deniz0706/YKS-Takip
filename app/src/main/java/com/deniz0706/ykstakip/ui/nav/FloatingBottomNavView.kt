@@ -29,14 +29,9 @@ class FloatingBottomNavView @JvmOverloads constructor(
     private val backgroundColors = mutableMapOf<Int, Int>()
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
-    private val dark: Boolean get() = when (ThemeManager.currentTheme(context)) {
-        "dark" -> true
-        "light" -> false
-        else -> (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-    }
-    private val muted get() = if (dark) Color.rgb(154,175,197) else Color.rgb(83,101,125)
-    private val active get() = if (dark) Color.rgb(185,164,245) else Color.rgb(112,85,165)
-    private val foreground get() = if (dark) Color.rgb(243,248,255) else Color.rgb(21,34,56)
+    private val palette get() = ThemeManager.nativePalette(context)
+    private val muted get() = palette.muted
+    private val active get() = palette.accent
 
     init {
         orientation = HORIZONTAL
@@ -56,8 +51,8 @@ class FloatingBottomNavView @JvmOverloads constructor(
         background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = dp(28).toFloat()
-            setColor(if (dark) Color.rgb(23,35,55) else Color.WHITE)
-            setStroke(dp(1), if (dark) Color.rgb(48,68,92) else Color.rgb(202,211,223))
+            setColor(palette.surface)
+            setStroke(dp(1), palette.border)
         }
     }
 
@@ -162,9 +157,8 @@ class FloatingBottomNavView @JvmOverloads constructor(
             val icon = icons[item.id] ?: return@forEach
             val end = if (selected) active else muted
             title.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
-            val targetBackground = if (selected) {
-                if (dark) Color.rgb(45,52,79) else Color.rgb(238,232,250)
-            } else Color.TRANSPARENT
+            val targetBackground = if (selected) palette.selected
+                else Color.TRANSPARENT
             selectionAnimators.remove(item.id)?.cancel()
             val drawable = cellBackgrounds[item.id] ?: return@forEach
             val startColor = backgroundColors[item.id] ?: Color.TRANSPARENT

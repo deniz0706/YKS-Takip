@@ -3,7 +3,6 @@ package com.deniz0706.ykstakip.ui
 import android.os.Bundle
 import android.content.res.Configuration
 import android.view.View
-import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -16,6 +15,7 @@ import com.deniz0706.ykstakip.ui.nav.FloatingBottomNavView
 import com.deniz0706.ykstakip.ui.newexam.NewExamFragment
 import com.deniz0706.ykstakip.ui.settings.SettingsFragment
 import com.deniz0706.ykstakip.ui.study.StudyFragment
+import com.deniz0706.ykstakip.data.ThemeManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
 
         // Restore the selected tab without rebuilding every screen.
         showFragment(currentNavId)
-        updateThemeChrome()
+        refreshAppearance()
     }
 
     /**
@@ -64,20 +64,30 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        refreshAppearance()
+    }
+
+    /**
+     * Explicit palette changes (Aurora <-> Graphite) do not change uiMode.
+     * Refresh classic Android views in place; Compose screens observe selectedMode.
+     */
+    fun refreshAppearance() {
         updateThemeChrome()
+        supportFragmentManager.fragments.filterIsInstance<ExamHubFragment>()
+            .forEach { it.refreshTheme() }
     }
 
     private fun updateThemeChrome() {
-        val isDark = when (com.deniz0706.ykstakip.data.ThemeManager.currentTheme(this)) {
-            "dark" -> true
+        val palette = ThemeManager.nativePalette(this)
+        val isDark = when (ThemeManager.currentTheme(this)) {
+            "aurora", "dark" -> true
             "light" -> false
             else -> (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                 Configuration.UI_MODE_NIGHT_YES
         }
-        val bg = ContextCompat.getColor(this, R.color.background)
-        findViewById<View>(R.id.mainRoot)?.setBackgroundColor(bg)
-        window.statusBarColor = bg
-        window.navigationBarColor = bg
+        findViewById<View>(R.id.mainRoot)?.setBackgroundColor(palette.background)
+        window.statusBarColor = palette.background
+        window.navigationBarColor = palette.background
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = !isDark
             isAppearanceLightNavigationBars = !isDark

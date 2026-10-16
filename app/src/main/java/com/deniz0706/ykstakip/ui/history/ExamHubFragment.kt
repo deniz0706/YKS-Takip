@@ -1,6 +1,5 @@
 package com.deniz0706.ykstakip.ui.history
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -11,6 +10,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import com.deniz0706.ykstakip.ui.statistics.StatisticsFragment
+import com.deniz0706.ykstakip.data.ThemeManager
 
 /**
  * One destination for exam records and analysis.
@@ -30,22 +30,10 @@ class ExamHubFragment : Fragment() {
         selectedTab = savedInstanceState?.getInt("exam_hub_tab") ?: selectedTab
         val density = resources.displayMetrics.density
         fun dp(v: Int) = (v * density).toInt()
-        val night = com.deniz0706.ykstakip.data.ThemeManager.currentTheme(requireContext())
-            .let { mode ->
-                when (mode) {
-                    "dark" -> true
-                    "light" -> false
-                    else -> (resources.configuration.uiMode and
-                        android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-                        android.content.res.Configuration.UI_MODE_NIGHT_YES
-                }
-            }
-        val surface = if (night) Color.rgb(23, 35, 55) else Color.rgb(247, 248, 252)
-        val text = if (night) Color.rgb(235, 240, 250) else Color.rgb(30, 40, 60)
-        val accent = if (night) Color.rgb(185, 164, 245) else Color.rgb(112, 85, 165)
+        val initialPalette = ThemeManager.nativePalette(requireContext())
         val root = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(if (night) Color.rgb(13, 20, 34) else Color.rgb(250, 251, 255))
+            setBackgroundColor(initialPalette.background)
         }
         val tabs = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -55,11 +43,11 @@ class ExamHubFragment : Fragment() {
             this.text = label
             textSize = 15f
             gravity = Gravity.CENTER
-            setTextColor(text)
+            setTextColor(initialPalette.onSurface)
             setPadding(dp(8), dp(13), dp(8), dp(13))
             background = android.graphics.drawable.GradientDrawable().apply {
                 cornerRadius = dp(15).toFloat()
-                setColor(surface)
+                setColor(initialPalette.surface)
             }
         }
         archiveTab = tab("▤  Arşiv")
@@ -76,14 +64,16 @@ class ExamHubFragment : Fragment() {
         archiveTab.setOnClickListener { switchTo(0) }
         analysisTab.setOnClickListener { switchTo(1) }
         fun applySelection() {
+            // Re-evaluate for every theme switch, including Aurora <-> Graphite.
+            val colors = ThemeManager.nativePalette(requireContext())
+            root.setBackgroundColor(colors.background)
             listOf(archiveTab, analysisTab).forEachIndexed { index, view ->
                 val active = index == selectedTab
-                view.setTextColor(if (active) accent else text)
+                view.setTextColor(if (active) colors.accent else colors.onSurface)
                 view.setTypeface(null, if (active) 1 else 0)
                 view.background = android.graphics.drawable.GradientDrawable().apply {
                     cornerRadius = dp(15).toFloat()
-                    setColor(if (active) (if (night) Color.rgb(46, 44, 74)
-                        else Color.rgb(235, 229, 250)) else surface)
+                    setColor(if (active) colors.selected else colors.surface)
                 }
             }
         }
@@ -93,6 +83,15 @@ class ExamHubFragment : Fragment() {
     }
 
     private var selectionUpdate: (() -> Unit)? = null
+
+    fun refreshTheme() {
+        if (isAdded && view != null) selectionUpdate?.invoke()
+    }
+
+    override fun onDestroyView() {
+        selectionUpdate = null
+        super.onDestroyView()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

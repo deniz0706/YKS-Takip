@@ -76,7 +76,7 @@ class SettingsFragment : Fragment() {
                             if (theme.value != selected) {
                                 theme.value = selected
                                 ThemeManager.setTheme(requireContext(), selected)
-                                // The Activity now handles uiMode itself rather than recreating.
+                                (activity as? MainActivity)?.refreshAppearance()
                             }
                         },
                         tyt = AppSettings.getTargetNet(context, ExamType.TYT)?.toString().orEmpty(),

@@ -8,6 +8,9 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.R
 import com.deniz0706.ykstakip.data.ExamRepository
+import com.deniz0706.ykstakip.data.ThemeManager
+import android.graphics.drawable.GradientDrawable
+import android.view.ViewGroup
 import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.util.Fmt
 import java.text.SimpleDateFormat
@@ -99,6 +102,49 @@ class ExamDetailFragment : Fragment(R.layout.fragment_exam_detail) {
             }
 
             container.addView(row)
+        }
+        applyThemeColors(view)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        view?.let { applyThemeColors(it) }
+    }
+
+    /** The detail screen is still XML-based, so color its cards explicitly. */
+    private fun applyThemeColors(root: View) {
+        val colors = ThemeManager.nativePalette(requireContext())
+        val dp = resources.displayMetrics.density
+        root.setBackgroundColor(colors.background)
+        fun color(id: Int, value: Int) {
+            root.findViewById<TextView>(id)?.setTextColor(value)
+        }
+        fun card(): GradientDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 18f * dp
+            setColor(colors.surface)
+            setStroke(dp.toInt().coerceAtLeast(1), colors.border)
+        }
+        color(R.id.btnBack, colors.accent)
+        color(R.id.btnEdit, colors.accent)
+        color(R.id.tvTitle, colors.onSurface)
+        color(R.id.tvSubtitle, colors.muted)
+        color(R.id.tvPublisher, colors.muted)
+        color(R.id.tvTotalNet, colors.onSurface)
+        color(R.id.tvTotalMeta, colors.muted)
+        color(R.id.tvNotes, colors.muted)
+        root.findViewById<TextView>(R.id.tvTotalNet)
+            ?.parent?.let { (it as? View)?.background = card() }
+        root.findViewById<View>(R.id.notesContainer)?.background = card()
+        val notes = root.findViewById<View>(R.id.notesContainer) as? ViewGroup
+        (notes?.getChildAt(0) as? TextView)?.setTextColor(colors.onSurface)
+        val subjects = root.findViewById<ViewGroup>(R.id.llSubjects)
+        for (i in 0 until (subjects?.childCount ?: 0)) {
+            val row = subjects?.getChildAt(i) ?: continue
+            row.background = card()
+            row.findViewById<TextView>(R.id.tvName)?.setTextColor(colors.onSurface)
+            row.findViewById<TextView>(R.id.tvNet)?.setTextColor(colors.accent)
+            row.findViewById<TextView>(R.id.tvDetail)?.setTextColor(colors.muted)
         }
     }
 }
