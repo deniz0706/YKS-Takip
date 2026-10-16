@@ -9,6 +9,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -44,6 +46,7 @@ fun NetTrendChart(
     val line = colors.tertiary
     val guide = colors.outline.copy(alpha = .28f)
     val progress = remember { Animatable(0f) }
+    val animationScope = rememberCoroutineScope()
     var selected by remember(values) {
         mutableIntStateOf(if (values.isEmpty()) -1 else values.lastIndex)
     }
@@ -87,11 +90,24 @@ fun NetTrendChart(
                     )
                 }
             }
-            Text(labels.getOrNull(index).orEmpty(),
-                color = colors.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall)
+            Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
+                Text(labels.getOrNull(index).orEmpty(),
+                    color = colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall)
+                TextButton(
+                    onClick = {
+                        animationScope.launch {
+                            progress.snapTo(0f)
+                            progress.animateTo(1f, tween(durationMillis = 1050))
+                        }
+                    },
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                ) {
+                    Text("↻ Oynat", style = MaterialTheme.typography.labelSmall)
+                }
+            }
         }
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(8.dp))
 
         val low = minOf(values.minOrNull() ?: 0.0,
             target?.toDouble() ?: Double.POSITIVE_INFINITY)

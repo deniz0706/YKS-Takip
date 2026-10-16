@@ -16,6 +16,7 @@ import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.util.Fmt
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -35,7 +36,12 @@ fun ExamRhythmPanel(exams: List<Exam>, modifier: Modifier = Modifier) {
         }.filter { it > 0 }
     }
     val median = remember(gaps) {
-        if (gaps.isEmpty()) null else gaps.sorted()[gaps.size / 2]
+        if (gaps.isEmpty()) null else {
+            val ordered = gaps.sorted()
+            val mid = ordered.size / 2
+            if (ordered.size % 2 == 1) ordered[mid].toFloat()
+            else (ordered[mid - 1] + ordered[mid]) / 2f
+        }
     }
     val daysSince = sorted.lastOrNull()?.first?.let {
         ChronoUnit.DAYS.between(it, LocalDate.now()).toInt().coerceAtLeast(0)
@@ -61,7 +67,10 @@ fun ExamRhythmPanel(exams: List<Exam>, modifier: Modifier = Modifier) {
                 .padding(13.dp)) {
                 Text("MEDYAN ARALIK", color = colors.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall)
-                Text(median?.let { "$it gün" } ?: "—",
+                Text(median?.let {
+                    if (it % 1f == 0f) "${it.toInt()} gün"
+                    else "%.1f gün".format(Locale("tr", "TR"), it)
+                } ?: "—",
                     color = colors.onSurface, fontSize = 23.sp, fontWeight = FontWeight.Bold)
             }
             Column(Modifier.weight(1f)
@@ -98,11 +107,24 @@ fun ExamRhythmPanel(exams: List<Exam>, modifier: Modifier = Modifier) {
                     }
                 }
             }
-            Spacer(Modifier.height(7.dp))
+            Spacer(Modifier.height(9.dp))
+            if (median != null && daysSince != null && median > 0f) {
+                val expected = median - daysSince
+                DashboardProgress(daysSince / median, Modifier.fillMaxWidth(),
+                    foreground = colors.secondary)
+                Spacer(Modifier.height(7.dp))
+                Text(when {
+                    expected > 0.5f -> "Geçmiş ritmine göre yaklaşık ${expected.toInt()} gün kaldı."
+                    expected < -0.5f -> "Geçmiş ritmine göre ${-expected.toInt()} gün gecikmiş görünüyor."
+                    else -> "Geçmiş ritmine göre yeni deneme zamanı yaklaşıyor."
+                }, color = colors.onSurface,
+                    style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(3.dp))
+            }
             Text(
-                if (median != null && median in 5..9)
-                    "Son denemelerinin aralığı yaklaşık haftalık bir düzende."
-                else "Bu aralıklar geçmiş denemelerinden hesaplandı; planlanmış sınav tarihi değildir.",
+                if (median != null && median in 5f..9f)
+                    "Ortalama düzenin haftalık. Bu tahmin kayıtlarından hesaplanır; sınav tarihi değildir."
+                else "Bu değer geçmiş deneme aralıklarından hesaplanır, planlanmış sınav tarihi değildir.",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall
             )
         } else {
