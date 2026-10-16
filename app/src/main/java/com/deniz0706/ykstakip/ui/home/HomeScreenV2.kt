@@ -31,11 +31,15 @@ fun HomeScreenV2(
     daysLeft: Long? = null,
     todayQuestions: Int = 0,
     dailyGoal: Int? = null,
-    targetNet: Float? = null
+    targetTyt: Float? = null,
+    targetAyt: Float? = null,
+    daysLeftAyt: Long? = null
 ) {
     var selected by remember { mutableStateOf(ExamType.TYT) }
     val filtered = remember(exams, selected) { exams.filter { it.type == selected }.sortedBy { it.date } }
     val nets = remember(filtered) { filtered.map { it.totalNet } }
+    val targetNet = if (selected == ExamType.TYT) targetTyt else targetAyt
+    val remainingDays = if (selected == ExamType.TYT) daysLeft else daysLeftAyt
     val last = nets.lastOrNull()
     val delta = if (nets.size >= 2) nets.last() - nets[nets.lastIndex - 1] else null
     LazyColumn(
@@ -97,7 +101,7 @@ fun HomeScreenV2(
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricTile("Sınava kalan", daysLeft?.let { if (it >= 0) "$it gün" else "Geçti" } ?: "—", Modifier.weight(1f))
+                MetricTile("Sınava kalan", remainingDays?.let { if (it >= 0) "$it gün" else "Geçti" } ?: "—", Modifier.weight(1f))
                 MetricTile("Bugün çözülen", dailyGoal?.let { "$todayQuestions / $it" } ?: "$todayQuestions", Modifier.weight(1f))
             }
         }
