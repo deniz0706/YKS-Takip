@@ -108,4 +108,7 @@ jobs:
           else
             gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 2.0 · Önizleme" --notes "Jetpack Compose arayüzünün geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
           fi
-          gh release upload "$TAG" "$APK#YKS-Takip-2.0-preview-debug.apk" --clobber
+          # Keep the user-facing download URL stable and always overwrite the
+          # app-debug.apk asset, rather than creating an unrelated filename.
+          gh release upload "$TAG" "$APK" --clobber
+          gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fx 'app-debug.apk'

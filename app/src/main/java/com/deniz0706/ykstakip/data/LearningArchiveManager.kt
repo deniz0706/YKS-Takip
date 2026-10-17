@@ -183,7 +183,13 @@ class LearningArchiveManager(context: Context) {
         val defaults = LearningSeed.starter.associateBy { it.id }
         val outcomes = LinkedHashMap(localOutcomes.associateBy { it.id })
         var newOutcomes = 0
-        LearningSeed.mergeLegacyProgress(pending.outcomes).forEach { incoming ->
+        // Convert even older ZIP archives before merging. IDs/photos are
+        // remapped together, and uncertain entries are retained in Eski Kayıtlar.
+        val imported = LearningKitapsecMigration.convert(
+            LearningSeed.mergeLegacyProgress(pending.outcomes),
+            pending.questions
+        )
+        imported.outcomes.forEach { incoming ->
             val local = outcomes[incoming.id]
             if (local == null) {
                 outcomes[incoming.id] = incoming
@@ -193,9 +199,7 @@ class LearningArchiveManager(context: Context) {
             }
         }
         val existing = localQuestions.map { it.id }.toSet()
-        val additions = pending.questions.filter { it.id !in existing }.map { card ->
-            card.copy(outcomeId = LearningSeed.topicIdFor(card.outcomeId))
-        }
+        val additions = imported.questions.filter { it.id !in existing }
         val restoreMissing = localQuestions.flatMap { it.photos }.toSet().filter {
             !repo.photo(it).exists() && pending.files.containsKey(it)
         }

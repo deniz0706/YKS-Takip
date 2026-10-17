@@ -164,7 +164,8 @@ object LearningKitapsecMigration {
                 reviewRequested = base.reviewRequested || old.reviewRequested,
                 nextReviewDate = (listOf(base.nextReviewDate, old.nextReviewDate))
                     .filter { it.isNotBlank() }.minOrNull().orEmpty(),
-                reviewLevel = minOf(base.reviewLevel, old.reviewLevel),
+                reviewLevel = if (base == reference) old.reviewLevel
+                    else minOf(base.reviewLevel, old.reviewLevel),
                 lastReviewedDate = listOf(base.lastReviewedDate, old.lastReviewedDate)
                     .filter { it.isNotBlank() }.maxOrNull().orEmpty()
             )
