@@ -500,8 +500,9 @@ private fun QuestionJournalCard(
                             val file = File(context.filesDir, "review_photos/" + File(filename).name)
                             value = withContext(Dispatchers.IO) { decodePhoto(file, 360) }
                         }
-                        if (bitmap != null) {
-                            Image(bitmap = bitmap.asImageBitmap(),
+                        val decoded = bitmap
+                        if (decoded != null) {
+                            Image(bitmap = decoded.asImageBitmap(),
                                 contentDescription = "Soru fotoğrafını büyüt",
                                 modifier = Modifier.size(100.dp)
                                     .clip(RoundedCornerShape(11.dp))
@@ -558,7 +559,8 @@ private fun QuestionJournalCard(
         AlertDialog(onDismissRequest = { fullPhoto = null },
             title = { Text("Soru fotoğrafı") },
             text = {
-                if (bitmap != null) Image(bitmap = bitmap.asImageBitmap(),
+                val decoded = bitmap
+                if (decoded != null) Image(bitmap = decoded.asImageBitmap(),
                     contentDescription = "Büyütülmüş soru",
                     modifier = Modifier.fillMaxWidth().heightIn(max = 500.dp),
                     contentScale = ContentScale.Fit)
