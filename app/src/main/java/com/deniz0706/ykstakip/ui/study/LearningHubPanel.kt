@@ -429,11 +429,13 @@ fun LearningHubPanel(
     if (createQuestion) {
         var selection by remember { mutableStateOf("") }
         var showOutcomes by remember { mutableStateOf(false) }
+        var outcomeSearch by remember { mutableStateOf("") }
         var title by remember { mutableStateOf("") }
         var notes by remember { mutableStateOf("") }
         var status by remember { mutableStateOf(QuestionStatus.COZULEMEDI) }
         val options = filtered.ifEmpty { courseOutcomes }
-        val selectedOutcome = options.find { it.id == selection } ?: options.firstOrNull()
+        // Never silently attach a question to the first outcome in a subject.
+        val selectedOutcome = options.find { it.id == selection }
         AlertDialog(onDismissRequest = { createQuestion = false },
             title = { Text("Soru defterine ekle") },
             text = {
@@ -450,10 +452,35 @@ fun LearningHubPanel(
                         DropdownMenu(expanded = showOutcomes, onDismissRequest = {
                             showOutcomes = false
                         }) {
-                            options.forEach { o ->
+                            OutlinedTextField(
+                                value = outcomeSearch,
+                                onValueChange = { outcomeSearch = it },
+                                label = { Text("Kazanım ara") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                            )
+                            val matching = options.filter {
+                                outcomeSearch.isBlank() ||
+                                    it.topic.contains(outcomeSearch, ignoreCase = true) ||
+                                    it.title.contains(outcomeSearch, ignoreCase = true)
+                            }
+                            matching.take(30).forEach { o ->
                                 DropdownMenuItem(
                                     text = { Text(o.topic + " · " + o.title, maxLines = 2) },
-                                    onClick = { selection = o.id; showOutcomes = false })
+                                    onClick = {
+                                        selection = o.id
+                                        showOutcomes = false
+                                        outcomeSearch = ""
+                                    })
+                            }
+                            if (matching.isEmpty()) {
+                                Text("Eşleşen kazanım yok",
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall)
+                            } else if (matching.size > 30) {
+                                Text("Daha fazla sonuç için aramayı daralt",
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -478,7 +505,7 @@ fun LearningHubPanel(
                                 val id = onCreateQuestion(it.id, title, notes, status)
                                 createQuestion = false
                                 pane = "questions"
-                                actionFeedback = "Soru eklendi. Kamera açılıyor..."
+                                actionFeedback = "Soru oluşturuldu. Fotoğraf çekimini iptal etsen de soru defterinde kalacak."
                                 onCapture(id)
                             }
                         }) { Text("📷 Çekerek ekle", style = MaterialTheme.typography.labelSmall) }
@@ -487,7 +514,7 @@ fun LearningHubPanel(
                                 val id = onCreateQuestion(it.id, title, notes, status)
                                 createQuestion = false
                                 pane = "questions"
-                                actionFeedback = "Soru eklendi. Galeriden fotoğraf seç."
+                                actionFeedback = "Soru oluşturuldu. Galeriden fotoğraf seçmezsen daha sonra ekleyebilirsin."
                                 onGallery(id)
                             }
                         }) { Text("＋ Galeri", style = MaterialTheme.typography.labelSmall) }

@@ -74,7 +74,11 @@ class StudyFragment : Fragment() {
         if (isAdded) {
             if (succeeded && !stored) {
                 Toast.makeText(requireContext(),
-                    "Fotoğraf kaydedilemedi. Galeriden eklemeyi deneyebilirsin.",
+                    "Fotoğraf geçerli değil veya kaydedilemedi. Sorular bölümünden tekrar ekleyebilirsin.",
+                    Toast.LENGTH_LONG).show()
+            } else if (!succeeded) {
+                Toast.makeText(requireContext(),
+                    "Çekim iptal edildi. Sorun kaydedildi; istersen sonradan fotoğraf ekleyebilirsin.",
                     Toast.LENGTH_LONG).show()
             }
             refresh()
@@ -84,6 +88,10 @@ class StudyFragment : Fragment() {
     private val pickPhoto = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         val q = galleryQuestionId
         galleryQuestionId = null
+        if (q != null && uri == null && isAdded) {
+            Toast.makeText(requireContext(),
+                "Fotoğraf seçilmedi. Soru kaydın duruyor.", Toast.LENGTH_SHORT).show()
+        }
         if (q != null && uri != null) {
             lifecycleScope.launch {
                 val saved = withContext(Dispatchers.IO) {
@@ -148,10 +156,7 @@ class StudyFragment : Fragment() {
                         },
                         onQuestionUnsolved = { learningRepository.markQuestionUnsolved(it); refresh() },
                         onQuestionCapture = { openCamera(it) },
-                        onQuestionGallery = { id ->
-                            galleryQuestionId = id
-                            pickPhoto.launch("image/*")
-                        },
+                        onQuestionGallery = { openGallery(it) },
                         onQuestionPhotoRemove = { id,name ->
                             learningRepository.removePhoto(id,name); refresh()
                         },
@@ -180,6 +185,19 @@ class StudyFragment : Fragment() {
         outState.putString("gallery_question", galleryQuestionId)
     }
 
+    private fun openGallery(questionId: String) {
+        if (!isAdded) return
+        galleryQuestionId = questionId
+        try {
+            pickPhoto.launch("image/*")
+        } catch (_: Exception) {
+            galleryQuestionId = null
+            Toast.makeText(requireContext(),
+                "Fotoğraf seçicisi açılamadı. Soru kaydın duruyor.",
+                Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun openCamera(questionId: String) {
         if (!isAdded || !::learningRepository.isInitialized) return
         // Fall back to the gallery if the tablet has no camera application or
@@ -204,13 +222,7 @@ class StudyFragment : Fragment() {
                 Toast.makeText(requireContext(),
                     "Kamera bu cihazda açılamadı. Fotoğraf seçicisi açılıyor.",
                     Toast.LENGTH_LONG).show()
-                galleryQuestionId = questionId
-                try { pickPhoto.launch("image/*") }
-                catch (_: Exception) {
-                    galleryQuestionId = null
-                    Toast.makeText(requireContext(),
-                        "Fotoğraf seçicisi de açılamadı.", Toast.LENGTH_LONG).show()
-                }
+                openGallery(questionId)
             }
         }
     }

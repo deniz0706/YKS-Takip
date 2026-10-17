@@ -1,12 +1,14 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
 import com.deniz0706.ykstakip.model.LearningOutcome
 import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
 import org.json.JSONArray
 import java.io.File
+import java.io.IOException
 import java.time.LocalDate
 import java.util.UUID
 
@@ -15,6 +17,18 @@ class LearningRepository(context: Context) {
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences("yks_learning_journal", Context.MODE_PRIVATE)
     private val photoDir = File(app.filesDir, "review_photos").apply { mkdirs() }
+    private val maxPhotoBytes = 20_000_000L
+
+    private fun isValidImage(file: File): Boolean {
+        if (!file.isFile || file.length() !in 1L..maxPhotoBytes) return false
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        return try {
+            BitmapFactory.decodeFile(file.absolutePath, bounds)
+            bounds.outWidth > 0 && bounds.outHeight > 0
+        } catch (_: Exception) {
+            false
+        }
+    }
 
     fun outcomes(): List<LearningOutcome> {
         val raw = prefs.getString("outcomes", null)
@@ -139,7 +153,7 @@ class LearningRepository(context: Context) {
     fun discardCameraPhoto(name: String) { photo(name).delete() }
 
     fun attachCapturedPhoto(id: String, filename: String): Boolean {
-        if (!photo(filename).isFile || photo(filename).length() == 0L) {
+        if (!isValidImage(photo(filename))) {
             discardCameraPhoto(filename)
             return false
         }
@@ -153,21 +167,36 @@ class LearningRepository(context: Context) {
 
     fun attachGalleryPhoto(id: String, uri: Uri): Boolean {
         if (questions().none { it.id == id }) return false
-        val (name, target) = newCameraPhoto()
+        var pending: File? = null
         var success = false
         try {
-            val stream = app.contentResolver.openInputStream(uri)
-            if (stream != null) {
-                stream.use { input -> target.outputStream().use { input.copyTo(it) } }
-                if (target.length() in 1L..20_000_000L) {
-                    updateQuestion(id) { it.copy(photos = it.photos + name) }
-                    success = true
+            val (name, target) = newCameraPhoto()
+            pending = target
+            // Do not copy an unbounded gallery stream into the private app folder.
+            val input = app.contentResolver.openInputStream(uri) ?: return false
+            input.use { source ->
+                target.outputStream().use { destination ->
+                    val buffer = ByteArray(16 * 1024)
+                    var copied = 0L
+                    while (true) {
+                        val count = source.read(buffer)
+                        if (count < 0) break
+                        if (count == 0) continue
+                        copied += count
+                        if (copied > maxPhotoBytes) throw IOException("Image is too large")
+                        destination.write(buffer, 0, count)
+                    }
                 }
             }
+            // A URI advertised as image/* might contain an invalid or unsupported file.
+            if (!isValidImage(target)) return false
+            if (questions().none { it.id == id }) return false
+            updateQuestion(id) { it.copy(photos = it.photos + name) }
+            success = true
         } catch (_: Exception) {
             success = false
         } finally {
-            if (!success) target.delete()
+            if (!success) pending?.delete()
         }
         return success
     }
