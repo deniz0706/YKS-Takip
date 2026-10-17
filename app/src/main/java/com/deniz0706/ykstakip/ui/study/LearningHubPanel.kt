@@ -7,6 +7,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,6 +43,7 @@ fun LearningHubPanel(
     signals: List<ReviewSignal>,
     startingExamType: String = "TYT",
     startingSubject: String = "",
+    modifier: Modifier = Modifier,
     onCompleted: (String, Boolean) -> Unit,
     onWrong: (String) -> Unit,
     onRequestReview: (String) -> Unit,
@@ -57,17 +62,18 @@ fun LearningHubPanel(
     val c = MaterialTheme.colorScheme
     var pane by remember { mutableStateOf("outcomes") }
     var examType by remember(startingExamType) { mutableStateOf(startingExamType) }
-    var subjectFilter by remember(startingExamType, startingSubject) {
-        mutableStateOf(startingSubject)
-    }
+    var subjectFilter by remember(startingExamType, startingSubject) { mutableStateOf(startingSubject) }
     var topicFilter by remember { mutableStateOf("") }
     var subjectMenu by remember { mutableStateOf(false) }
     var createOutcome by remember { mutableStateOf(false) }
     var createQuestion by remember { mutableStateOf(false) }
     var actionFeedback by remember { mutableStateOf<String?>(null) }
     var focusedReviewId by remember { mutableStateOf<String?>(null) }
-    var outcomePage by remember(examType, subjectFilter, topicFilter) { mutableIntStateOf(0) }
     var deleteQuestion by remember { mutableStateOf<String?>(null) }
+    var outcomeSearch by remember { mutableStateOf("") }
+    var outcomeStatus by remember { mutableStateOf("all") }
+    var questionSearch by remember { mutableStateOf("") }
+    var questionStatus by remember { mutableStateOf("open") }
 
     val scoped = remember(outcomes, examType) { outcomes.filter { it.examType == examType } }
     val subjects = remember(scoped) { scoped.map { it.subject }.distinct() }
@@ -75,354 +81,398 @@ fun LearningHubPanel(
     val courseOutcomes = remember(scoped, subject) { scoped.filter { it.subject == subject } }
     val topics = remember(courseOutcomes) { courseOutcomes.map { it.topic }.distinct() }
     val topic = topicFilter.takeIf { it in topics } ?: "Tümü"
-    val filtered = remember(courseOutcomes, topic) {
-        if (topic == "Tümü") courseOutcomes else courseOutcomes.filter { it.topic == topic }
-    }
     val available = remember(outcomes) { outcomes.associateBy { it.id } }
+    val linkedQuestionIds = remember(questions) { questions.map { it.outcomeId }.toSet() }
     val courseQuestions = remember(questions, available, examType, subject) {
         questions.filter { card ->
             available[card.outcomeId]?.let { it.examType == examType && it.subject == subject } == true
         }
     }
+    val topicStats = remember(courseOutcomes) {
+        courseOutcomes.groupBy { it.topic }.mapValues { (_, items) ->
+            items.count { it.completed } to items.size
+        }
+    }
+    val filtered = remember(courseOutcomes, topic, outcomeSearch, outcomeStatus) {
+        courseOutcomes.filter { outcome ->
+            (topic == "Tümü" || outcome.topic == topic) &&
+                (outcomeSearch.isBlank() ||
+                    outcome.topic.contains(outcomeSearch.trim(), ignoreCase = true) ||
+                    outcome.title.contains(outcomeSearch.trim(), ignoreCase = true)) &&
+                when (outcomeStatus) {
+                    "pending" -> !outcome.completed
+                    "done" -> outcome.completed
+                    "wrong" -> outcome.wrongCount > 0
+                    else -> true
+                }
+        }.groupBy { it.topic }.values.flatten()
+    }
+    val visibleQuestions = remember(courseQuestions, available, questionSearch, questionStatus) {
+        courseQuestions.filter { card ->
+            val linked = available[card.outcomeId]
+            (questionSearch.isBlank() || listOf(
+                card.title, card.notes, linked?.title.orEmpty(), linked?.topic.orEmpty()
+            ).any { it.contains(questionSearch.trim(), ignoreCase = true) }) &&
+                when (questionStatus) {
+                    "open" -> card.status != QuestionStatus.COZULDU
+                    "done" -> card.status == QuestionStatus.COZULDU
+                    "due" -> card.status != QuestionStatus.COZULDU &&
+                        card.dueDate.isNotBlank() && card.dueDate <= LocalDate.now().toString()
+                    else -> true
+                }
+        }.sortedWith(compareByDescending<QuestionCard> { it.createdAt }.thenBy { it.id })
+    }
+    val activeReview = focusedReviewId?.let { available[it] }?.takeIf {
+        it.examType == examType && it.subject == subject
+    }
+    val relevantSignals = remember(signals, examType, subject) {
+        signals.filter { it.outcome.examType == examType && it.outcome.subject == subject }
+    }
+    val dueQuestions = remember(courseQuestions) {
+        courseQuestions.filter {
+            it.status != QuestionStatus.COZULDU && it.dueDate.isNotBlank() &&
+                it.dueDate <= LocalDate.now().toString()
+        }
+    }
+    val doneInCourse = courseOutcomes.count { it.completed }
     val completed = scoped.count { it.completed }
     val percent = if (scoped.isEmpty()) 0 else completed * 100 / scoped.size
-    val active = questions.count { it.status != QuestionStatus.COZULDU }
-    val urgent = signals.count { it.urgent }
-    val due = questions.count { it.status != QuestionStatus.COZULDU &&
-        it.dueDate.isNotBlank() && it.dueDate <= LocalDate.now().toString() }
-
-    DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
-        Text("ÖĞRENME MERKEZİ", color = c.secondary, style = MaterialTheme.typography.labelSmall,
-            letterSpacing = 1.1.sp)
-        Spacer(Modifier.height(5.dp))
-        Text("Bilmediğini takip et, öğrendiğini işaretle.",
-            color = c.onSurface, style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(10.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically) {
-            DashboardRing(if (scoped.isEmpty()) 0f else completed.toFloat() / scoped.size,
-                "$percent%", diameter = 82.dp, caption = examType)
-            Column(Modifier.weight(1f)) {
-                Text("$completed / ${scoped.size} kazanım tamamlandı",
-                    color = c.onSurface, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(5.dp))
-                Text("$active açık soru · $urgent öncelikli tekrar · $due günü gelmiş soru",
-                    color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(8.dp))
-                DashboardProgress(if (scoped.isEmpty()) 0f else completed.toFloat() / scoped.size,
-                    Modifier.fillMaxWidth())
-            }
-        }
-        Spacer(Modifier.height(9.dp))
-        Text("Kazanımlar resmî MEB metinlerinin birebir aktarımı değil, müfredat odaklı takip maddeleridir. Eksiklerini de ekleyebilirsin.",
-            color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+    val activeCount = questions.count { it.status != QuestionStatus.COZULDU }
+    val urgentCount = signals.count { it.urgent }
+    val dueCount = questions.count {
+        it.status != QuestionStatus.COZULDU &&
+            it.dueDate.isNotBlank() && it.dueDate <= LocalDate.now().toString()
+    }
+    val listState = rememberLazyListState()
+    LaunchedEffect(pane, examType, subject, topic, focusedReviewId) {
+        listState.scrollToItem(0)
     }
 
-    if (actionFeedback != null) {
-        Surface(color = c.primaryContainer, shape = RoundedCornerShape(14.dp)) {
-            Row(Modifier.fillMaxWidth().padding(11.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                Text(actionFeedback.orEmpty(), modifier = Modifier.weight(1f),
-                    color = c.onPrimaryContainer, style = MaterialTheme.typography.bodySmall)
-                TextButton(onClick = { actionFeedback = null }) { Text("✕") }
-            }
-        }
-    }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-        listOf("outcomes" to "Kazanımlar", "questions" to "Sorular", "review" to "Tekrar")
-            .forEach { (key, label) ->
-                FilterChip(selected = pane == key, onClick = { pane = key },
-                    label = { Text(label, maxLines = 1) }, modifier = Modifier.weight(1f))
-            }
-    }
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(selected = examType == "TYT", onClick = {
-            examType = "TYT"; topicFilter = ""; subjectFilter = ""
-        }, label = { Text("TYT") })
-        FilterChip(selected = examType == "AYT", onClick = {
-            examType = "AYT"; topicFilter = ""; subjectFilter = ""
-        }, label = { Text("AYT") })
-        Box(Modifier.weight(1f)) {
-            OutlinedButton(onClick = { subjectMenu = true }, modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)) {
-                Text(subject.ifBlank { "Ders" } + " ▾", maxLines = 1,
-                    overflow = TextOverflow.Ellipsis)
-            }
-            DropdownMenu(expanded = subjectMenu, onDismissRequest = { subjectMenu = false }) {
-                subjects.forEach { item ->
-                    DropdownMenuItem(text = { Text(item) }, onClick = {
-                        subjectFilter = item; topicFilter = ""; subjectMenu = false
-                    })
-                }
-            }
-        }
-    }
-
-    when (pane) {
-        "outcomes" -> {
-            val doneInCourse = courseOutcomes.count { it.completed }
-            DashboardPanel(Modifier.fillMaxWidth()) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(subject, color = c.onSurface, fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium)
-                        Text("$doneInCourse / ${courseOutcomes.size} kazanım",
-                            color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                    }
-                    Text(if (courseOutcomes.isEmpty()) "—"
-                        else "${doneInCourse * 100 / courseOutcomes.size}%",
-                        color = c.primary, fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.headlineSmall)
-                }
-                Spacer(Modifier.height(8.dp))
-                DashboardProgress(if (courseOutcomes.isEmpty()) 0f
-                    else doneInCourse.toFloat() / courseOutcomes.size,
-                    Modifier.fillMaxWidth())
-                Spacer(Modifier.height(13.dp))
-                Row(Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    listOf("Tümü").plus(topics).forEach { t ->
-                        FilterChip(selected = t == topic,
-                            onClick = { topicFilter = t },
-                            label = { Text(t, maxLines = 1) })
-                    }
-                }
-                Spacer(Modifier.height(12.dp))
-                // Cap the composed rows: a full curriculum can contain hundreds of
-                // outcomes and rendering them all in one LazyColumn item causes jank.
-                val pageSize = 25
-                val visibleOutcomes = filtered.take((outcomePage + 1) * pageSize)
-                visibleOutcomes.groupBy { it.topic }.forEach { (topicName, outcomesInTopic) ->
-                    val groupDone = outcomesInTopic.count { it.completed }
-                    Row(Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(topicName, color = c.secondary, fontWeight = FontWeight.SemiBold,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.weight(1f))
-                        Text("$groupDone/${outcomesInTopic.size}",
-                            color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-                    }
-                    Spacer(Modifier.height(5.dp))
-                    DashboardProgress(groupDone.toFloat() / outcomesInTopic.size,
-                        Modifier.fillMaxWidth())
-                    outcomesInTopic.forEach { outcome ->
-                        Row(Modifier.fillMaxWidth().padding(top = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = outcome.completed,
-                                onCheckedChange = { onCompleted(outcome.id, it) })
-                            Column(Modifier.weight(1f)) {
-                                Text(outcome.title, color = c.onSurface,
-                                    style = MaterialTheme.typography.bodyMedium)
-                                if (outcome.wrongCount > 0) {
-                                    Text("Yanlış işaretlemesi: ${outcome.wrongCount}",
-                                        color = c.onSurfaceVariant,
-                                        style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
-                        }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            TextButton(onClick = {
-                                onWrong(outcome.id)
-                                actionFeedback = "Yanlış işaretlendi: bu kazanım yarın yeniden önerilecek."
-                            }) {
-                                Text("+ Yanlış", color = c.error,
-                                    style = MaterialTheme.typography.labelSmall)
-                            }
-                            TextButton(onClick = {
-                                onRequestReview(outcome.id)
-                                focusedReviewId = outcome.id
-                                pane = "review"
-                                actionFeedback = null
-                            }) {
-                                Text("↻ Tekrar et", style = MaterialTheme.typography.labelSmall)
-                            }
-                            if (outcome.custom && questions.none { it.outcomeId == outcome.id }) {
-                                TextButton(onClick = { onDeleteOutcome(outcome.id) }) {
-                                    Text("Sil", color = c.onSurfaceVariant,
-                                        style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
-                        }
-                        HorizontalDivider(color = c.outlineVariant)
-                    }
-                    Spacer(Modifier.height(12.dp))
-                }
-                if (filtered.size > visibleOutcomes.size) {
-                    OutlinedButton(onClick = { outcomePage++ },
-                        modifier = Modifier.fillMaxWidth()) {
-                        Text("Diğer ${minOf(pageSize, filtered.size - visibleOutcomes.size)} kazanımı göster · ${visibleOutcomes.size}/${filtered.size}")
-                    }
-                    Spacer(Modifier.height(9.dp))
-                }
-                Button(onClick = { createOutcome = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text("+  Kendi kazanımını ekle")
-                }
-            }
-        }
-        "questions" -> {
-            var filter by remember { mutableStateOf("open") }
-            var visibleCount by remember { mutableIntStateOf(8) }
-            DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("SORU DEFTERİ", color = c.secondary,
-                    style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
-                Text("Çözemediğin soruları kaybetme", color = c.onSurface,
-                    style = MaterialTheme.typography.titleLarge,
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item(key = "learning-overview") {
+            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                Text("ÖĞRENME MERKEZİ", color = c.secondary,
+                    style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1.sp)
+                Text("Bilmediğini takip et, öğrendiğini işaretle.",
+                    color = c.onSurface, style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(9.dp))
-                Text("Kamerayla çek ya da galeriden seç. Bir soruya birden fazla fotoğraf ekleyebilirsin.",
-                    color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(10.dp))
-                Button(onClick = { createQuestion = true }, modifier = Modifier.fillMaxWidth(),
-                    enabled = courseOutcomes.isNotEmpty()) {
-                    Text("+  Soru ekle")
-                }
-                Spacer(Modifier.height(7.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    FilterChip(selected = filter == "open", onClick = {
-                        filter = "open"; visibleCount = 8
-                    }, label = { Text("Bekleyen") })
-                    FilterChip(selected = filter == "all", onClick = {
-                        filter = "all"; visibleCount = 8
-                    }, label = { Text("Tümü") })
-                    FilterChip(selected = filter == "done", onClick = {
-                        filter = "done"; visibleCount = 8
-                    }, label = { Text("Çözüldü") })
-                }
-                val list = courseQuestions.filter {
-                    when (filter) {
-                        "open" -> it.status != QuestionStatus.COZULDU
-                        "done" -> it.status == QuestionStatus.COZULDU
-                        else -> true
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DashboardRing(
+                        if (scoped.isEmpty()) 0f else completed.toFloat() / scoped.size,
+                        "$percent%", diameter = 82.dp, caption = examType
+                    )
+                    Column(Modifier.weight(1f)) {
+                        Text("$completed / ${scoped.size} kazanım tamamlandı", color = c.onSurface,
+                            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text("$activeCount açık soru · $urgentCount öncelikli · $dueCount günü gelmiş",
+                            color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.height(7.dp))
+                        DashboardProgress(
+                            if (scoped.isEmpty()) 0f else completed.toFloat() / scoped.size,
+                            Modifier.fillMaxWidth()
+                        )
                     }
                 }
-                if (list.isEmpty()) {
-                    Spacer(Modifier.height(10.dp))
-                    Text("Burada henüz soru yok.", color = c.onSurfaceVariant)
-                }
-                list.take(visibleCount).forEach { question ->
-                    QuestionJournalCard(question, available[question.outcomeId],
-                        onCapture, onGallery, onReviewQuestion, onMarkUnsolved,
-                        onRemovePhoto, onDelete = { deleteQuestion = it })
-                }
-                if (list.size > visibleCount) {
-                    TextButton(onClick = { visibleCount += 8 },
-                        modifier = Modifier.fillMaxWidth()) {
-                        Text("Diğer ${list.size - visibleCount} soruyu göster")
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-                Text("Fotoğraflar telefonda çevrimdışı saklanır; JSON deneme yedeğine dahil değildir.",
+                Text("Kazanımlar resmî MEB metinlerinin birebir aktarımı değil, müfredat odaklı takip maddeleridir.",
                     color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
             }
         }
-        else -> {
-            val activeReview = focusedReviewId?.let { available[it] }?.takeIf {
-                it.examType == examType && it.subject == subject
-            }
-            if (activeReview != null) {
-                ReviewSessionPanel(
-                    outcome = activeReview,
-                    linkedQuestions = questions.filter { it.outcomeId == activeReview.id },
-                    onBack = { focusedReviewId = null },
-                    onLearned = {
-                        onReviewed(activeReview.id)
-                        focusedReviewId = null
-                        actionFeedback = "Kazanım öğrenildi olarak işaretlendi ve sonraki tekrar planlandı. Açık soruların varsa soru defterinde kalır."
-                    },
-                    onNotSolved = {
-                        onWrong(activeReview.id)
-                        focusedReviewId = null
-                        actionFeedback = "Hâlâ zorlandığın kaydedildi. Bu kazanım yarın tekrar karşına çıkacak."
-                    },
-                    onPostpone = {
-                        onPostponeReview(activeReview.id)
-                        focusedReviewId = null
-                        actionFeedback = "Yarın için tekrar planlandı. Kazanım henüz tamamlandı sayılmıyor."
-                    },
-                    onCapture = onCapture,
-                    onGallery = onGallery,
-                    onReviewQuestion = onReviewQuestion,
-                    onMarkUnsolved = onMarkUnsolved,
-                    onRemovePhoto = onRemovePhoto,
-                    onDeleteQuestion = { deleteQuestion = it }
-                )
-            } else {
-            DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("TEKRAR RADARI", color = c.secondary,
-                    style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
-                Spacer(Modifier.height(4.dp))
-                Text("Neye tekrar bakmalıyım?", color = c.onSurface,
-                    fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-                Text("Son 3 denemedeki işaretlediğin konular, kazanım yanlışların ve soru defterin birlikte değerlendirilir.",
-                    color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(12.dp))
-                val relevant = signals.filter { it.outcome.examType == examType &&
-                    it.outcome.subject == subject }
-                if (relevant.isEmpty()) {
-                    Text("Şu an bu ders için işaretlenmiş tekrar ihtiyacı yok.",
-                        color = c.onSurfaceVariant)
+        if (actionFeedback != null) {
+            item(key = "feedback") {
+                Surface(color = c.primaryContainer, shape = RoundedCornerShape(14.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(11.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(actionFeedback.orEmpty(), modifier = Modifier.weight(1f),
+                            color = c.onPrimaryContainer, style = MaterialTheme.typography.bodySmall)
+                        TextButton(onClick = { actionFeedback = null }) { Text("✕") }
+                    }
                 }
-                relevant.sortedWith(compareByDescending<com.deniz0706.ykstakip.util.ReviewSignal> {
-                    it.outcome.id == focusedReviewId
-                }.thenByDescending { it.urgent }.thenByDescending { it.due })
-                    .take(30).forEach { alert ->
-                    HorizontalDivider(color = c.outlineVariant)
-                    Column(Modifier.fillMaxWidth().padding(vertical = 11.dp)) {
-                        Row(Modifier.fillMaxWidth(),
+            }
+        }
+        item(key = "learning-navigation") {
+            Column {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    listOf("outcomes" to "Kazanımlar", "questions" to "Sorular", "review" to "Tekrar")
+                        .forEach { (key, label) ->
+                            FilterChip(selected = pane == key, onClick = {
+                                pane = key
+                                if (key != "review") focusedReviewId = null
+                            }, label = { Text(label, maxLines = 1) }, modifier = Modifier.weight(1f))
+                        }
+                }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = examType == "TYT", onClick = {
+                        examType = "TYT"; subjectFilter = ""; topicFilter = ""; focusedReviewId = null
+                    }, label = { Text("TYT") })
+                    FilterChip(selected = examType == "AYT", onClick = {
+                        examType = "AYT"; subjectFilter = ""; topicFilter = ""; focusedReviewId = null
+                    }, label = { Text("AYT") })
+                    Box(Modifier.weight(1f)) {
+                        OutlinedButton(onClick = { subjectMenu = true }, modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)) {
+                            Text(subject.ifBlank { "Ders" } + " ▾", maxLines = 1,
+                                overflow = TextOverflow.Ellipsis)
+                        }
+                        DropdownMenu(expanded = subjectMenu, onDismissRequest = { subjectMenu = false }) {
+                            subjects.forEach { item ->
+                                DropdownMenuItem(text = { Text(item) }, onClick = {
+                                    subjectFilter = item; topicFilter = ""
+                                    focusedReviewId = null; subjectMenu = false
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        when (pane) {
+            "outcomes" -> {
+                item(key = "outcome-controls") {
+                    DashboardPanel(Modifier.fillMaxWidth()) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically) {
-                            Text(alert.outcome.topic, color = c.secondary,
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.weight(1f))
-                            Text(if (alert.urgent) "ÖNCELİKLİ" else "TEKRAR",
-                                color = if (alert.urgent) c.error else c.primary,
-                                fontWeight = FontWeight.Bold,
+                            Column(Modifier.weight(1f)) {
+                                Text(subject, color = c.onSurface, fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.titleMedium)
+                                Text("$doneInCourse / ${courseOutcomes.size} kazanım",
+                                    color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                            }
+                            Text(if (courseOutcomes.isEmpty()) "—" else
+                                "${doneInCourse * 100 / courseOutcomes.size}%",
+                                color = c.primary, fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.headlineSmall)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        DashboardProgress(if (courseOutcomes.isEmpty()) 0f
+                            else doneInCourse.toFloat() / courseOutcomes.size,
+                            Modifier.fillMaxWidth())
+                        Spacer(Modifier.height(10.dp))
+                        OutlinedTextField(value = outcomeSearch, onValueChange = { outcomeSearch = it },
+                            label = { Text("Kazanım veya konu ara") },
+                            singleLine = true, modifier = Modifier.fillMaxWidth())
+                        Row(Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            listOf("all" to "Tümü", "pending" to "Eksikler",
+                                "done" to "Tamamlanan", "wrong" to "Yanlışlar").forEach { (key,label) ->
+                                FilterChip(selected = outcomeStatus == key,
+                                    onClick = { outcomeStatus = key }, label = { Text(label) })
+                            }
+                        }
+                        Row(Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            (listOf("Tümü") + topics).forEach { t ->
+                                FilterChip(selected = t == topic, onClick = { topicFilter = t },
+                                    label = { Text(t, maxLines = 1) })
+                            }
+                        }
+                        Text("${filtered.size} sonuç · Kazanımlar ekranda göründükçe yüklenir",
+                            color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+                if (filtered.isEmpty()) {
+                    item(key = "no-outcomes") {
+                        Text("Bu filtrelerle eşleşen kazanım yok.", color = c.onSurfaceVariant)
+                    }
+                }
+                itemsIndexed(filtered, key = { _, outcome -> "outcome:" + outcome.id }) { index, outcome ->
+                    if (index == 0 || filtered[index - 1].topic != outcome.topic) {
+                        val stats = topicStats[outcome.topic] ?: (0 to 0)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Text(outcome.topic, color = c.secondary, fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                            Text("${stats.first}/${stats.second}", color = c.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelSmall)
                         }
-                        Text(alert.outcome.title, color = c.onSurface,
-                            fontWeight = FontWeight.SemiBold)
-                        Text(alert.explanation, color = c.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall)
-                        Spacer(Modifier.height(5.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    }
+                    Surface(Modifier.fillMaxWidth(), color = c.surface,
+                        shape = RoundedCornerShape(13.dp)) {
+                        Column(Modifier.padding(horizontal = 9.dp, vertical = 6.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(checked = outcome.completed,
+                                    onCheckedChange = { onCompleted(outcome.id, it) })
+                                Column(Modifier.weight(1f)) {
+                                    Text(outcome.title, color = c.onSurface,
+                                        style = MaterialTheme.typography.bodyMedium)
+                                    if (outcome.wrongCount > 0) {
+                                        Text("Yanlış işaretlemesi: ${outcome.wrongCount}",
+                                            color = c.onSurfaceVariant,
+                                            style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                            }
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                TextButton(onClick = {
+                                    onWrong(outcome.id)
+                                    actionFeedback = "Yanlış işaretlendi. Bu kazanım yarın tekrar önerilecek."
+                                }) {
+                                    Text("+ Yanlış", color = c.error,
+                                        style = MaterialTheme.typography.labelSmall)
+                                }
+                                TextButton(onClick = {
+                                    onRequestReview(outcome.id)
+                                    focusedReviewId = outcome.id
+                                    pane = "review"
+                                    actionFeedback = null
+                                }) {
+                                    Text("↻ Tekrar et", style = MaterialTheme.typography.labelSmall)
+                                }
+                                if (outcome.custom && outcome.id !in linkedQuestionIds) {
+                                    TextButton(onClick = { onDeleteOutcome(outcome.id) }) {
+                                        Text("Sil", color = c.onSurfaceVariant,
+                                            style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                item(key = "new-outcome") {
+                    Button(onClick = { createOutcome = true },
+                        modifier = Modifier.fillMaxWidth()) { Text("+ Kendi kazanımını ekle") }
+                }
+            }
+            "questions" -> {
+                item(key = "question-controls") {
+                    DashboardPanel(Modifier.fillMaxWidth()) {
+                        Text("SORU DEFTERİ", color = c.secondary,
+                            style = MaterialTheme.typography.labelSmall)
+                        Text("Çözemediğin soruları kaybetme", color = c.onSurface,
+                            style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text("Fotoğraflar cihazda saklanır; ZIP ile ayrıca yedekleyebilirsin.",
+                            color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.height(10.dp))
+                        Button(onClick = { createQuestion = true },
+                            modifier = Modifier.fillMaxWidth(), enabled = courseOutcomes.isNotEmpty()) {
+                            Text("+ Soru ekle")
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(value = questionSearch, onValueChange = { questionSearch = it },
+                            label = { Text("Soru, kaynak veya kazanım ara") }, singleLine = true,
+                            modifier = Modifier.fillMaxWidth())
+                        Row(Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            listOf("open" to "Bekleyen", "due" to "Bugün",
+                                "all" to "Tümü", "done" to "Çözüldü").forEach { (key,label) ->
+                                FilterChip(selected = questionStatus == key,
+                                    onClick = { questionStatus = key }, label = { Text(label) })
+                            }
+                        }
+                        Text("${visibleQuestions.size} soru bulundu",
+                            color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+                if (visibleQuestions.isEmpty()) {
+                    item(key = "no-questions") {
+                        Text("Bu filtrelerde soru bulunamadı.", color = c.onSurfaceVariant)
+                    }
+                }
+                items(visibleQuestions, key = { "question:" + it.id }) { card ->
+                    DashboardPanel(Modifier.fillMaxWidth()) {
+                        QuestionJournalCard(card, available[card.outcomeId], onCapture,
+                            onGallery, onReviewQuestion, onMarkUnsolved, onRemovePhoto,
+                            onDelete = { deleteQuestion = it })
+                    }
+                }
+            }
+            else -> {
+                if (activeReview != null) {
+                    item(key = "active-review:" + activeReview.id) {
+                        ReviewSessionPanel(
+                            outcome = activeReview,
+                            linkedQuestions = questions.filter { it.outcomeId == activeReview.id },
+                            onBack = { focusedReviewId = null },
+                            onLearned = {
+                                onReviewed(activeReview.id)
+                                focusedReviewId = null
+                                actionFeedback = "Kazanım öğrenildi; sonraki tekrar planlandı. Açık soruların kayıtlı kaldı."
+                            },
+                            onNotSolved = {
+                                onWrong(activeReview.id)
+                                focusedReviewId = null
+                                actionFeedback = "Zorlandığın kaydedildi; yarın tekrar önerilecek."
+                            },
+                            onPostpone = {
+                                onPostponeReview(activeReview.id)
+                                focusedReviewId = null
+                                actionFeedback = "Kazanım yarına ertelendi."
+                            },
+                            onCapture = onCapture, onGallery = onGallery,
+                            onReviewQuestion = onReviewQuestion,
+                            onMarkUnsolved = onMarkUnsolved,
+                            onRemovePhoto = onRemovePhoto,
+                            onDeleteQuestion = { deleteQuestion = it }
+                        )
+                    }
+                } else {
+                    item(key = "review-intro") {
+                        DashboardPanel(Modifier.fillMaxWidth()) {
+                            Text("TEKRAR RADARI", color = c.secondary,
+                                style = MaterialTheme.typography.labelSmall)
+                            Text("Neye tekrar bakmalıyım?", color = c.onSurface,
+                                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                            Text("Denemelerde işaretlediğin kazanımlar, yanlışların ve açık soruların değerlendirilir.",
+                                color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                            Spacer(Modifier.height(8.dp))
+                            Text("${relevantSignals.size} öneri",
+                                color = c.secondary, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                    if (relevantSignals.isEmpty()) {
+                        item(key = "no-review") {
+                            Text("Bu ders için şu an tekrar önerisi yok.", color = c.onSurfaceVariant)
+                        }
+                    }
+                    items(relevantSignals, key = { "review:" + it.outcome.id }) { alert ->
+                        DashboardPanel(Modifier.fillMaxWidth()) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Text(alert.outcome.topic, color = c.secondary,
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.labelSmall)
+                                Text(if (alert.urgent) "ÖNCELİKLİ" else "TEKRAR",
+                                    color = if (alert.urgent) c.error else c.primary,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold)
+                            }
+                            Text(alert.outcome.title, color = c.onSurface,
+                                fontWeight = FontWeight.SemiBold)
+                            Text(alert.explanation, color = c.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall)
                             TextButton(onClick = {
                                 focusedReviewId = alert.outcome.id
                                 actionFeedback = null
-                            }) {
-                                Text("Çalışmaya başla →", style = MaterialTheme.typography.labelMedium)
+                            }) { Text("Çalışmaya başla →") }
+                        }
+                    }
+                    if (dueQuestions.isNotEmpty()) {
+                        item(key = "due-question-title") {
+                            Text("GÜNÜ GELEN SORULAR", color = c.secondary,
+                                style = MaterialTheme.typography.labelSmall)
+                        }
+                        items(dueQuestions, key = { "due:" + it.id }) { card ->
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Text(card.title.ifBlank { available[card.outcomeId]?.title.orEmpty() },
+                                    modifier = Modifier.weight(1f), color = c.onSurface,
+                                    style = MaterialTheme.typography.bodyMedium)
+                                TextButton(onClick = {
+                                    focusedReviewId = card.outcomeId
+                                    actionFeedback = null
+                                }) { Text("Soruyu aç →") }
                             }
                         }
                     }
-                }
-                val dueQuestions = courseQuestions.filter {
-                    it.status != QuestionStatus.COZULDU && it.dueDate.isNotBlank() &&
-                        it.dueDate <= LocalDate.now().toString()
-                }
-                if (dueQuestions.isNotEmpty()) {
-                    Spacer(Modifier.height(9.dp))
-                    Text("GÜNÜ GELEN SORULAR", color = c.secondary,
-                        style = MaterialTheme.typography.labelSmall)
-                    dueQuestions.take(5).forEach { q ->
-                        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically) {
-                            Text(q.title.ifBlank { available[q.outcomeId]?.title.orEmpty() },
-                                color = c.onSurface, modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.bodyMedium)
-                            TextButton(onClick = {
-                                focusedReviewId = q.outcomeId
-                                actionFeedback = null
-                            }) {
-                                Text("Soruyu aç →")
-                            }
-                        }
+                    item(key = "review-caveat") {
+                        Text("Öneriler kayıtlı verilere dayanır; fotoğrafların içeriği otomatik okunmaz.",
+                            color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                     }
                 }
-                Spacer(Modifier.height(8.dp))
-                Text("Bu öneriler işaretlediğin verilere dayanır; fotoğrafların içeriği otomatik okunmaz.",
-                    color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-            }
             }
         }
     }
@@ -458,7 +508,7 @@ fun LearningHubPanel(
         var title by remember { mutableStateOf("") }
         var notes by remember { mutableStateOf("") }
         var status by remember { mutableStateOf(QuestionStatus.COZULEMEDI) }
-        val options = filtered.ifEmpty { courseOutcomes }
+        val options = courseOutcomes
         // Never silently attach a question to the first outcome in a subject.
         val selectedOutcome = options.find { it.id == selection }
         AlertDialog(onDismissRequest = { createQuestion = false },

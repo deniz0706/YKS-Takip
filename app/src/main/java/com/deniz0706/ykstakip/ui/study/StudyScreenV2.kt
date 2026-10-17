@@ -168,58 +168,47 @@ fun StudyScreenV2(
         }
     }
 
+    if (section == "learning") {
+        Column(Modifier.fillMaxSize().background(colors.background)) {
+            Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp,
+                top = 20.dp, bottom = 4.dp)) {
+                StudyScreenHeader(colors)
+                Spacer(Modifier.height(8.dp))
+                StudySectionTabs(section) { section = it }
+            }
+            LearningHubPanel(
+                outcomes = learningOutcomes,
+                questions = learningQuestions,
+                startingExamType = learningJump?.examType ?: "TYT",
+                startingSubject = learningJump?.subject.orEmpty(),
+                signals = reviewSignals,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                onCompleted = onLearningComplete,
+                onWrong = onLearningWrong,
+                onRequestReview = onLearningRequestReview,
+                onReviewed = onLearningReviewed,
+                onPostponeReview = onLearningPostpone,
+                onCreateOutcome = onLearningCreate,
+                onDeleteOutcome = onLearningDelete,
+                onCreateQuestion = onQuestionCreate,
+                onDeleteQuestion = onQuestionDelete,
+                onReviewQuestion = onQuestionReview,
+                onMarkUnsolved = onQuestionUnsolved,
+                onCapture = onQuestionCapture,
+                onGallery = onQuestionGallery,
+                onRemovePhoto = onQuestionPhotoRemove
+            )
+        }
+    } else {
     LazyColumn(
         Modifier.fillMaxSize().background(colors.background),
         state = listState,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            Text("ÇALIŞMA GÜNLÜĞÜ", color = colors.secondary, style = MaterialTheme.typography.labelLarge)
-            Text("Çalışma", color = colors.onBackground, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-            Text("Günün, haftalık planın ve gelişimin artık ayrı bölümlerde.",
-                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-        }
+        item { StudyScreenHeader(colors) }
         item(key = "study-sections") {
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                listOf("today" to "Bugün", "plan" to "Plan",
-                    "learning" to "Öğrenme", "analysis" to "Analiz")
-                    .forEachIndexed { index, (key, label) ->
-                        SegmentedButton(
-                            selected = section == key,
-                            onClick = { section = key },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 4),
-                            label = { Text(label, maxLines = 1) }
-                        )
-                    }
-            }
-        }
-        if (section == "learning") {
-            item(key = "learning-hub") {
-                Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
-                    LearningHubPanel(
-                        outcomes = learningOutcomes,
-                        questions = learningQuestions,
-                        startingExamType = learningJump?.examType ?: "TYT",
-                        startingSubject = learningJump?.subject.orEmpty(),
-                        signals = reviewSignals,
-                        onCompleted = onLearningComplete,
-                        onWrong = onLearningWrong,
-                        onRequestReview = onLearningRequestReview,
-                        onReviewed = onLearningReviewed,
-                        onPostponeReview = onLearningPostpone,
-                        onCreateOutcome = onLearningCreate,
-                        onDeleteOutcome = onLearningDelete,
-                        onCreateQuestion = onQuestionCreate,
-                        onDeleteQuestion = onQuestionDelete,
-                        onReviewQuestion = onQuestionReview,
-                        onMarkUnsolved = onQuestionUnsolved,
-                        onCapture = onQuestionCapture,
-                        onGallery = onQuestionGallery,
-                        onRemovePhoto = onQuestionPhotoRemove
-                    )
-                }
-            }
+            StudySectionTabs(section) { section = it }
         }
         if (section == "today" && (reviewSuggestions > 0 || pendingQuestions > 0)) {
             item(key = "daily-learning-reminder") {
@@ -662,6 +651,35 @@ fun StudyScreenV2(
             }
         }
         }
+    }
+    }
+}
+
+@Composable
+private fun StudyScreenHeader(colors: androidx.compose.material3.ColorScheme) {
+    Column {
+        Text("ÇALIŞMA GÜNLÜĞÜ", color = colors.secondary,
+            style = MaterialTheme.typography.labelLarge)
+        Text("Çalışma", color = colors.onBackground,
+            fontSize = 32.sp, fontWeight = FontWeight.Bold)
+        Text("Günün, haftalık planın ve gelişimin artık ayrı bölümlerde.",
+            color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun StudySectionTabs(selected: String, onSelect: (String) -> Unit) {
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+        listOf("today" to "Bugün", "plan" to "Plan",
+            "learning" to "Öğrenme", "analysis" to "Analiz")
+            .forEachIndexed { index, (key, label) ->
+                SegmentedButton(
+                    selected = selected == key,
+                    onClick = { onSelect(key) },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = 4),
+                    label = { Text(label, maxLines = 1) }
+                )
+            }
     }
 }
 
