@@ -9,6 +9,7 @@ import com.deniz0706.ykstakip.data.LearningRepository
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
 import androidx.lifecycle.lifecycleScope
@@ -55,6 +56,7 @@ class StudyFragment : Fragment() {
     private val cards = mutableStateOf<List<QuestionCard>>(emptyList())
     private val savedExams = mutableStateOf<List<Exam>>(emptyList())
     private val learningJump = mutableStateOf<StudyLearningJump?>(null)
+    private val learningField = mutableStateOf(AytField.SAYISAL)
     private var learningJumpSeq = 0
 
     fun openLearning(examType: String, subject: String) {
@@ -119,6 +121,7 @@ class StudyFragment : Fragment() {
         cameraQuestionId = savedInstanceState?.getString("camera_question")
         cameraFilename = savedInstanceState?.getString("camera_name")
         galleryQuestionId = savedInstanceState?.getString("gallery_question")
+        learningField.value = AppSettings.getLearningField(requireContext())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
@@ -135,6 +138,11 @@ class StudyFragment : Fragment() {
                         learningOutcomes = outcomes.value,
                         learningQuestions = cards.value,
                         learningJump = learningJump.value,
+                        learningField = learningField.value,
+                        onLearningFieldChange = { field ->
+                            AppSettings.setLearningField(requireContext(), field)
+                            learningField.value = field
+                        },
                         onLearningComplete = { id,checked ->
                             learningRepository.setCompleted(id,checked); refresh()
                         },

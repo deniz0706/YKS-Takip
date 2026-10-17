@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.util.LearningFields
 import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
@@ -43,6 +45,8 @@ fun LearningHubPanel(
     signals: List<ReviewSignal>,
     startingExamType: String = "TYT",
     startingSubject: String = "",
+    learningField: AytField,
+    onLearningFieldChange: (AytField) -> Unit,
     modifier: Modifier = Modifier,
     onCompleted: (String, Boolean) -> Unit,
     onWrong: (String) -> Unit,
@@ -75,7 +79,10 @@ fun LearningHubPanel(
     var questionSearch by remember { mutableStateOf("") }
     var questionStatus by remember { mutableStateOf("open") }
 
-    val scoped = remember(outcomes, examType) { outcomes.filter { it.examType == examType } }
+    val scoped = remember(outcomes, examType, learningField) {
+        outcomes.filter { it.examType == examType &&
+            LearningFields.includes(examType, it.subject, learningField) }
+    }
     val subjects = remember(scoped) { scoped.map { it.subject }.distinct() }
     val subject = subjectFilter.takeIf { it in subjects } ?: subjects.firstOrNull().orEmpty()
     val courseOutcomes = remember(scoped, subject) { scoped.filter { it.subject == subject } }
@@ -169,7 +176,7 @@ fun LearningHubPanel(
                         "$percent%", diameter = 82.dp, caption = examType
                     )
                     Column(Modifier.weight(1f)) {
-                        Text("$completed / ${scoped.size} kazanım tamamlandı", color = c.onSurface,
+                        Text("$completed / ${scoped.size} konu tamamlandı", color = c.onSurface,
                             style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                         Text("$activeCount açık soru · $urgentCount öncelikli · $dueCount günü gelmiş",
                             color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
@@ -180,7 +187,7 @@ fun LearningHubPanel(
                         )
                     }
                 }
-                Text("Kazanımlar resmî MEB metinlerinin birebir aktarımı değil, müfredat odaklı takip maddeleridir.",
+                Text("Konu başlıkları müfredat odaklıdır; eksik gördüğün konuyu ekleyebilirsin.",
                     color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
             }
         }
@@ -198,13 +205,34 @@ fun LearningHubPanel(
         item(key = "learning-navigation") {
             Column {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    listOf("outcomes" to "Kazanımlar", "questions" to "Sorular", "review" to "Tekrar")
+                    listOf("outcomes" to "Konular", "questions" to "Sorular", "review" to "Tekrar")
                         .forEach { (key, label) ->
                             FilterChip(selected = pane == key, onClick = {
                                 pane = key
                                 if (key != "review") focusedReviewId = null
                             }, label = { Text(label, maxLines = 1) }, modifier = Modifier.weight(1f))
                         }
+                }
+                if (examType == "AYT") {
+                    Text("AYT alanı", color = c.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall)
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                        listOf(AytField.SAYISAL to "Sayısal",
+                            AytField.ESIT_AGIRLIK to "Eşit Ağırlık",
+                            AytField.SOZEL to "Sözel").forEach { (field, label) ->
+                            FilterChip(
+                                selected = learningField == field,
+                                onClick = {
+                                    onLearningFieldChange(field)
+                                    subjectFilter = ""
+                                    topicFilter = ""
+                                    focusedReviewId = null
+                                },
+                                label = { Text(label) }
+                            )
+                        }
+                    }
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -241,7 +269,7 @@ fun LearningHubPanel(
                             Column(Modifier.weight(1f)) {
                                 Text(subject, color = c.onSurface, fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.titleMedium)
-                                Text("$doneInCourse / ${courseOutcomes.size} kazanım",
+                                Text("$doneInCourse / ${courseOutcomes.size} konu",
                                     color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                             }
                             Text(if (courseOutcomes.isEmpty()) "—" else
@@ -255,7 +283,7 @@ fun LearningHubPanel(
                             Modifier.fillMaxWidth())
                         Spacer(Modifier.height(10.dp))
                         OutlinedTextField(value = outcomeSearch, onValueChange = { outcomeSearch = it },
-                            label = { Text("Kazanım veya konu ara") },
+                            label = { Text("Konu ara") },
                             singleLine = true, modifier = Modifier.fillMaxWidth())
                         Row(Modifier.horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -265,20 +293,22 @@ fun LearningHubPanel(
                                     onClick = { outcomeStatus = key }, label = { Text(label) })
                             }
                         }
-                        Row(Modifier.horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            (listOf("Tümü") + topics).forEach { t ->
-                                FilterChip(selected = t == topic, onClick = { topicFilter = t },
-                                    label = { Text(t, maxLines = 1) })
+                        if (topics.size > 1) {
+                            Row(Modifier.horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                (listOf("Tümü") + topics).forEach { t ->
+                                    FilterChip(selected = t == topic, onClick = { topicFilter = t },
+                                        label = { Text(t, maxLines = 1) })
+                                }
                             }
                         }
-                        Text("${filtered.size} sonuç · Kazanımlar ekranda göründükçe yüklenir",
+                        Text("${filtered.size} sonuç · Konular ekranda göründükçe yüklenir",
                             color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                     }
                 }
                 if (filtered.isEmpty()) {
                     item(key = "no-outcomes") {
-                        Text("Bu filtrelerle eşleşen kazanım yok.", color = c.onSurfaceVariant)
+                        Text("Bu filtrelerle eşleşen konu yok.", color = c.onSurfaceVariant)
                     }
                 }
                 itemsIndexed(filtered, key = { _, outcome -> "outcome:" + outcome.id }) { index, outcome ->
@@ -311,7 +341,7 @@ fun LearningHubPanel(
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                 TextButton(onClick = {
                                     onWrong(outcome.id)
-                                    actionFeedback = "Yanlış işaretlendi. Bu kazanım yarın tekrar önerilecek."
+                                    actionFeedback = "Yanlış işaretlendi. Bu konu yarın tekrar önerilecek."
                                 }) {
                                     Text("+ Yanlış", color = c.error,
                                         style = MaterialTheme.typography.labelSmall)
@@ -336,7 +366,7 @@ fun LearningHubPanel(
                 }
                 item(key = "new-outcome") {
                     Button(onClick = { createOutcome = true },
-                        modifier = Modifier.fillMaxWidth()) { Text("+ Kendi kazanımını ekle") }
+                        modifier = Modifier.fillMaxWidth()) { Text("+ Kendi konunu ekle") }
                 }
             }
             "questions" -> {
@@ -355,7 +385,7 @@ fun LearningHubPanel(
                         }
                         Spacer(Modifier.height(8.dp))
                         OutlinedTextField(value = questionSearch, onValueChange = { questionSearch = it },
-                            label = { Text("Soru, kaynak veya kazanım ara") }, singleLine = true,
+                            label = { Text("Soru, kaynak veya konu ara") }, singleLine = true,
                             modifier = Modifier.fillMaxWidth())
                         Row(Modifier.horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -392,7 +422,7 @@ fun LearningHubPanel(
                             onLearned = {
                                 onReviewed(activeReview.id)
                                 focusedReviewId = null
-                                actionFeedback = "Kazanım öğrenildi; sonraki tekrar planlandı. Açık soruların kayıtlı kaldı."
+                                actionFeedback = "Konu öğrenildi; sonraki tekrar planlandı. Açık soruların kayıtlı kaldı."
                             },
                             onNotSolved = {
                                 onWrong(activeReview.id)
@@ -402,7 +432,7 @@ fun LearningHubPanel(
                             onPostpone = {
                                 onPostponeReview(activeReview.id)
                                 focusedReviewId = null
-                                actionFeedback = "Kazanım yarına ertelendi."
+                                actionFeedback = "Konu yarına ertelendi."
                             },
                             onCapture = onCapture, onGallery = onGallery,
                             onReviewQuestion = onReviewQuestion,
@@ -418,7 +448,7 @@ fun LearningHubPanel(
                                 style = MaterialTheme.typography.labelSmall)
                             Text("Neye tekrar bakmalıyım?", color = c.onSurface,
                                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                            Text("Denemelerde işaretlediğin kazanımlar, yanlışların ve açık soruların değerlendirilir.",
+                            Text("Denemelerde işaretlediğin konular, yanlışların ve açık soruların değerlendirilir.",
                                 color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.height(8.dp))
                             Text("${relevantSignals.size} öneri",
@@ -478,23 +508,20 @@ fun LearningHubPanel(
     }
 
     if (createOutcome) {
-        var topicText by remember { mutableStateOf(if (topic == "Tümü") "" else topic) }
         var outcomeText by remember { mutableStateOf("") }
         AlertDialog(onDismissRequest = { createOutcome = false },
-            title = { Text("Kazanım ekle") },
+            title = { Text("Konu ekle") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     Text("$examType · $subject", color = c.onSurfaceVariant)
-                    OutlinedTextField(value = topicText, onValueChange = { topicText = it },
-                        label = { Text("Konu") }, singleLine = true)
                     OutlinedTextField(value = outcomeText, onValueChange = { outcomeText = it },
-                        label = { Text("Kazanım / yapabilmem gereken şey") },
-                        minLines = 2)
+                        label = { Text("Ünite / konu başlığı") },
+                        singleLine = true)
                 }
             },
             confirmButton = { TextButton(onClick = {
-                if (subject.isNotBlank() && topicText.isNotBlank() && outcomeText.isNotBlank()) {
-                    onCreateOutcome(examType, subject, topicText, outcomeText)
+                if (subject.isNotBlank() && outcomeText.isNotBlank()) {
+                    onCreateOutcome(examType, subject, subject, outcomeText)
                     createOutcome = false
                 }
             }) { Text("Ekle") } },
@@ -515,13 +542,13 @@ fun LearningHubPanel(
             title = { Text("Soru defterine ekle") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text("Kazanımı seç; soruyu doğrudan kamera ya da galeriden fotoğrafıyla ekleyebilirsin.",
+                    Text("Konuyu seç; soruyu kamera veya galeriden fotoğrafıyla ekleyebilirsin.",
                         color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     Box {
                         OutlinedButton(onClick = { showOutcomes = true },
                             modifier = Modifier.fillMaxWidth()) {
                             Text(selectedOutcome?.let { it.topic + " · " + it.title }
-                                ?: "Kazanım seç", maxLines = 2,
+                                ?: "Konu seç", maxLines = 2,
                                 overflow = TextOverflow.Ellipsis)
                         }
                         DropdownMenu(expanded = showOutcomes, onDismissRequest = {
@@ -530,7 +557,7 @@ fun LearningHubPanel(
                             OutlinedTextField(
                                 value = outcomeSearch,
                                 onValueChange = { outcomeSearch = it },
-                                label = { Text("Kazanım ara") },
+                                label = { Text("Konu ara") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                             )
@@ -549,7 +576,7 @@ fun LearningHubPanel(
                                     })
                             }
                             if (matching.isEmpty()) {
-                                Text("Eşleşen kazanım yok",
+                                Text("Eşleşen konu yok",
                                     modifier = Modifier.padding(12.dp),
                                     style = MaterialTheme.typography.bodySmall)
                             } else if (matching.size > 30) {
@@ -666,7 +693,7 @@ private fun ReviewSessionPanel(
         Text("$openCount açık soru · ${linkedQuestions.size} bağlantılı soru",
             color = c.secondary, fontWeight = FontWeight.SemiBold)
         if (ordered.isEmpty()) {
-            Text("Bu kazanıma eklenmiş soru yok. Konuyu kaynaklarından çalışıp aşağıda sonucu işaretleyebilirsin.",
+            Text("Bu konua eklenmiş soru yok. Konuyu kaynaklarından çalışıp aşağıda sonucu işaretleyebilirsin.",
                 color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         } else {
             ordered.take(showCount).forEach { card ->
@@ -701,7 +728,7 @@ private fun ReviewSessionPanel(
         }
         Text("Öğrendim: sonraki tekrar 1 / 3 / 7 / 14 / 30 gün aralıklarıyla planlanır. " +
             "Zorlandım veya daha fazla çalışmam gerek: yarına alınır. " +
-            "Kazanım değerlendirmesi açık soru kayıtlarını otomatik kapatmaz.",
+            "Konu değerlendirmesi açık soru kayıtlarını otomatik kapatmaz.",
             color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
     }
 }

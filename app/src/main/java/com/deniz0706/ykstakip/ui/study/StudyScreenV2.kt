@@ -33,6 +33,8 @@ import com.deniz0706.ykstakip.model.StudyDay
 import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.util.LearningFields
 import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
 import com.deniz0706.ykstakip.util.ReviewAdvisor
@@ -56,6 +58,8 @@ fun StudyScreenV2(
     learningOutcomes: List<LearningOutcome>,
     learningQuestions: List<QuestionCard>,
     learningJump: StudyLearningJump?,
+    learningField: AytField,
+    onLearningFieldChange: (AytField) -> Unit,
     onLearningComplete: (String, Boolean) -> Unit,
     onLearningWrong: (String) -> Unit,
     onLearningRequestReview: (String) -> Unit,
@@ -83,9 +87,17 @@ fun StudyScreenV2(
     val reviewSignals = remember(learningOutcomes, learningQuestions, exams) {
         ReviewAdvisor.recommendations(learningOutcomes, learningQuestions, exams)
     }
-    val urgentReviews = reviewSignals.count { it.urgent }
-    val reviewSuggestions = reviewSignals.size
-    val pendingQuestions = learningQuestions.count { it.status != QuestionStatus.COZULDU }
+    val visibleReviewSignals = reviewSignals.filter {
+        LearningFields.includes(it.outcome.examType, it.outcome.subject, learningField)
+    }
+    val visibleOutcomeIds = learningOutcomes.filter {
+        LearningFields.includes(it.examType, it.subject, learningField)
+    }.map { it.id }.toSet()
+    val urgentReviews = visibleReviewSignals.count { it.urgent }
+    val reviewSuggestions = visibleReviewSignals.size
+    val pendingQuestions = learningQuestions.count {
+        it.status != QuestionStatus.COZULDU && it.outcomeId in visibleOutcomeIds
+    }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date())
     val current = days.firstOrNull { it.date == today }
     val questions = current?.questionCount ?: 0
@@ -181,7 +193,9 @@ fun StudyScreenV2(
                 questions = learningQuestions,
                 startingExamType = learningJump?.examType ?: "TYT",
                 startingSubject = learningJump?.subject.orEmpty(),
-                signals = reviewSignals,
+                signals = visibleReviewSignals,
+                learningField = learningField,
+                onLearningFieldChange = onLearningFieldChange,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 onCompleted = onLearningComplete,
                 onWrong = onLearningWrong,

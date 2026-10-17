@@ -223,7 +223,7 @@ fun NewExamScreenV2(
                     var outcomeSearch by remember(type, row.config.name) { mutableStateOf("") }
                     Box {
                         TextButton(onClick = { menuOpen = true }) {
-                            Text("+ Kazanım listesinden işaretle",
+                            Text("+ Konu listesinden işaretle",
                                 style = MaterialTheme.typography.labelMedium)
                         }
                         DropdownMenu(expanded = menuOpen, onDismissRequest = {
@@ -232,7 +232,7 @@ fun NewExamScreenV2(
                             OutlinedTextField(
                                 value = outcomeSearch,
                                 onValueChange = { outcomeSearch = it },
-                                label = { Text("Kazanım ara") },
+                                label = { Text("Konu ara") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                             )
@@ -268,7 +268,7 @@ fun NewExamScreenV2(
                                 )
                             }
                             if (matching.isEmpty()) {
-                                Text("Eşleşen kazanım yok", modifier = Modifier.padding(12.dp),
+                                Text("Eşleşen konu yok", modifier = Modifier.padding(12.dp),
                                     style = MaterialTheme.typography.bodySmall)
                             } else if (matching.size > 30) {
                                 Text("Daha fazla sonuç için aramayı daralt",
@@ -277,7 +277,7 @@ fun NewExamScreenV2(
                             }
                         }
                     }
-                    Text("Burada işaretlediğin kazanımlar tekrar radarında değerlendirilir.",
+                    Text("Burada işaretlediğin konular tekrar radarında değerlendirilir.",
                         color = colors.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall)
                 }
