@@ -47,14 +47,14 @@ fun ThemePreviewSelector(
         PreviewOption("light", "Açık", "Ferahlık",
             Color(0xFFF5F7FC), Color.White, Color(0xFF152238), Color(0xFF087E72)),
         PreviewOption("dark", "Koyu", "Grafit",
-            Color(0xFF090B10), Color(0xFF15181F), Color(0xFFF5F6FA), Color(0xFFCBB7FF)),
+            Color(0xFF090B10), Color(0xFF15181F), Color(0xFFF5F6FA), Color(0xFFE6C38F)),
         PreviewOption("aurora", "Aurora", "Mint & lila",
             Color(0xFF0B1220), Color(0xFF172337), Color(0xFFF3F8FF), Color(0xFF57D6C1)),
         PreviewOption("system", "Sistem", "Otomatik",
             if (systemDark) Color(0xFF090B10) else Color(0xFFF5F7FC),
             if (systemDark) Color(0xFF15181F) else Color.White,
             if (systemDark) Color(0xFFF5F6FA) else Color(0xFF152238),
-            if (systemDark) Color(0xFFCBB7FF) else Color(0xFF087E72),
+            if (systemDark) Color(0xFFE6C38F) else Color(0xFF087E72),
             splitPreview = true)
     )
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {

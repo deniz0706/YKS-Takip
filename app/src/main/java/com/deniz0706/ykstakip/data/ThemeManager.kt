@@ -92,7 +92,7 @@ object ThemeManager {
     )
     private val darkPalette = palette(
         "#090B10", "#15181F", "#242831", "#F5F6FA",
-        "#A8ADBC", "#CBB7FF", "#343744", "#332B45"
+        "#A8ADBC", "#E6C38F", "#343744", "#493923"
     )
 
     fun nativePalette(context: Context): NativePalette = when (currentTheme(context)) {

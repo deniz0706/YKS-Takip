@@ -6,11 +6,11 @@
     <color name="on_background">#F5F6FA</color>
     <color name="on_surface_secondary">#A8ADBC</color>
     <color name="border">#343744</color>
-    <color name="accent">#CBB7FF</color>
-    <color name="accent_soft">#332B45</color>
-    <color name="positive">#CBB7FF</color>
+    <color name="accent">#E6C38F</color>
+    <color name="accent_soft">#493923</color>
+    <color name="positive">#83D0BE</color>
     <color name="negative">#FF90A5</color>
     <color name="nav_island_bg">#15181F</color>
-    <color name="nav_island_selected">#CBB7FF</color>
+    <color name="nav_island_selected">#E6C38F</color>
     <color name="input_bg">#242831</color>
 </resources>
