@@ -367,21 +367,36 @@ AYT|Din Kültürü / Ek Felsefe|Dünya Dinleri
             topic in setOf("Vektörler", "Bağıl Hareket", "Newton Yasaları", "Sabit İvmeli Hareket", "Atışlar", "Enerji", "İtme Momentum", "Tork Denge", "Basit Makineler")) return "Kuvvet ve Hareket"
         if (exam == "AYT" && subject == "Fizik" &&
             topic in setOf("Çembersel Hareket", "Dönme Hareketi", "Kütle Çekim")) return "Çembersel Hareket"
+        // MEB 11th-grade Physics names the complete unit "Elektrik ve Manyetizma".
         if (exam == "AYT" && subject == "Fizik" &&
-            topic in setOf("Elektrik Alan", "Elektrik Potansiyel", "Kondansatörler")) return "Elektrik Alan ve Potansiyel"
+            topic in setOf("Elektrik Alan", "Elektrik Potansiyel", "Kondansatörler",
+                "Manyetik Alan", "Elektromanyetik İndüksiyon", "Alternatif Akım")) {
+            return "Elektrik ve Manyetizma"
+        }
+        // MEB 12th-grade: diffraction, interference and EM waves share one unit.
         if (exam == "AYT" && subject == "Fizik" &&
-            topic in setOf("Manyetik Alan", "Elektromanyetik İndüksiyon")) return "Manyetizma ve İndüksiyon"
-        if (exam == "AYT" && subject == "Fizik" &&
-            topic in setOf("Dalgalar", "Elektromanyetik Dalgalar")) return "Dalgalar"
-        if (exam == "AYT" && subject == "Fizik" &&
-            topic in setOf("Modern Fizik", "Atom ve Çekirdek")) return "Modern Fizik"
+            topic in setOf("Dalgalar", "Elektromanyetik Dalgalar")) return "Dalga Mekaniği"
+        if (exam == "AYT" && subject == "Fizik" && topic == "Atom ve Çekirdek") {
+            return "Atom Fiziğine Giriş ve Radyoaktivite"
+        }
+        if (exam == "AYT" && subject == "Fizik" && topic == "Modern Fizik") {
+            return "Modern Fizik"
+        }
         if (exam == "AYT" && subject == "Kimya" && topic == "Gaz Yasaları") return "Gazlar"
         if (exam == "AYT" && subject == "Kimya" &&
             topic in setOf("Çözeltiler", "Koligatif Özellikler")) return "Sıvı Çözeltiler ve Çözünürlük"
+        if (exam == "AYT" && subject == "Kimya" && topic == "Tepkime Enerjisi") {
+            return "Kimyasal Tepkimelerde Enerji"
+        }
+        if (exam == "AYT" && subject == "Kimya" && topic == "Tepkime Hızı") {
+            return "Kimyasal Tepkimelerde Hız"
+        }
         if (exam == "AYT" && subject == "Kimya" &&
-            topic in setOf("Kimyasal Denge", "Asit Baz Dengesi", "Çözünürlük Dengesi")) return "Kimyasal Denge"
+            topic in setOf("Kimyasal Denge", "Asit Baz Dengesi", "Çözünürlük Dengesi")) {
+            return "Kimyasal Tepkimelerde Denge"
+        }
         if (exam == "AYT" && subject == "Kimya" &&
-            topic in setOf("Elektrokimya", "Elektroliz")) return "Elektrokimya"
+            topic in setOf("Elektrokimya", "Elektroliz")) return "Kimya ve Elektrik"
         if (exam == "AYT" && subject == "Kimya" &&
             topic in setOf("Organik Kimya", "Alkanlar ve Sikloalkanlar", "Alken ve Alkinler", "Aromatik Bileşikler", "Organik Fonksiyonel Gruplar")) return "Organik Bileşikler"
         if (exam == "AYT" && subject == "Biyoloji" && topic == "Komünite Ekolojisi") {
@@ -392,7 +407,12 @@ AYT|Din Kültürü / Ek Felsefe|Dünya Dinleri
         if (exam == "AYT" && subject == "Biyoloji" &&
             topic in setOf("Nükleik Asitler", "Protein Sentezi", "Genetik Mühendisliği")) return "Genden Proteine"
         if (exam == "AYT" && subject == "Biyoloji" &&
-            topic in setOf("Enerji Dönüşümleri", "Fotosentez", "Hücresel Solunum")) return "Enerji Dönüşümleri"
+            topic in setOf("Enerji Dönüşümleri", "Fotosentez", "Hücresel Solunum")) {
+            return "Canlılarda Enerji Dönüşümleri"
+        }
+        if (exam == "AYT" && subject == "Biyoloji" && topic == "Evrim ve Adaptasyon") {
+            return "Canlılar ve Çevre"
+        }
         if (exam == "AYT" && subject == "Biyoloji" &&
             topic in setOf("Bitkisel Dokular", "Bitkilerde Taşıma", "Bitkilerde Üreme", "Bitki Hormonları")) return "Bitki Biyolojisi"
         if (exam == "AYT" && subject == "Edebiyat" &&

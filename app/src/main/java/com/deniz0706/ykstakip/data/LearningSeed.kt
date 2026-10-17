@@ -137,7 +137,20 @@ object LearningSeed {
         "unit|AYT|Biyoloji|Komünite Ekolojisi" to
             "unit|AYT|Biyoloji|Komünite ve Popülasyon Ekolojisi",
         "unit|AYT|Biyoloji|Popülasyon Ekolojisi" to
-            "unit|AYT|Biyoloji|Komünite ve Popülasyon Ekolojisi"
+            "unit|AYT|Biyoloji|Komünite ve Popülasyon Ekolojisi",
+        "unit|AYT|Fizik|Elektrik Alan ve Potansiyel" to
+            "unit|AYT|Fizik|Elektrik ve Manyetizma",
+        "unit|AYT|Fizik|Manyetizma ve İndüksiyon" to
+            "unit|AYT|Fizik|Elektrik ve Manyetizma",
+        "unit|AYT|Fizik|Alternatif Akım" to
+            "unit|AYT|Fizik|Elektrik ve Manyetizma",
+        "unit|AYT|Fizik|Dalgalar" to "unit|AYT|Fizik|Dalga Mekaniği",
+        "unit|AYT|Kimya|Tepkime Enerjisi" to "unit|AYT|Kimya|Kimyasal Tepkimelerde Enerji",
+        "unit|AYT|Kimya|Tepkime Hızı" to "unit|AYT|Kimya|Kimyasal Tepkimelerde Hız",
+        "unit|AYT|Kimya|Kimyasal Denge" to "unit|AYT|Kimya|Kimyasal Tepkimelerde Denge",
+        "unit|AYT|Kimya|Elektrokimya" to "unit|AYT|Kimya|Kimya ve Elektrik",
+        "unit|AYT|Biyoloji|Enerji Dönüşümleri" to "unit|AYT|Biyoloji|Canlılarda Enerji Dönüşümleri",
+        "unit|AYT|Biyoloji|Evrim ve Adaptasyon" to "unit|AYT|Biyoloji|Canlılar ve Çevre"
     )
 
     fun topicIdFor(id: String): String = renamedUnitIds[id] ?: legacyToTopicId[id] ?: id

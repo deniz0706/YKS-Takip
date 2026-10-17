@@ -28,3 +28,43 @@
 Katalogda **her satır tek konu/ünite** olmaya devam eder; paragrafı veya organik kimyayı yapay alt kazanımlara bölmeyiz. TYT ortak, AYT alan filtresi SAY/EA/SÖZ şeklinde kalır. Bütün eski satır ve fotoğraf bağlantıları için ID dönüşümü uygulanır.
 
 **Sınırlama:** MEB'in 2026-YKS resmî duyurusunun bağlantısına erişildi, ancak 21,9 MB'lık asıl PDF'nin tam metni mevcut araştırma ortamında açılamadı. Bu nedenle **tüm 211 satırın resmî PDF ile bire bir ve eksiksiz karşılaştırıldığı iddia edilmez.** Yukarıdaki bulgular, erişilebilen resmî OGM ünite içeriklerine dayalı olarak doğrulanmıştır. ÖSYM'nin 2026 soruları tek başına resmî kazanım listesinin yerini tutmaz. **2027-YKS resmî konu kapsamı olarak da sunulmaz.**
+
+## Ek resmî ünite kontrolü — 17 Ekim 2026
+
+Uygulamanın konu başlıkları, MEB OGM'nin doğrudan erişilebilir resmî ders
+içerikleriyle ayrıca karşılaştırıldı. **Bu kontrol, 2026-YKS'nin 581 sayfalık
+asıl kapsam PDF'sinin tamamının okunması anlamına gelmez.** Belge büyük
+olduğu için doğrudan indirme bu ortamda başarısız oldu; tüm konu satırlarına
+"resmî PDF ile tek tek doğrulandı" etiketi verilemez.
+
+İncelenen doğrudan MEB kaynakları:
+
+- [OGM — 11. sınıf Fizik / Kuvvet ve Hareket, Elektrik ve Manyetizma](https://ogmmateryal.eba.gov.tr/dersler-cepte?ders=Fizik&sinif=11)
+- [OGM — 12. sınıf Fizik / Çembersel Hareket](https://ogmmateryal.eba.gov.tr/panel/panel/EKitapUniteOnizle.aspx?Id=360)
+- [OGM — 12. sınıf Fizik / Modern Fiziğin Teknolojideki Uygulamaları](https://ogmmateryal.eba.gov.tr/panel/panel/EKitapUniteOnizle.aspx?Id=348)
+- [OGM — 11. sınıf Kimya / Modern Atom, Gazlar, Sıvı Çözeltiler, Tepkimelerde Enerji/Hız/Denge](https://ogmmateryal.eba.gov.tr/dersler-cepte-fasikul?d=46&k=0&s=8&u=0)
+- [OGM — 12. sınıf Kimya / Kimya ve Elektrik, Karbon Kimyasına Giriş](https://ogmmateryal.eba.gov.tr/panel/upload/etkilesimli/kitap/beceri_temelli/12/kimya/files/basic-html/page3.html)
+- [OGM — 11. sınıf Biyoloji / İnsan Fizyolojisi](https://ogmmateryal.eba.gov.tr/panel/upload/etkilesimli/kitap/biyoloji/11/unite1/files/basic-html/page1.html)
+- [OGM — 12. sınıf Biyoloji / Genden Proteine, Canlılarda Enerji Dönüşümleri](https://ogmmateryal.eba.gov.tr/panel/upload/etkilesimli/kitap/calisma_defteri/f3/12/biyoloji/files/basic-html/index.html)
+- [OGM — 11. sınıf Matematik / Fonksiyonlarda Uygulamalar, Denklem-Eşitsizlik Sistemleri, Çember ve Daire](https://ogmmateryal.eba.gov.tr/dersler-cepte?ders=Matematik&sinif=11)
+
+Yapılan somut düzeltmeler:
+
+| Alan / Ders | Önce | Sonra | Neden |
+|---|---|---|---|
+| AYT Fizik | Elektrik Alan ve Potansiyel, Manyetizma ve İndüksiyon, Alternatif Akım ayrı | **Elektrik ve Manyetizma** tek ünite | MEB 11. sınıf ünite yapısı |
+| AYT Fizik | Dalgalar ve Dalga Mekaniği ayrı | **Dalga Mekaniği** tek ünite | MEB 12. sınıf ünite yapısı |
+| AYT Fizik | Atom ve Çekirdek bilgisi Modern Fizik'e gömülmüş | **Atom Fiziğine Giriş ve Radyoaktivite** ayrı | MEB 12. sınıf ünite yapısı |
+| AYT Kimya | Tepkime Enerjisi, Tepkime Hızı, Kimyasal Denge | **Kimyasal Tepkimelerde Enerji, Hız, Denge** | MEB 11. sınıf adları |
+| AYT Kimya | Elektrokimya | **Kimya ve Elektrik** | MEB 12. sınıf birinci ünite |
+| AYT Biyoloji | Enerji Dönüşümleri | **Canlılarda Enerji Dönüşümleri** | MEB 12. sınıf ikinci ünite |
+| AYT Biyoloji | Evrim ve Adaptasyon ile Canlılar ve Çevre ayrı | **Canlılar ve Çevre** tek ünite | MEB 12. sınıf dördüncü ünite |
+
+*Veri koruma:* Önceki ünite ID'leri yeni ID'lere taşınır; soru
+fotoğraflarının kayıtları silinmez. Birden çok eski konunun tek üniteye
+dönüştürülmesi nedeniyle hangi alt konunun öğrenildiği yeni sistemde ayrı
+gösterilmez; kullanıcı birleşen üniteyi tekrar kontrol etmelidir.
+
+*Hedef yıl uyarısı:* Bunlar 2026-YKS ve ilgili MEB eski öğretim programları
+çerçevesinde kontrol edilmiş adlardır; 2027-YKS için kesin resmî kapsam diye
+sunulamaz.
