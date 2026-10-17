@@ -198,7 +198,6 @@ class SettingsFragment : Fragment() {
             .setNegativeButton("Vazgeç", null)
             .setPositiveButton("Geri al") { _, _ ->
                 val done = studyRepository.undoLastImport()
-                if (done) refresh()
                 Toast.makeText(requireContext(),
                     if (done) "Son içe aktarma geri alındı." else "Geri alma başarısız.",
                     Toast.LENGTH_LONG).show()
