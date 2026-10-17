@@ -59,9 +59,9 @@ TYT|Felsefe|Felsefe’nin Konusu;Bilgi Felsefesi;Varlık Felsefesi;Ahlak Felsefe
 TYT|Din Kültürü|Bilgi ve İnanç;İslam ve İbadet;Ahlak ve Değerler;Allah İnsan İlişkisi;Hz. Muhammed (S.A.V.);Vahiy ve Akıl;İslam Düşüncesinde Yorumlar, Mezhepler;Din, Kültür ve Medeniyet;İslam ve Bilim, Estetik, Barış;Yaşayan Dinler
 AYT|Matematik|Kümeler;Denklem ve Eşitsizlikler;Fonksiyonlar;Veri;Olasılık;Sayma;Fonksiyonlarla İşlemler ve Uygulamalar;İkinci Dereceden Denklem ve Fonksiyonlar;Polinomlar;Trigonometri;Analitik Geometri;Fonksiyonlarda Uygulamalar;Denklem ve Eşitsizlik Sistemleri;Üstel ve Logaritmik Fonksiyonlar;Diziler;Türev;İntegral;Dönüşümler
 AYT|Geometri|Üçgenler;Dörtgenler ve Çokgenler;Geometrik Cisimler;Trigonometri;Analitik Geometri;Çember ve Daire;Uzay Geometri;Dönüşümler
-AYT|Fizik|Fizik Bilimine Giriş;Madde ve Özellikleri;Kuvvet ve Hareket;Enerji;Isı ve Sıcaklık;Basınç ve Kaldırma Kuvveti;Elektrik ve Manyetizma;Dalgalar;Optik;Çembersel Hareket;Basit Harmonik Hareket;Dalga Mekaniği;Atom Fiziğine Giriş ve Radyoaktivite;Modern Fizik;Modern Fiziğin Teknolojideki Uygulamaları
-AYT|Kimya|Kimya Bilimi;Atom ve Periyodik Sistem;Kimyasal Türler Arası Etkileşimler;Maddenin Halleri;Karışımlar;Asitler, Bazlar ve Tuzlar;Kimya Her Yerde;Modern Atom Teorisi;Gazlar;Sıvı Çözeltiler ve Çözünürlük;Kimyasal Tepkimelerde Enerji;Kimyasal Tepkimelerde Hız;Kimyasal Tepkimelerde Denge;Kimya ve Elektrik;Karbon Kimyasına Giriş;Organik Bileşikler;Enerji Kaynakları ve Bilimsel Gelişmeler
-AYT|Biyoloji|Yaşam Bilimi ve Biyoloji;Canlılar Dünyası;Güncel Çevre Sorunları;Üreme;Kalıtımın Genel İlkeleri;Dünyamız;İnsan Fizyolojisi;Komünite ve Popülasyon Ekolojisi;Genden Proteine;Canlılarda Enerji Dönüşümleri;Bitki Biyolojisi;Canlılar ve Çevre
+AYT|Fizik|Kuvvet ve Hareket;Elektrik ve Manyetizma;Çembersel Hareket;Basit Harmonik Hareket;Dalga Mekaniği;Atom Fiziğine Giriş ve Radyoaktivite;Modern Fizik;Modern Fiziğin Teknolojideki Uygulamaları
+AYT|Kimya|Modern Atom Teorisi;Gazlar;Sıvı Çözeltiler ve Çözünürlük;Kimyasal Tepkimelerde Enerji;Kimyasal Tepkimelerde Hız;Kimyasal Tepkimelerde Denge;Kimya ve Elektrik;Karbon Kimyasına Giriş;Organik Bileşikler;Enerji Kaynakları ve Bilimsel Gelişmeler
+AYT|Biyoloji|İnsan Fizyolojisi;Komünite ve Popülasyon Ekolojisi;Genden Proteine;Canlılarda Enerji Dönüşümleri;Bitki Biyolojisi;Canlılar ve Çevre
 AYT|Edebiyat|9. Sınıf Metinleri;10. Sınıf Metinleri;11. Sınıf Metinleri;12. Sınıf Metinleri;Anlam Bilgisi;Dil Bilgisi;Metinlerin Sınıflandırılması;Şiir Bilgisi;Edebi Sanatlar;İslamiyet Öncesi Türk Edebiyatı ve Geçiş Dönemi;Halk Edebiyatı;Divan Edebiyatı;Tanzimat Edebiyatı;Servet-i Fünun ve Fecr-i Âti Edebiyatı;Milli Edebiyat;Cumhuriyet Dönemi Edebiyatı;Batı Edebiyat Akımları
 AYT|Tarih-1|Tarih Bilimi;Uygarlığın Doğuşu ve İlk Uygarlıklar;İlk Türk Devletleri;İslam Tarihi ve Uygarlığı (13. Yüzyıla Kadar);Türk – İslam Devletleri (10-13. Yüzyıllar);Türkiye Tarihi (11-13. Yüzyıllar);Beylikten Devlete;Dünya Gücü: Osmanlı Devleti (1453-1600);Arayış Yılları (17. Yüzyıl);Avrupa ve Osmanlı Devleti (18. Yüzyıl);En Uzun Yüzyıl (1800-1922);Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti (1595-1774);Değişim Çağında Avrupa ve Osmanlı;Uluslararası İlişkilerde Denge Stratejisi (1774-1914);Devrimler Çağında Değişen Devlet – Toplum İlişkileri;Sermaye ve Emek;19. ve 20. Yüzyılda Değişen Gündelik Hayat;T.C. İnkılap Tarihi ve Atatürkçülük;20. Yüzyıl Başlarında Osmanlı Devleti ve Dünya;Milli Mücadele;Atatürkçülük ve Türk İnkılabı;İki Savaş Arasındaki Dönemde Türkiye ve Dünya;II. Dünya Savaşı Sürecinde Türkiye ve Dünya;II. Dünya Savaşı Sonrasında Türkiye ve Dünya;Toplumsal Devrim Çağında Dünya ve Türkiye;Yüzyılın Eşiğinde Türkiye ve Dünya
 AYT|Tarih-2|Tarih ve Zaman;İnsanlığın İlk Dönemleri;Orta Çağ’da Dünya;İlk ve Orta Çağlarda Türk Dünyası;İslam Medeniyetinin Doğuşu;Türklerin İslamiyet’i Kabulü ve İlk Türk İslam Devletleri;Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi;Beylikten Devlete Osmanlı;Dünya Gücü Osmanlı;Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti;Değişim Çağında Avrupa ve Osmanlı;Uluslararası İlişkilerde Denge Stratejisi (1774-1914);XX. Yüzyıl Başlarında Osmanlı Devleti ve Dünya;Milli Mücadele;Atatürkçülük ve Türk İnkılabı;İki Savaş Arasındaki Dönemde Türkiye ve Dünya;II. Dünya Savaşı Sürecinde Türkiye ve Dünya;II. Dünya Savaşı Sonrasında Türkiye ve Dünya;Soğuk Savaş Dönemi;Yumuşama Dönemi;Küreselleşen Dünya;XXI. Yüzyılın Eşiğinde Türkiye ve Dünya
@@ -112,22 +112,11 @@ AYT|Geometri|Analitik Geometri|Doğrunun Analitik İncelenmesi
 AYT|Geometri|Çember ve Daire|Çemberin Temel Elemanları;Çemberde Açılar;Çemberde Teğet;Dairenin Çevresi ve Alanı
 AYT|Geometri|Uzay Geometri|Katı Cisimler
 AYT|Geometri|Dönüşümler|Analitik Düzlemde Temel Dönüşümler;Çemberin Analitik İncelenmesi
-AYT|Fizik|Madde ve Özellikleri|Katılar;Akışkanlar
-AYT|Fizik|Kuvvet ve Hareket|Bir Boyutta Hareket;Kuvvet;Newton’un Hareket Yasaları;Vektörler;Bağıl Hareket;Bir Boyutta Sabit İvmeli Hareket;İki Boyutta Hareket;Enerji ve Hareket;İtme ve Çizgisel Momentum;Tork;Denge ve Denge Şartları;Basit Makineler
-AYT|Fizik|Enerji|İş, Enerji ve Güç;Mekanik Enerji;Enerjinin Korunumu ve Dönüşümleri;Verim
-AYT|Fizik|Isı ve Sıcaklık|Isı, Sıcaklık ve İç Enerji;Hal Değişimi;Isıl Denge;Enerji İletim Yolları ve Enerji İletim Hızı;Genleşme
-AYT|Fizik|Elektrik ve Manyetizma|Elektrik Yükleri;Akım, Potansiyel Fark, Direnç;Elektrik Devreleri;Mıknatıslar;Akım ve Manyetik Alan İlişkisi;Elektriksel Kuvvet ve Elektrik Alan;Elektriksel Potansiyel;Düzgün Elektrik ve Sığa;Manyetizma ve Elektromanyetik İndükleme;Alternatif Akım;Transformatörler
-AYT|Fizik|Dalgalar|Dalga ve Dalga Hareketinin Temel Değişkenleri;Su Dalgası;Deprem Dalgaları ve Depremlerin Özellikleri
-AYT|Fizik|Optik|Aydınlanma;Gölge;Yansıma;Düz Aynalar;Küresel Aynalar;Kırılma;Renk;Prizmalar;Mercekler
+AYT|Fizik|Kuvvet ve Hareket|Vektörler;Bağıl Hareket;Newton’un Hareket Yasaları;Bir Boyutta Sabit İvmeli Hareket;İki Boyutta Hareket;Enerji ve Hareket;İtme ve Çizgisel Momentum;Tork;Denge ve Denge Şartları;Basit Makineler
+AYT|Fizik|Elektrik ve Manyetizma|Elektriksel Kuvvet ve Elektrik Alan;Elektriksel Potansiyel;Düzgün Elektrik ve Sığa;Manyetizma ve Elektromanyetik İndükleme;Alternatif Akım;Transformatörler
 AYT|Fizik|Çembersel Hareket|Düzgün Çembersel Hareket;Dönerek Öteleme Hareketi;Açısal Momentum;Kütle Çekim Kuvveti;Kepler Kanunları
 AYT|Fizik|Dalga Mekaniği|Dalgalarda Kırınım, Girişim ve Doppler Olayı
 AYT|Kimya|Kimyasal Tepkimelerde Denge|Kimyasal Denge;Asit-Baz Dengesi;Çözünürlük Dengesi
-AYT|Biyoloji|Yaşam Bilimi ve Biyoloji|Bilimsel Bilginin Doğası ve Biyoloji;Canlıların Ortak Özellikleri;Canlıların Yapısında Bulunan Ortak Bileşikler
-AYT|Biyoloji|Canlılar Dünyası|Canlılığın Temel Birimi Hücre;Canlıların Çeşitliliği ve Sınıflandırılması;Canlı Alemleri ve Özellikleri
-AYT|Biyoloji|Güncel Çevre Sorunları|Güncel Çevre Sorunları ve İnsan;Doğal Kaynaklar ve Biyolojik Çeşitliliğin Korunması
-AYT|Biyoloji|Üreme|Mitoz ve Eşeysiz Üreme;Mayoz ve Eşeyli Üreme;Büyüme ve Gelişme
-AYT|Biyoloji|Kalıtımın Genel İlkeleri|Kalıtım ve Biyolojik Çeşitlilik
-AYT|Biyoloji|Dünyamız|Ekosistem Ekolojisi
 AYT|Biyoloji|İnsan Fizyolojisi|Denetleyici ve Düzenleyici Sistem, Duyu Organları;Destek ve Hareket Sistemi;Sindirim Sistemi;Dolaşım Sistemleri;Solunum Sistemi;Üriner Sistem;Üreme Sistemi ve Embriyonik Gelişim
 AYT|Biyoloji|Komünite ve Popülasyon Ekolojisi|Komünite Ekolojisi;Popülasyon Ekolojisi
 AYT|Biyoloji|Genden Proteine|Nükleik Asitlerin Keşfi ve Önemi;Genetik Şifre ve Protein Sentezi

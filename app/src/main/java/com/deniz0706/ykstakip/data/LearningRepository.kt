@@ -24,6 +24,23 @@ class LearningRepository(context: Context) {
         migrateMebVerifiedUnitsOnce()
         migrateMebUnitNamesV2Once()
         migrateKitapsecOnce()
+        archiveRemovedAytScienceOnce()
+    }
+
+    private fun archiveRemovedAytScienceOnce() {
+        if (prefs.getBoolean("learning_science_ayt_separation_v1", false)) return
+        val saved = try {
+            val a = JSONArray(prefs.getString("outcomes", "[]") ?: "[]")
+            (0 until a.length()).map { LearningOutcome.fromJson(a.getJSONObject(it)) }
+        } catch (_: Exception) { return }
+        val cards = try {
+            val a = JSONArray(prefs.getString("questions", "[]") ?: "[]")
+            (0 until a.length()).map { QuestionCard.fromJson(a.getJSONObject(it)) }
+        } catch (_: Exception) { return }
+        val after = LearningScienceSeparation.convert(saved, cards)
+        prefs.edit().putString("outcomes", JSONArray(after.map { it.toJson() }).toString())
+            .putBoolean("learning_science_ayt_separation_v1", true)
+            .commit()
     }
 
     /** One-time, transactional change of curriculum without deleting linked photos. */

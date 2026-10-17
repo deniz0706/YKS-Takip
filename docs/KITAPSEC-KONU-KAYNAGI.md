@@ -49,3 +49,21 @@ başlığı **YKS 2027 TYT AYT Konuları**.
 **Sınır:** Bu doğrulama, kullanıcı tarafından gönderilen Kitapseç
 sayfasındaki görünür konu başlıklarını esas alır; kaynak içindeki
 çelişkili veya eksik bölümler bağımsız resmî doğrulama değildir.
+
+
+## TYT / AYT Fen ayrımı (2026-10-17 düzeltmesi)
+
+Kitapseç'in bazı AYT Fen bölümleri 9–12. sınıfın **birlikte** konu listesini
+veriyordu. Bu nedenle ilk içe aktarımda TYT düzeyindeki giriş konuları yanlış
+şekilde AYT'ye de taşınmıştı. Öğrenme Merkezi'nde artık AYT başlıklarında:
+
+- Fizik: 11–12. sınıfın ileri konuları (Kuvvet ve Hareket; Elektrik ve
+  Manyetizma; Çembersel Hareket; BHH; Dalga Mekaniği; Atom Fiziği;
+  Modern Fizik ve Uygulamaları).
+- Kimya: Modern Atom Teorisi'nden Organik Bileşikler ve Enerji Kaynaklarına.
+- Biyoloji: İnsan Fizyolojisi'nden Canlılar ve Çevre'ye.
+
+Bu ayrım **Kitapseç'in ham listesindeki sıralamayı filtreleyen pedagojik
+bir düzenlemedir**, resmî ÖSYM kapsamını birebir garanti etmez.
+Önceki sürümde yanlışlıkla AYT'ye yazılmış ilerleme ve fotoğraf bağlantıları
+"Eski Kayıtlar" bölümünde eski ID'leri korunarak arşivlenir.
