@@ -34,7 +34,6 @@ import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.LearningOutcome
 import com.deniz0706.ykstakip.model.AytField
-import com.deniz0706.ykstakip.util.LearningFields
 import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
 import com.deniz0706.ykstakip.util.ReviewAdvisor
@@ -88,16 +87,12 @@ fun StudyScreenV2(
     val reviewSignals = remember(learningOutcomes, learningQuestions, exams) {
         ReviewAdvisor.recommendations(learningOutcomes, learningQuestions, exams)
     }
-    val visibleReviewSignals = reviewSignals.filter {
-        LearningFields.includes(it.outcome.examType, it.outcome.subject, learningField)
-    }
-    val visibleOutcomeIds = learningOutcomes.filter {
-        LearningFields.includes(it.examType, it.subject, learningField)
-    }.map { it.id }.toSet()
-    val urgentReviews = visibleReviewSignals.count { it.urgent }
-    val reviewSuggestions = visibleReviewSignals.size
+    // Daily repeat reminders cover every course, including other AYT tracks.
+    val urgentReviews = reviewSignals.count { it.urgent }
+    val reviewSuggestions = reviewSignals.size
+    val manuallyMarked = learningOutcomes.count { it.reviewRequested }
     val pendingQuestions = learningQuestions.count {
-        it.status != QuestionStatus.COZULDU && it.outcomeId in visibleOutcomeIds
+        it.status != QuestionStatus.COZULDU
     }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date())
     val current = days.firstOrNull { it.date == today }
@@ -109,8 +104,12 @@ fun StudyScreenV2(
     var range by remember { mutableStateOf("7") }
     var showAllDays by remember { mutableStateOf(false) }
     var section by remember { mutableStateOf("today") }
+    var openRepeatInbox by remember { mutableStateOf(false) }
     LaunchedEffect(learningJump?.requestId) {
-        if (learningJump != null) section = "learning"
+        if (learningJump != null) {
+            openRepeatInbox = false
+            section = "learning"
+        }
     }
     val listState = rememberLazyListState()
     LaunchedEffect(section) { listState.scrollToItem(0) }
@@ -188,11 +187,15 @@ fun StudyScreenV2(
                 top = 20.dp, bottom = 4.dp)) {
                 StudyScreenHeader(colors)
                 Spacer(Modifier.height(8.dp))
-                StudySectionTabs(section) { section = it }
+                StudySectionTabs(section) {
+                    openRepeatInbox = false
+                    section = it
+                }
             }
             LearningHubPanel(
                 outcomes = learningOutcomes,
                 questions = learningQuestions,
+                startingPane = if (openRepeatInbox) "review" else "outcomes",
                 startingExamType = learningJump?.examType ?: "TYT",
                 startingSubject = learningJump?.subject.orEmpty(),
                 // Repeat inbox should span all TYT/AYT courses and fields.
@@ -226,7 +229,10 @@ fun StudyScreenV2(
     ) {
         item { StudyScreenHeader(colors) }
         item(key = "study-sections") {
-            StudySectionTabs(section) { section = it }
+            StudySectionTabs(section) {
+                openRepeatInbox = false
+                section = it
+            }
         }
         if (section == "today" && (reviewSuggestions > 0 || pendingQuestions > 0)) {
             item(key = "daily-learning-reminder") {
@@ -234,15 +240,19 @@ fun StudyScreenV2(
                     Text("BUGÜNÜN TEKRAR GÜNDEMİ", color = colors.secondary,
                         style = MaterialTheme.typography.labelSmall)
                     Spacer(Modifier.height(6.dp))
-                    Text("$urgentReviews öncelikli · $reviewSuggestions tekrar önerisi · $pendingQuestions bekleyen soru",
+                    Text("$manuallyMarked işaretli · $reviewSuggestions tekrar önerisi · " +
+                            "$pendingQuestions bekleyen soru",
                         color = colors.onSurface, fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))
                     Text("Denemelerde tekrar eden yanlışları ve fotoğraflı sorularını gözden geçir.",
                         color = colors.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = { section = "learning" }) {
-                        Text("Öğrenme Merkezine git →")
+                    TextButton(onClick = {
+                        openRepeatInbox = true
+                        section = "learning"
+                    }) {
+                        Text("Tekrar listemi aç →")
                     }
                 }
             }

@@ -44,6 +44,7 @@ fun LearningHubPanel(
     outcomes: List<LearningOutcome>,
     questions: List<QuestionCard>,
     signals: List<ReviewSignal>,
+    startingPane: String = "outcomes",
     startingExamType: String = "TYT",
     startingSubject: String = "",
     learningField: AytField,
@@ -66,7 +67,7 @@ fun LearningHubPanel(
     onRemovePhoto: (String, String) -> Unit
 ) {
     val c = MaterialTheme.colorScheme
-    var pane by remember { mutableStateOf("outcomes") }
+    var pane by remember(startingPane) { mutableStateOf(startingPane) }
     var examType by remember(startingExamType) { mutableStateOf(startingExamType) }
     var subjectFilter by remember(startingExamType, startingSubject) { mutableStateOf(startingSubject) }
     var topicFilter by remember { mutableStateOf("") }
