@@ -14,11 +14,13 @@ başlığı **YKS 2027 TYT AYT Konuları**.
   konuları ders altında birleştirir, aynı başlığı iki kez tekrarlamaz.
 - **AYT Tarih-2** için bu sayfada ayrı konu listesi olmadığından sayfadaki
   AYT Tarih soru dağılımında adı geçen tarih konu başlıkları alınmıştır.
-- **AYT Edebiyat** 9–12. sınıfın metin türleri altında gruplanır. Sitedeki
-  dönem bazlı satırlar ayrı bir *soru dağılımı tablosundadır*.
-- **AYT Kimyasal Tepkimelerde Hız**, sitedeki konu listesinde bulunmamakta
-  fakat aynı sayfadaki soru dağılımında yer almaktadır. Bu nedenle yalnız
-  bu sayfaya dayalı liste ile resmî eksiksizlik iddia edilemez.
+- **AYT Edebiyat** 9–12. sınıf metin türleri ile aynı sayfanın
+  tarihsel soru dağılımı bölümünde açıkça adlandırdığı edebî dönemleri
+  birlikte içerir. Bunlar iki farklı kaynak bölümünden alınmıştır.
+- **AYT Kimyasal Tepkimelerde Hız**, sitedeki ana konu listesinde
+  atlanmıştır ancak soru dağılımında açıkça bulunur; bu başlık da
+  *tablodan tamamlayıcı* olarak eklenmiştir. Bu durum sitenin kendi
+  içinde eksikleri olduğunu gösterir; resmî sınav kapsamı iddia edilmez.
 - Bu site MEB veya ÖSYM'nin resmi sınav kapsamı belgesi değildir.
 
 ## Veri güvenliği

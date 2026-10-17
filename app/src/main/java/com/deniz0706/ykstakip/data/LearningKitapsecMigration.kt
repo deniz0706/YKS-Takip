@@ -82,6 +82,16 @@ object LearningKitapsecMigration {
         "AYT|Fizik|Dalga Mekaniği" to "Dalga Mekaniği",
         "AYT|Fizik|Modern Fizik" to "Modern Fizik",
         "AYT|Kimya|Organik Kimya" to "Organik Bileşikler",
+        "AYT|Edebiyat|Söz Sanatları" to "Edebi Sanatlar",
+        "AYT|Edebiyat|İslamiyet Öncesi Edebiyat" to
+            "İslamiyet Öncesi Türk Edebiyatı ve Geçiş Dönemi",
+        "AYT|Edebiyat|Geçiş Dönemi" to
+            "İslamiyet Öncesi Türk Edebiyatı ve Geçiş Dönemi",
+        "AYT|Edebiyat|Tanzimat" to "Tanzimat Edebiyatı",
+        "AYT|Edebiyat|Servetifünun Fecriati" to
+            "Servet-i Fünun ve Fecr-i Âti Edebiyatı",
+        "AYT|Edebiyat|Millî Edebiyat" to "Milli Edebiyat",
+        "AYT|Edebiyat|Edebî Akımlar" to "Batı Edebiyat Akımları",
         "AYT|Biyoloji|Komünite Ekolojisi" to "Komünite ve Popülasyon Ekolojisi",
         "AYT|Biyoloji|Enerji Dönüşümleri" to "Canlılarda Enerji Dönüşümleri",
         "AYT|Biyoloji|Evrim ve Adaptasyon" to "Canlılar ve Çevre",

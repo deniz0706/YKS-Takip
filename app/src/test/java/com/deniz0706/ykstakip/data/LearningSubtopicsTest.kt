@@ -38,7 +38,8 @@ class LearningSubtopicsTest {
         assertEquals(22, counts["TYT/Tarih"])
         assertEquals(15, counts["TYT/Türkçe"])
         assertEquals(12, counts["TYT/Fizik"])
-        assertEquals(4, counts["AYT/Edebiyat"])
+        assertEquals(17, counts["AYT/Edebiyat"])
+        assertEquals(17, counts["AYT/Kimya"])
     }
 
     @Test fun nestedHeadingsAreDistinctWithinEachUnit() {
