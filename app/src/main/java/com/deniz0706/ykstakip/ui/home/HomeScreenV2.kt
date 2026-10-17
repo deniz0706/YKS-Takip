@@ -27,6 +27,13 @@ fun HomeScreenV2(
     exams: List<Exam>,
     onNewExam: (ExamType) -> Unit,
     onOpenStudy: () -> Unit,
+    onOpenLearning: (String, String) -> Unit,
+    learningAlertTitle: String? = null,
+    learningAlertType: String = "TYT",
+    learningAlertSubject: String = "",
+    reviewAlertCount: Int = 0,
+    learningDoneCount: Int = 0,
+    learningTotalCount: Int = 0,
     modifier: Modifier = Modifier,
     hasFocusSession: Boolean = false,
     daysLeft: Long? = null,
@@ -86,6 +93,30 @@ fun HomeScreenV2(
             }
         }
         item { ExamTypeTabs(type.name, { type = ExamType.valueOf(it) }) }
+        if (learningAlertTitle != null) {
+            item(key = "learning-alert") {
+                DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                    Text("TEKRAR RADARI", color = c.secondary,
+                        style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1.sp)
+                    Spacer(Modifier.height(6.dp))
+                    Text("Şu kazanıma dikkat et:", color = c.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium)
+                    Text(learningAlertTitle, color = c.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(5.dp))
+                    Text("$reviewAlertCount tekrar önerisi · $learningDoneCount/$learningTotalCount kazanım tamamlandı",
+                        color = c.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall)
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedButton(onClick = {
+                        onOpenLearning(learningAlertType, learningAlertSubject)
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Öğrenme Merkezinde incele →")
+                    }
+                }
+            }
+        }
         item {
             DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,

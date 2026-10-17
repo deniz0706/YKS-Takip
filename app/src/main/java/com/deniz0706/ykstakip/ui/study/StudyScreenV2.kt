@@ -45,6 +45,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+data class StudyLearningJump(val requestId: Int, val examType: String, val subject: String)
+
 @Composable
 fun StudyScreenV2(
     days: List<StudyDay>,
@@ -53,6 +55,7 @@ fun StudyScreenV2(
     exams: List<Exam>,
     learningOutcomes: List<LearningOutcome>,
     learningQuestions: List<QuestionCard>,
+    learningJump: StudyLearningJump?,
     onLearningComplete: (String, Boolean) -> Unit,
     onLearningWrong: (String) -> Unit,
     onLearningRequestReview: (String) -> Unit,
@@ -80,6 +83,7 @@ fun StudyScreenV2(
         ReviewAdvisor.recommendations(learningOutcomes, learningQuestions, exams)
     }
     val urgentReviews = reviewSignals.count { it.urgent }
+    val reviewSuggestions = reviewSignals.size
     val pendingQuestions = learningQuestions.count { it.status != QuestionStatus.COZULDU }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date())
     val current = days.firstOrNull { it.date == today }
@@ -91,6 +95,9 @@ fun StudyScreenV2(
     var range by remember { mutableStateOf("7") }
     var showAllDays by remember { mutableStateOf(false) }
     var section by remember { mutableStateOf("today") }
+    LaunchedEffect(learningJump?.requestId) {
+        if (learningJump != null) section = "learning"
+    }
     val listState = rememberLazyListState()
     LaunchedEffect(section) { listState.scrollToItem(0) }
     val sorted = remember(days) { days.sortedBy { it.date } }
@@ -192,6 +199,8 @@ fun StudyScreenV2(
                     LearningHubPanel(
                         outcomes = learningOutcomes,
                         questions = learningQuestions,
+                        startingExamType = learningJump?.examType ?: "TYT",
+                        startingSubject = learningJump?.subject.orEmpty(),
                         signals = reviewSignals,
                         onCompleted = onLearningComplete,
                         onWrong = onLearningWrong,
@@ -210,13 +219,13 @@ fun StudyScreenV2(
                 }
             }
         }
-        if (section == "today" && (urgentReviews > 0 || pendingQuestions > 0)) {
+        if (section == "today" && (reviewSuggestions > 0 || pendingQuestions > 0)) {
             item(key = "daily-learning-reminder") {
                 DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
                     Text("BUGÜNÜN TEKRAR GÜNDEMİ", color = colors.secondary,
                         style = MaterialTheme.typography.labelSmall)
                     Spacer(Modifier.height(6.dp))
-                    Text("$urgentReviews öncelikli kazanım · $pendingQuestions bekleyen soru",
+                    Text("$urgentReviews öncelikli · $reviewSuggestions tekrar önerisi · $pendingQuestions bekleyen soru",
                         color = colors.onSurface, fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))

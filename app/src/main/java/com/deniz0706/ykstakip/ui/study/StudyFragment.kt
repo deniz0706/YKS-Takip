@@ -50,6 +50,13 @@ class StudyFragment : Fragment() {
     private val outcomes = mutableStateOf<List<LearningOutcome>>(emptyList())
     private val cards = mutableStateOf<List<QuestionCard>>(emptyList())
     private val savedExams = mutableStateOf<List<Exam>>(emptyList())
+    private val learningJump = mutableStateOf<StudyLearningJump?>(null)
+    private var learningJumpSeq = 0
+
+    fun openLearning(examType: String, subject: String) {
+        learningJumpSeq++
+        learningJump.value = StudyLearningJump(learningJumpSeq, examType, subject)
+    }
 
     private val takePhoto = registerForActivityResult(ActivityResultContracts.TakePicture()) { succeeded ->
         val q = cameraQuestionId
@@ -103,6 +110,7 @@ class StudyFragment : Fragment() {
                         exams = savedExams.value,
                         learningOutcomes = outcomes.value,
                         learningQuestions = cards.value,
+                        learningJump = learningJump.value,
                         onLearningComplete = { id,checked ->
                             learningRepository.setCompleted(id,checked); refresh()
                         },

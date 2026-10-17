@@ -13,6 +13,9 @@ import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.StudyRepository
 import com.deniz0706.ykstakip.data.FocusSessionRepository
+import com.deniz0706.ykstakip.data.LearningRepository
+import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.util.ReviewAdvisor
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
@@ -28,6 +31,7 @@ class HomeFragment : Fragment() {
     private lateinit var repository: ExamRepository
     private lateinit var studyRepository: StudyRepository
     private lateinit var focusRepository: FocusSessionRepository
+    private lateinit var learningRepository: LearningRepository
     private val exams = mutableStateOf<List<Exam>>(emptyList())
     private data class Summary(
         val daysTyt: Long? = null,
@@ -36,7 +40,13 @@ class HomeFragment : Fragment() {
         val goalAyt: Float? = null,
         val todayQuestions: Int = 0,
         val dailyGoal: Int? = null,
-        val hasFocusSession: Boolean = false
+        val hasFocusSession: Boolean = false,
+        val learningAlertTitle: String? = null,
+        val learningAlertType: String = "TYT",
+        val learningAlertSubject: String = "",
+        val reviewAlertCount: Int = 0,
+        val learningDoneCount: Int = 0,
+        val learningTotalCount: Int = 0
     )
     private val dashboardSummary = mutableStateOf(Summary())
     private val refreshListener: () -> Unit = { refresh() }
@@ -46,6 +56,7 @@ class HomeFragment : Fragment() {
         repository = ExamRepository.getInstance(requireContext())
         studyRepository = StudyRepository(requireContext())
         focusRepository = FocusSessionRepository(requireContext())
+        learningRepository = LearningRepository(requireContext())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -59,6 +70,15 @@ class HomeFragment : Fragment() {
                         exams = exams.value,
                         onNewExam = { (activity as? MainActivity)?.openNewExam(it) },
                         onOpenStudy = { (activity as? MainActivity)?.openStudy() },
+                        onOpenLearning = { type, subject ->
+                            (activity as? MainActivity)?.openLearning(type, subject)
+                        },
+                        learningAlertTitle = summary.learningAlertTitle,
+                        learningAlertType = summary.learningAlertType,
+                        learningAlertSubject = summary.learningAlertSubject,
+                        reviewAlertCount = summary.reviewAlertCount,
+                        learningDoneCount = summary.learningDoneCount,
+                        learningTotalCount = summary.learningTotalCount,
                         daysLeft = summary.daysTyt,
                         daysLeftAyt = summary.daysAyt,
                         targetTyt = summary.goalTyt,
@@ -87,6 +107,12 @@ class HomeFragment : Fragment() {
         exams.value = repository.getAllExams()
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val session = focusRepository.snapshot()
+        val learningOutcomes = learningRepository.outcomes()
+        val alerts = ReviewAdvisor.recommendations(
+            learningOutcomes, learningRepository.questions(), exams.value
+        )
+        val mainAlert = alerts.firstOrNull { it.urgent || it.due }
+            ?: alerts.firstOrNull()
         dashboardSummary.value = Summary(
             daysTyt = daysUntilExam(19),
             daysAyt = daysUntilExam(20),
@@ -94,7 +120,15 @@ class HomeFragment : Fragment() {
             goalAyt = AppSettings.getTargetNet(requireContext(), ExamType.AYT),
             todayQuestions = studyRepository.get(today)?.questionCount ?: 0,
             dailyGoal = AppSettings.getDailyGoal(requireContext()),
-            hasFocusSession = session.running || session.elapsedMs > 0L
+            hasFocusSession = session.running || session.elapsedMs > 0L,
+            learningAlertTitle = mainAlert?.outcome?.let {
+                it.subject + " · " + it.title
+            },
+            learningAlertType = mainAlert?.outcome?.examType ?: "TYT",
+            learningAlertSubject = mainAlert?.outcome?.subject.orEmpty(),
+            reviewAlertCount = alerts.size,
+            learningDoneCount = learningOutcomes.count { it.completed },
+            learningTotalCount = learningOutcomes.size
         )
     }
 

@@ -35,6 +35,8 @@ fun LearningHubPanel(
     outcomes: List<LearningOutcome>,
     questions: List<QuestionCard>,
     signals: List<ReviewSignal>,
+    startingExamType: String = "TYT",
+    startingSubject: String = "",
     onCompleted: (String, Boolean) -> Unit,
     onWrong: (String) -> Unit,
     onRequestReview: (String) -> Unit,
@@ -51,8 +53,10 @@ fun LearningHubPanel(
 ) {
     val c = MaterialTheme.colorScheme
     var pane by remember { mutableStateOf("outcomes") }
-    var examType by remember { mutableStateOf("TYT") }
-    var subjectFilter by remember { mutableStateOf("") }
+    var examType by remember(startingExamType) { mutableStateOf(startingExamType) }
+    var subjectFilter by remember(startingExamType, startingSubject) {
+        mutableStateOf(startingSubject)
+    }
     var topicFilter by remember { mutableStateOf("") }
     var subjectMenu by remember { mutableStateOf(false) }
     var createOutcome by remember { mutableStateOf(false) }

@@ -148,6 +148,12 @@ class MainActivity : AppCompatActivity() {
         showFragment(NAV_STUDY)
     }
 
+    fun openLearning(examType: String, subject: String) {
+        nav.select(NAV_STUDY)
+        showFragment(NAV_STUDY)
+        (fragmentCache[NAV_STUDY] as? StudyFragment)?.openLearning(examType, subject)
+    }
+
     fun openNewExam(type: ExamType) {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(
