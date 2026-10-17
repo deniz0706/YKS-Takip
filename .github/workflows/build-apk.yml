@@ -30,8 +30,37 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
+      # Android would otherwise generate a different debug certificate on
+      # every ephemeral runner, so installed previews could never be updated.
+      # This is only a temporary development fallback: caches can be evicted.
+      - name: Restore preview debug signing key
+        id: preview_signing_cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: yks-takip-2-0-debug-signing-linux-v1
+
+      - name: Prepare preview debug signing
+        env:
+          PREVIEW_DEBUG_KEYSTORE_B64: ${{ secrets.YKS_PREVIEW_DEBUG_KEYSTORE_B64 }}
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ -n "$PREVIEW_DEBUG_KEYSTORE_B64" ]; then
+            printf '%s' "$PREVIEW_DEBUG_KEYSTORE_B64" | base64 --decode > "$HOME/.android/debug.keystore"
+            echo "Using repository-secret signing key."
+          elif [ -s "$HOME/.android/debug.keystore" ]; then
+            echo "Using cached development signing key."
+          else
+            echo "::warning::No permanent signing key configured. A new debug key will be generated and cached. GitHub may evict caches after inactivity."
+          fi
+
       - name: Build APK
         run: gradle --no-daemon assembleDebug assembleRelease
+
+      - name: Report APK signing fingerprint
+        run: |
+          # Never publish the private key. Only the public certificate hash.
+          keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey | grep 'SHA256:'
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
