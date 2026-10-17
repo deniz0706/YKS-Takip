@@ -261,6 +261,60 @@ AYT|Felsefe Grubu|Mantık|Kavram ve önermeyi açıklar;Kıyas kurallarını yor
 AYT|Din Kültürü / Ek Felsefe|İnanç ve Değer|İnanç esaslarını ayırt eder;Din ahlak ilişkisini açıklar;Evrensel değerleri yorumlar
     """.trimIndent()
 
+    /** Missing exam units as single, user-checkable topics (not artificial subskills). */
+    private val supplementalUnits = """
+TYT|Türkçe|Ek Fiil
+TYT|Türkçe|Fiilde Çatı
+TYT|Matematik|Temel Kavramlar
+TYT|Tarih|Osmanlı Kültür ve Medeniyeti
+TYT|Tarih|Avrupa ve Osmanlı'da Değişim
+TYT|Coğrafya|Çevre ve Toplum
+TYT|Coğrafya|Ekosistem ve Biyoçeşitlilik
+TYT|Din Kültürü|Din ve Hayat
+TYT|Din Kültürü|Ahlaki Tutum ve Davranışlar
+TYT|Din Kültürü|İslam Düşüncesinde Yorumlar
+TYT|Din Kültürü|Din, Kültür ve Medeniyet
+TYT|Kimya|Doğa ve Kimya
+TYT|Kimya|Kimyanın Temel Kanunları
+AYT|Matematik|Fonksiyonlarda Uygulamalar
+AYT|Geometri|Üçgenler
+AYT|Geometri|Dörtgenler ve Çokgenler
+AYT|Geometri|Çember ve Daire
+AYT|Fizik|Dalga Mekaniği
+AYT|Fizik|Atom Fiziğine Giriş ve Radyoaktivite
+AYT|Fizik|Modern Fiziğin Teknolojideki Uygulamaları
+AYT|Kimya|Karbon Kimyasına Giriş
+AYT|Kimya|Enerji Kaynakları ve Bilimsel Gelişmeler
+AYT|Biyoloji|Popülasyon Ekolojisi
+AYT|Biyoloji|Canlılar ve Çevre
+AYT|Edebiyat|Hikâye ve Roman
+AYT|Edebiyat|Destan ve Efsane
+AYT|Tarih-1|Tarih ve Zaman
+AYT|Tarih-1|İlk ve Orta Çağ Uygarlıkları
+AYT|Tarih-1|İlk Türk Devletleri
+AYT|Tarih-1|Türk-İslam Devletleri
+AYT|Tarih-1|Selçuklu Türkiyesi
+AYT|Coğrafya-1|Küresel Ortam: Bölgeler ve Ülkeler
+AYT|Coğrafya-1|Çevre ve Toplum
+AYT|Tarih-2|20. Yüzyıl Başlarında Osmanlı ve Dünya
+AYT|Tarih-2|Millî Mücadele
+AYT|Tarih-2|Atatürkçülük ve Türk İnkılabı
+AYT|Tarih-2|İki Savaş Arası Dönemde Türkiye ve Dünya
+AYT|Tarih-2|İkinci Dünya Savaşı Sonrası Türkiye ve Dünya
+AYT|Tarih-2|21. Yüzyılın Eşiğinde Türkiye ve Dünya
+AYT|Coğrafya-2|Doğal Sistemler
+AYT|Coğrafya-2|Beşerî Sistemler
+AYT|Coğrafya-2|Çevre ve Toplum
+AYT|Din Kültürü / Ek Felsefe|Bilgi ve İnanç
+AYT|Din Kültürü / Ek Felsefe|İslam ve İbadet
+AYT|Din Kültürü / Ek Felsefe|Hz. Muhammed ve Kur'an
+AYT|Din Kültürü / Ek Felsefe|Din ve Ahlak
+AYT|Din Kültürü / Ek Felsefe|İslam Düşüncesinde Yorumlar
+AYT|Din Kültürü / Ek Felsefe|İslam ve Bilim
+AYT|Din Kültürü / Ek Felsefe|Güncel Dinî Meseleler
+AYT|Din Kültürü / Ek Felsefe|Dünya Dinleri
+    """.trimIndent()
+
     fun normalizedTopic(exam: String, subject: String, topic: String): String {
         if (exam == "TYT" && subject == "Türkçe" &&
             topic in setOf("Paragrafta Anlam", "Paragrafta Yapı", "Anlatım Biçimleri", "Düşünceyi Geliştirme")) return "Paragraf"
@@ -352,6 +406,19 @@ AYT|Din Kültürü / Ek Felsefe|İnanç ve Değer|İnanç esaslarını ayırt ed
             val exam = parts[0].trim()
             val subject = parts[1].trim()
             val title = normalizedTopic(exam, subject, parts[2].trim())
+            val id = "unit|$exam|$subject|$title"
+            topics.putIfAbsent(id, LearningOutcome(
+                id = id, examType = exam, subject = subject, topic = subject, title = title
+            ))
+        }
+        // Add only truly missing unit rows. Keep all existing unit IDs stable
+        // so ticks, scheduled reviews and linked question images are untouched.
+        supplementalUnits.lineSequence().filter { it.isNotBlank() }.forEach { row ->
+            val parts = row.split('|', limit = 3)
+            require(parts.size == 3) { "Invalid supplemental unit" }
+            val exam = parts[0].trim()
+            val subject = parts[1].trim()
+            val title = parts[2].trim()
             val id = "unit|$exam|$subject|$title"
             topics.putIfAbsent(id, LearningOutcome(
                 id = id, examType = exam, subject = subject, topic = subject, title = title
