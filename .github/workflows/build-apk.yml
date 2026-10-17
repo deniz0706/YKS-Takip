@@ -54,13 +54,8 @@ jobs:
           elif [ -s "$HOME/.android/debug.keystore" ]; then
             echo "Using cached development signing key."
           else
-            echo "::warning::No permanent signing key configured; generating first-time development key. The cache may be evicted after inactivity."
-            keytool -genkeypair \
-              -keystore "$HOME/.android/debug.keystore" \
-              -storepass android -keypass android \
-              -alias androiddebugkey -keyalg RSA -keysize 2048 \
-              -validity 10000 -dname "CN=Android Debug,O=Android,C=US" \
-              -noprompt
+            echo "::error::Preview signing key is missing. Refusing to create an incompatible APK. Restore the original keystore using the repository secret."
+            exit 1
           fi
           chmod 600 "$HOME/.android/debug.keystore"
           test -s "$HOME/.android/debug.keystore"
@@ -79,7 +74,15 @@ jobs:
             echo "::error::Android SDK apksigner was not installed."
             exit 1
           fi
-          "$APK_SIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -Ei 'SHA-256|SHA256'
+          SIGNER_REPORT="$("$APK_SIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk)"
+          printf '%s\n' "$SIGNER_REPORT" | grep -Ei 'SHA-256|SHA256'
+          EXPECTED="00cd083532461daf80c7c381e016c6f183970fe9d62f320abfda9969a3b22b46"
+          CERT="$(printf '%s\n' "$SIGNER_REPORT" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr '[:upper:]' '[:lower:]' | tr -d '\r')"
+          if [ -z "$CERT" ] || [ "$CERT" != "$EXPECTED" ]; then
+            echo "::error::Preview signing certificate changed or could not be read. Expected: $EXPECTED. Got: ${CERT:-missing}. Refusing to publish an incompatible APK."
+            exit 1
+          fi
+          echo "Preview signature unchanged."
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
