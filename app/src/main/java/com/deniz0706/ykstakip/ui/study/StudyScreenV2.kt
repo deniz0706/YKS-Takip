@@ -31,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.StudyDay
 import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.model.QuestionCard
+import com.deniz0706.ykstakip.model.QuestionStatus
+import com.deniz0706.ykstakip.util.ReviewAdvisor
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
@@ -45,6 +50,22 @@ fun StudyScreenV2(
     days: List<StudyDay>,
     plan: List<StudyPlanItem>,
     goal: Int?,
+    exams: List<Exam>,
+    learningOutcomes: List<LearningOutcome>,
+    learningQuestions: List<QuestionCard>,
+    onLearningComplete: (String, Boolean) -> Unit,
+    onLearningWrong: (String) -> Unit,
+    onLearningRequestReview: (String) -> Unit,
+    onLearningReviewed: (String) -> Unit,
+    onLearningCreate: (String, String, String, String) -> Unit,
+    onLearningDelete: (String) -> Unit,
+    onQuestionCreate: (String, String, String, QuestionStatus) -> Unit,
+    onQuestionDelete: (String) -> Unit,
+    onQuestionReview: (String, Boolean) -> Unit,
+    onQuestionUnsolved: (String) -> Unit,
+    onQuestionCapture: (String) -> Unit,
+    onQuestionGallery: (String) -> Unit,
+    onQuestionPhotoRemove: (String, String) -> Unit,
     onEditToday: () -> Unit,
     onFocusSaved: () -> Unit,
     onEditDay: (String) -> Unit,
@@ -55,6 +76,11 @@ fun StudyScreenV2(
     onDeletePlan: (StudyPlanItem) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val reviewSignals = remember(learningOutcomes, learningQuestions, exams) {
+        ReviewAdvisor.recommendations(learningOutcomes, learningQuestions, exams)
+    }
+    val urgentReviews = reviewSignals.count { it.urgent }
+    val pendingQuestions = learningQuestions.count { it.status != QuestionStatus.COZULDU }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date())
     val current = days.firstOrNull { it.date == today }
     val questions = current?.questionCount ?: 0
@@ -148,15 +174,59 @@ fun StudyScreenV2(
         }
         item(key = "study-sections") {
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                listOf("today" to "Bugün", "plan" to "Plan", "analysis" to "Analiz")
+                listOf("today" to "Bugün", "plan" to "Plan",
+                    "learning" to "Öğrenme", "analysis" to "Analiz")
                     .forEachIndexed { index, (key, label) ->
                         SegmentedButton(
                             selected = section == key,
                             onClick = { section = key },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 4),
                             label = { Text(label, maxLines = 1) }
                         )
                     }
+            }
+        }
+        if (section == "learning") {
+            item(key = "learning-hub") {
+                Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                    LearningHubPanel(
+                        outcomes = learningOutcomes,
+                        questions = learningQuestions,
+                        signals = reviewSignals,
+                        onCompleted = onLearningComplete,
+                        onWrong = onLearningWrong,
+                        onRequestReview = onLearningRequestReview,
+                        onReviewed = onLearningReviewed,
+                        onCreateOutcome = onLearningCreate,
+                        onDeleteOutcome = onLearningDelete,
+                        onCreateQuestion = onQuestionCreate,
+                        onDeleteQuestion = onQuestionDelete,
+                        onReviewQuestion = onQuestionReview,
+                        onMarkUnsolved = onQuestionUnsolved,
+                        onCapture = onQuestionCapture,
+                        onGallery = onQuestionGallery,
+                        onRemovePhoto = onQuestionPhotoRemove
+                    )
+                }
+            }
+        }
+        if (section == "today" && (urgentReviews > 0 || pendingQuestions > 0)) {
+            item(key = "daily-learning-reminder") {
+                DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                    Text("BUGÜNÜN TEKRAR GÜNDEMİ", color = colors.secondary,
+                        style = MaterialTheme.typography.labelSmall)
+                    Spacer(Modifier.height(6.dp))
+                    Text("$urgentReviews öncelikli kazanım · $pendingQuestions bekleyen soru",
+                        color = colors.onSurface, fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Denemelerde tekrar eden yanlışları ve fotoğraflı sorularını gözden geçir.",
+                        color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { section = "learning" }) {
+                        Text("Öğrenme Merkezine git →")
+                    }
+                }
             }
         }
         if (section == "today") {

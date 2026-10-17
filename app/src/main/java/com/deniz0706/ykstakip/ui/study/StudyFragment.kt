@@ -1,6 +1,16 @@
 package com.deniz0706.ykstakip.ui.study
 
 import android.os.Bundle
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import com.deniz0706.ykstakip.data.LearningRepository
+import com.deniz0706.ykstakip.data.ExamRepository
+import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.model.QuestionCard
+import com.deniz0706.ykstakip.model.QuestionStatus
 import android.app.DatePickerDialog
 import java.util.Calendar
 import android.text.InputType
@@ -32,6 +42,39 @@ import java.util.Locale
 class StudyFragment : Fragment() {
     private lateinit var repository: StudyRepository
     private lateinit var planRepository: StudyPlanRepository
+    private lateinit var learningRepository: LearningRepository
+    private lateinit var examRepository: ExamRepository
+    private var cameraQuestionId: String? = null
+    private var cameraFilename: String? = null
+    private var galleryQuestionId: String? = null
+    private val outcomes = mutableStateOf<List<LearningOutcome>>(emptyList())
+    private val cards = mutableStateOf<List<QuestionCard>>(emptyList())
+    private val savedExams = mutableStateOf<List<Exam>>(emptyList())
+
+    private val takePhoto = registerForActivityResult(ActivityResultContracts.TakePicture()) { succeeded ->
+        val q = cameraQuestionId
+        val name = cameraFilename
+        if (q != null && name != null) {
+            if (succeeded) learningRepository.attachCapturedPhoto(q, name)
+            else learningRepository.discardCameraPhoto(name)
+        }
+        cameraQuestionId = null
+        cameraFilename = null
+        if (isAdded) refresh()
+    }
+
+    private val pickPhoto = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val q = galleryQuestionId
+        if (q != null && uri != null) {
+            if (!learningRepository.attachGalleryPhoto(q, uri)) {
+                if (isAdded) Toast.makeText(requireContext(),
+                    "Fotoğraf kaydedilemedi.", Toast.LENGTH_SHORT).show()
+            }
+        }
+        galleryQuestionId = null
+        if (isAdded) refresh()
+    }
+
     private val days = mutableStateOf<List<StudyDay>>(emptyList())
     private val plan = mutableStateOf<List<StudyPlanItem>>(emptyList())
     private val goal = mutableStateOf<Int?>(null)
@@ -40,6 +83,11 @@ class StudyFragment : Fragment() {
         super.onCreate(savedInstanceState)
         repository = StudyRepository(requireContext())
         planRepository = StudyPlanRepository(requireContext())
+        learningRepository = LearningRepository(requireContext())
+        examRepository = ExamRepository.getInstance(requireContext())
+        cameraQuestionId = savedInstanceState?.getString("camera_question")
+        cameraFilename = savedInstanceState?.getString("camera_name")
+        galleryQuestionId = savedInstanceState?.getString("gallery_question")
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
@@ -52,6 +100,35 @@ class StudyFragment : Fragment() {
                         days = days.value,
                         plan = plan.value,
                         goal = goal.value,
+                        exams = savedExams.value,
+                        learningOutcomes = outcomes.value,
+                        learningQuestions = cards.value,
+                        onLearningComplete = { id,checked ->
+                            learningRepository.setCompleted(id,checked); refresh()
+                        },
+                        onLearningWrong = { learningRepository.markWrong(it); refresh() },
+                        onLearningRequestReview = { learningRepository.requestReview(it); refresh() },
+                        onLearningReviewed = { learningRepository.reviewOutcome(it); refresh() },
+                        onLearningCreate = { type,subject,topic,title ->
+                            learningRepository.addOutcome(type,subject,topic,title); refresh()
+                        },
+                        onLearningDelete = { learningRepository.deleteCustomOutcome(it); refresh() },
+                        onQuestionCreate = { outcomeId,title,notes,status ->
+                            learningRepository.addQuestion(outcomeId,title,notes,status); refresh()
+                        },
+                        onQuestionDelete = { learningRepository.deleteQuestion(it); refresh() },
+                        onQuestionReview = { id, solved ->
+                            learningRepository.reviewQuestion(id,solved); refresh()
+                        },
+                        onQuestionUnsolved = { learningRepository.markQuestionUnsolved(it); refresh() },
+                        onQuestionCapture = { openCamera(it) },
+                        onQuestionGallery = { id ->
+                            galleryQuestionId = id
+                            pickPhoto.launch("image/*")
+                        },
+                        onQuestionPhotoRemove = { id,name ->
+                            learningRepository.removePhoto(id,name); refresh()
+                        },
                         onEditToday = { editDay(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())) },
                         onFocusSaved = { refresh() },
                         onEditDay = { editDay(it) },
@@ -70,7 +147,34 @@ class StudyFragment : Fragment() {
         refresh()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("camera_question", cameraQuestionId)
+        outState.putString("camera_name", cameraFilename)
+        outState.putString("gallery_question", galleryQuestionId)
+    }
+
+    private fun openCamera(questionId: String) {
+        val (filename, target) = learningRepository.newCameraPhoto()
+        cameraQuestionId = questionId
+        cameraFilename = filename
+        try {
+            val uri = FileProvider.getUriForFile(requireContext(),
+                requireContext().packageName + ".reviewphotos", target)
+            takePhoto.launch(uri)
+        } catch (_: Exception) {
+            learningRepository.discardCameraPhoto(filename)
+            cameraQuestionId = null
+            cameraFilename = null
+            Toast.makeText(requireContext(),
+                "Kamera açılamadı. Galeriden ekleyebilirsin.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun refresh() {
+        outcomes.value = learningRepository.outcomes()
+        cards.value = learningRepository.questions()
+        savedExams.value = examRepository.getAllExams()
         days.value = repository.getAll()
         plan.value = planRepository.getAll()
         goal.value = AppSettings.getDailyGoal(requireContext())
