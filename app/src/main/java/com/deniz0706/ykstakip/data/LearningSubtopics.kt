@@ -2,9 +2,11 @@ package com.deniz0706.ykstakip.data
 
 import com.deniz0706.ykstakip.model.LearningOutcome
 
-/** Nested headings from user-supplied nine-page TYT/AYT teacher handout.
- * This reference is not the official MEB YKS scope. Unlisted units remain
- * ordinary checkboxes rather than using invented subtopics.
+/** Nested headings based on the user-supplied nine-page TYT/AYT teacher handout.
+ * These are not official MEB YKS scope declarations.
+ * The "Problemler" subdivisions reuse the application's prior topic catalog:
+ * the teacher handout lists only "Problemler" without these subdivisions.
+ * Units without reliable subdivisions remain ordinary checkboxes.
  */
 object LearningSubtopics {
     private val catalog: Map<String, List<String>> by lazy {
@@ -19,6 +21,10 @@ object LearningSubtopics {
         }
         result
     }
+    /** Used by CI tests to prevent unreachable accordion groups. */
+    internal fun catalogUnitIds(): Set<String> =
+        catalog.keys.mapTo(linkedSetOf()) { "unit|$it" }
+
     fun forOutcome(outcome: LearningOutcome): List<String> =
         catalog["${outcome.examType}|${outcome.subject}|${outcome.title}"].orEmpty()
 
@@ -83,6 +89,29 @@ AYT|Felsefe Grubu|Sosyoloji|Birey ve Toplum;Toplumsal Yapı;Toplumsal Değişme 
 TYT|Din Kültürü|Kur'an|Kur'an ve Yorumu;Vahiy ve Akıl;Kur'an Yorumları
 TYT|Din Kültürü|İbadet|Zekât;İbadet
 TYT|Din Kültürü|İslam Düşüncesinde Yorumlar|İslam Düşüncesinde Yorumlar;İslam Düşüncesinde Tasavvuf
+TYT|Tarih|20. Yüzyıl Başlarında Osmanlı|20. Yüzyıl Başlarında Osmanlı Devleti;I. Dünya Savaşı
+TYT|Tarih|Atatürk İlkeleri ve İnkılaplar|Türk İnkılabı;Atatürkçülük ve Atatürk İlkeleri;Türk Dış Politikası
+TYT|Coğrafya|Yer Şekilleri|Yerin Şekillenmesi;İç ve Dış Kuvvetler
+AYT|Tarih-1|Atatürk İnkılapları|Türk İnkılabı;Atatürkçülük ve Atatürk İlkeleri;Atatürk Dönemi Türk Dış Politikası
+AYT|Tarih-1|Çağdaş Türk Dünya Tarihi|Atatürk'ün Ölümü;Yüzyılın Başlarında Dünya;İkinci Dünya Savaşı;Soğuk Savaş Dönemi;Yumuşama Dönemi ve Sonrası;Küreselleşen Dünya
+AYT|Tarih-2|Dünya Savaşları|I. Dünya Savaşı;İkinci Dünya Savaşı
+AYT|Tarih-2|20. Yüzyıl Başlarında Osmanlı ve Dünya|1881'den 1919'a Mustafa Kemal;I. Dünya Savaşı;Yüzyılın Başlarında Dünya
+AYT|Tarih-2|Millî Mücadele|Millî Mücadele'nin Hazırlık Dönemi;Kurtuluş Savaşı'nda Cepheler
+AYT|Tarih-2|Atatürkçülük ve Türk İnkılabı|Türk İnkılabı;Atatürkçülük ve Atatürk İlkeleri;Atatürk Dönemi Türk Dış Politikası
+AYT|Tarih-2|İkinci Dünya Savaşı Sonrası Türkiye ve Dünya|İkinci Dünya Savaşı;Soğuk Savaş Dönemi;Yumuşama Dönemi ve Sonrası
+AYT|Coğrafya-1|Küresel Ortam: Bölgeler ve Ülkeler|Bölge Türleri ve Sınırları;Konum ve Etkileşim;Coğrafi Keşifler
+AYT|Coğrafya-1|Çevre ve Toplum|Doğa ile İnsan Arasındaki Etkileşim;Doğal Afetler
+AYT|Coğrafya-2|Küresel Sistem|Bölge Türleri ve Sınırları;Konum ve Etkileşim;Coğrafi Keşifler
+AYT|Geometri|Üçgenler|Doğruda ve Üçgende Açılar;Dik ve Özel Üçgenler;Üçgende Alanlar;Üçgende Açıortay Bağıntıları;Üçgende Kenarortay Bağıntıları;Üçgende Eşlik ve Benzerlik;Üçgende Açı-Kenar Bağıntıları
+AYT|Geometri|Dörtgenler ve Çokgenler|Çokgenler;Dörtgenler;Yamuk;Paralelkenar;Eşkenar Dörtgen ve Deltoid;Dikdörtgen
+AYT|Geometri|Çember ve Daire|Çemberde Açılar;Çemberde Uzunluk;Daire
+AYT|Geometri|Uzay Geometri|Prizmalar;Piramitler;Küre
+AYT|Edebiyat|Şiir Bilgisi|Şiir Bilgisi;Nazım Biçimleri ve Türleri
+AYT|Edebiyat|Geçiş Dönemi|İslami Dönem İlk Dil ve Edebiyat Ürünleri;Oğuz Türkçesinin İlk Ürünleri
+AYT|Edebiyat|Servetifünun Fecriati|Servet-i Fünun Edebiyatı;Fecr-i Âti Edebiyatı
+AYT|Edebiyat|Cumhuriyet Dönemi Edebiyatı|Cumhuriyet Döneminde Türk Edebiyatı;Türkiye Dışındaki Türk Edebiyatı
+AYT|Din Kültürü / Ek Felsefe|Hz. Muhammed ve Kur'an|Kur'an-ı Kerim'in Anlaşılması ve Kavranması;Muhammed'in Hayatı, Örnekliği ve Onu Anlama
+TYT|Din Kültürü|Din, Kültür ve Medeniyet|Din, Kültür ve Medeniyet;Yaşayan Dinler ve Benzer Özellikler;Din ve Laiklik
 AYT|Din Kültürü / Ek Felsefe|İslam Düşüncesinde Yorumlar|İslam Düşüncesinde Yorumlar;Mezhepler
     """.trimIndent()
 }

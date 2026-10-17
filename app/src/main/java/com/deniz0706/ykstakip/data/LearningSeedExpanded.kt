@@ -337,8 +337,12 @@ AYT|Din Kültürü / Ek Felsefe|Dünya Dinleri
             topic in setOf("İç Kuvvetler", "Dış Kuvvetler")) return "Yer Şekilleri"
         if (exam == "TYT" && subject == "Fizik" &&
             topic in setOf("Hareket", "Kuvvet")) return "Hareket ve Kuvvet"
-        if (exam == "TYT" && subject == "Fizik" &&
-            topic in setOf("Elektrostatik", "Elektrik Devreleri")) return "Elektrik"
+        // The provided course outline separates electrostatics from
+        // current/circuit electricity. Keep the existing Elektrik ID stable.
+        if (exam == "TYT" && subject == "Fizik" && topic == "Elektrostatik")
+            return "Elektrostatik"
+        if (exam == "TYT" && subject == "Fizik" && topic == "Elektrik Devreleri")
+            return "Elektrik"
         if (exam == "TYT" && subject == "Kimya" &&
             topic in setOf("Atom Modelleri", "Periyodik Sistem")) return "Atom ve Periyodik Sistem"
         if (exam == "TYT" && subject == "Kimya" &&

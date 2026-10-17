@@ -63,7 +63,7 @@ jobs:
           echo "YKS_PREVIEW_DEBUG_KEYSTORE=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
 
       - name: Build APK
-        run: gradle --no-daemon assembleDebug assembleRelease
+        run: gradle --no-daemon testDebugUnitTest assembleDebug assembleRelease
 
       - name: Report APK signing fingerprint
         run: |
