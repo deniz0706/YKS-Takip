@@ -38,7 +38,17 @@ class LearningRepository(context: Context) {
     }
 
     private fun saveOutcomes(outcomes: List<LearningOutcome>) {
-        prefs.edit().putString("outcomes", JSONArray(outcomes.map { it.toJson() }).toString()).apply()
+        // The catalog now has hundreds of default items. Only persist modified
+        // seeded items plus custom entries, not 800+ untouched JSON objects after
+        // each checkbox tap. The defaults are reconstructed from stable IDs.
+        val defaults = LearningSeed.starter.associateBy { it.id }
+        val changed = outcomes.filter { outcome ->
+            val base = defaults[outcome.id]
+            base == null || base != outcome
+        }
+        prefs.edit().putString(
+            "outcomes", JSONArray(changed.map { it.toJson() }).toString()
+        ).apply()
     }
     private fun saveQuestions(cards: List<QuestionCard>) {
         prefs.edit().putString("questions", JSONArray(cards.map { it.toJson() }).toString()).apply()

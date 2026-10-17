@@ -53,7 +53,7 @@ object LearningSeed {
             group("AYT","Felsefe Grubu","Psikoloji ve Sosyoloji","Psikoloji yaklaşımlarını ayırt eder","Toplum ve kurum ilişkilerini yorumlar"),
             group("AYT","Din Kültürü / Ek Felsefe","İnanç ve Değer","Din ve ahlakla ilgili kavramları yorumlar")
         )
-        groups.flatMap { g ->
+        val original = groups.flatMap { g ->
             g.outcomes.mapIndexed { index, title ->
                 LearningOutcome(
                     id = g.exam + "|" + g.subject + "|" + g.topic + "|" + index,
@@ -62,5 +62,8 @@ object LearningSeed {
                 )
             }
         }
+        // Original IDs stay unchanged. Expanded identifiers use an isolated prefix
+        // so historical ticks, reviews, wrong answers and photos remain linked.
+        original + LearningSeedExpanded.starter
     }
 }
