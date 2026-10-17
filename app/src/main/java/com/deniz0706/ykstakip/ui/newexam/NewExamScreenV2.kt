@@ -21,6 +21,7 @@ import com.deniz0706.ykstakip.data.ExamValidator
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.util.Fmt
+import com.deniz0706.ykstakip.util.LearningCourseMatcher
 import java.time.LocalDate
 
 private class SubjectDraft(
@@ -213,11 +214,13 @@ fun NewExamScreenV2(
                     textStyle = MaterialTheme.typography.bodySmall)
                 val choices = remember(learningOutcomes, type, row.config.name) {
                     learningOutcomes.filter {
-                        it.examType == type.name && it.subject == row.config.name
+                        it.examType == type.name &&
+                            LearningCourseMatcher.matches(type.name, row.config.name, it.subject)
                     }
                 }
                 if (choices.isNotEmpty()) {
                     var menuOpen by remember(type, row.config.name) { mutableStateOf(false) }
+                    var outcomeSearch by remember(type, row.config.name) { mutableStateOf("") }
                     Box {
                         TextButton(onClick = { menuOpen = true }) {
                             Text("+ Kazanım listesinden işaretle",
@@ -226,7 +229,19 @@ fun NewExamScreenV2(
                         DropdownMenu(expanded = menuOpen, onDismissRequest = {
                             menuOpen = false
                         }) {
-                            choices.forEach { choice ->
+                            OutlinedTextField(
+                                value = outcomeSearch,
+                                onValueChange = { outcomeSearch = it },
+                                label = { Text("Kazanım ara") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                            )
+                            val matching = choices.filter {
+                                outcomeSearch.isBlank() ||
+                                    it.topic.contains(outcomeSearch, ignoreCase = true) ||
+                                    it.title.contains(outcomeSearch, ignoreCase = true)
+                            }
+                            matching.take(30).forEach { choice ->
                                 val tagged = row.topics.split(",").map { it.trim() }
                                 val checked = choice.title in tagged
                                 DropdownMenuItem(
@@ -251,6 +266,14 @@ fun NewExamScreenV2(
                                         } else current + choice.title).distinct().joinToString(", ")
                                     }
                                 )
+                            }
+                            if (matching.isEmpty()) {
+                                Text("Eşleşen kazanım yok", modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall)
+                            } else if (matching.size > 30) {
+                                Text("Daha fazla sonuç için aramayı daralt",
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }

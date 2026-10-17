@@ -141,6 +141,7 @@ class StudyFragment : Fragment() {
                         onLearningWrong = { learningRepository.markWrong(it); refresh() },
                         onLearningRequestReview = { learningRepository.requestReview(it); refresh() },
                         onLearningReviewed = { learningRepository.reviewOutcome(it); refresh() },
+                        onLearningPostpone = { learningRepository.postponeReview(it); refresh() },
                         onLearningCreate = { type,subject,topic,title ->
                             learningRepository.addOutcome(type,subject,topic,title); refresh()
                         },

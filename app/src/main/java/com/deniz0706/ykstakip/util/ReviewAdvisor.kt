@@ -41,7 +41,9 @@ object ReviewAdvisor {
             val key = outcome.examType to outcome.subject
             if (key !in byCourse) {
                 byCourse[key] = exams.filter { it.type.name == outcome.examType &&
-                    it.subjects.any { sub -> sub.subject == outcome.subject } }
+                    it.subjects.any { sub ->
+                        LearningCourseMatcher.matches(outcome.examType, sub.subject, outcome.subject)
+                    } }
                     .sortedWith(compareBy<Exam> { it.date }.thenBy { it.id })
                     .takeLast(3)
             }
@@ -52,7 +54,9 @@ object ReviewAdvisor {
             val normalizedTitle = normalize(outcome.title)
             val hits = last.count { exam ->
                 (outcome.lastReviewedDate.isBlank() || exam.date > outcome.lastReviewedDate) &&
-                exam.subjects.find { it.subject == outcome.subject }?.weakTopics.orEmpty().any { raw ->
+                exam.subjects.filter { sub ->
+                    LearningCourseMatcher.matches(outcome.examType, sub.subject, outcome.subject)
+                }.flatMap { it.weakTopics }.any { raw ->
                     val tag = normalize(raw)
                     tag.isNotBlank() && (
                         tag == normalizedTopic || tag == normalizedTitle ||

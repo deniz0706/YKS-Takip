@@ -88,20 +88,33 @@ class LearningRepository(context: Context) {
     }
     fun markWrong(id: String) {
         updateOutcome(id) { it.copy(
-            wrongCount = it.wrongCount + 1, reviewRequested = true,
+            completed = false, wrongCount = it.wrongCount + 1,
+            reviewRequested = false,
             nextReviewDate = LocalDate.now().plusDays(1).toString(), reviewLevel = 0
         ) }
     }
     fun requestReview(id: String) {
         updateOutcome(id) { it.copy(reviewRequested = true, nextReviewDate = LocalDate.now().toString()) }
     }
+    fun postponeReview(id: String) {
+        updateOutcome(id) {
+            it.copy(completed = false, reviewRequested = false, reviewLevel = 0,
+                lastReviewedDate = LocalDate.now().toString(),
+                nextReviewDate = LocalDate.now().plusDays(1).toString())
+        }
+    }
+
     fun reviewOutcome(id: String) {
         val intervals = listOf(1L, 3L, 7L, 14L, 30L)
         updateOutcome(id) {
-            val next = (it.reviewLevel + 1).coerceAtMost(intervals.lastIndex)
-            it.copy(reviewRequested = false, acknowledgedWrongCount = it.wrongCount,
-                reviewLevel = next, lastReviewedDate = LocalDate.now().toString(),
-                nextReviewDate = LocalDate.now().plusDays(intervals[next]).toString())
+            // level 0 means the NEXT successful review is due tomorrow.
+            // Preserve the existing saved level as the next index after each success.
+            val days = intervals[it.reviewLevel.coerceIn(0, intervals.lastIndex)]
+            val nextLevel = (it.reviewLevel + 1).coerceAtMost(intervals.lastIndex)
+            it.copy(completed = true, reviewRequested = false,
+                acknowledgedWrongCount = it.wrongCount,
+                reviewLevel = nextLevel, lastReviewedDate = LocalDate.now().toString(),
+                nextReviewDate = LocalDate.now().plusDays(days).toString())
         }
     }
     fun deleteCustomOutcome(id: String) {
@@ -126,9 +139,10 @@ class LearningRepository(context: Context) {
         updateQuestion(id) {
             val newCount = it.reviewCount + 1
             it.copy(status = if (solved) QuestionStatus.COZULDU else QuestionStatus.GERI_DON,
-                reviewCount = newCount, dueDate = if (solved) ""
-                    else LocalDate.now().plusDays(listOf(1L, 3L, 7L, 14L, 30L)
-                        [newCount.coerceAtMost(4)]).toString())
+                reviewCount = newCount,
+                // An unsolved question should come back tomorrow, not slip
+                // farther into a spaced-repetition schedule.
+                dueDate = if (solved) "" else LocalDate.now().plusDays(1).toString())
         }
     }
     fun markQuestionUnsolved(id: String) {

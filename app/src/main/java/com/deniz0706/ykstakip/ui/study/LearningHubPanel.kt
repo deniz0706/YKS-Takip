@@ -43,6 +43,7 @@ fun LearningHubPanel(
     onWrong: (String) -> Unit,
     onRequestReview: (String) -> Unit,
     onReviewed: (String) -> Unit,
+    onPostponeReview: (String) -> Unit,
     onCreateOutcome: (String, String, String, String) -> Unit,
     onDeleteOutcome: (String) -> Unit,
     onCreateQuestion: (String, String, String, QuestionStatus) -> String,
@@ -234,7 +235,7 @@ fun LearningHubPanel(
                                 onRequestReview(outcome.id)
                                 focusedReviewId = outcome.id
                                 pane = "review"
-                                actionFeedback = "Tekrar listesi açıldı. Bitirince 'Tekrar ettim' ile sonraki tarihi oluştur."
+                                actionFeedback = null
                             }) {
                                 Text("↻ Tekrar et", style = MaterialTheme.typography.labelSmall)
                             }
@@ -318,6 +319,37 @@ fun LearningHubPanel(
             }
         }
         else -> {
+            val activeReview = focusedReviewId?.let { available[it] }?.takeIf {
+                it.examType == examType && it.subject == subject
+            }
+            if (activeReview != null) {
+                ReviewSessionPanel(
+                    outcome = activeReview,
+                    linkedQuestions = questions.filter { it.outcomeId == activeReview.id },
+                    onBack = { focusedReviewId = null },
+                    onLearned = {
+                        onReviewed(activeReview.id)
+                        focusedReviewId = null
+                        actionFeedback = "Kazanım öğrenildi olarak işaretlendi ve sonraki tekrar planlandı. Açık soruların varsa soru defterinde kalır."
+                    },
+                    onNotSolved = {
+                        onWrong(activeReview.id)
+                        focusedReviewId = null
+                        actionFeedback = "Hâlâ zorlandığın kaydedildi. Bu kazanım yarın tekrar karşına çıkacak."
+                    },
+                    onPostpone = {
+                        onPostponeReview(activeReview.id)
+                        focusedReviewId = null
+                        actionFeedback = "Yarın için tekrar planlandı. Kazanım henüz tamamlandı sayılmıyor."
+                    },
+                    onCapture = onCapture,
+                    onGallery = onGallery,
+                    onReviewQuestion = onReviewQuestion,
+                    onMarkUnsolved = onMarkUnsolved,
+                    onRemovePhoto = onRemovePhoto,
+                    onDeleteQuestion = { deleteQuestion = it }
+                )
+            } else {
             DashboardPanel(Modifier.fillMaxWidth()) {
                 Text("TEKRAR RADARI", color = c.secondary,
                     style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
@@ -356,18 +388,10 @@ fun LearningHubPanel(
                         Spacer(Modifier.height(5.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                             TextButton(onClick = {
-                                onReviewed(alert.outcome.id)
-                                focusedReviewId = null
-                                actionFeedback = "Tekrar tamamlandı ✓ Sonraki kontrol tarihi otomatik planlandı."
-                            }) {
-                                Text("Tekrar ettim ✓", style = MaterialTheme.typography.labelMedium)
-                            }
-                            TextButton(onClick = {
-                                onRequestReview(alert.outcome.id)
                                 focusedReviewId = alert.outcome.id
-                                actionFeedback = "Bu kazanım bugünün tekrar listesinde öne alındı."
+                                actionFeedback = null
                             }) {
-                                Text("Bugün tekrar", style = MaterialTheme.typography.labelMedium)
+                                Text("Çalışmaya başla →", style = MaterialTheme.typography.labelMedium)
                             }
                         }
                     }
@@ -386,11 +410,11 @@ fun LearningHubPanel(
                             Text(q.title.ifBlank { available[q.outcomeId]?.title.orEmpty() },
                                 color = c.onSurface, modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodyMedium)
-                            TextButton(onClick = { onReviewQuestion(q.id, true) }) {
-                                Text("Çözdüm")
-                            }
-                            TextButton(onClick = { onReviewQuestion(q.id, false) }) {
-                                Text("Ertele")
+                            TextButton(onClick = {
+                                focusedReviewId = q.outcomeId
+                                actionFeedback = null
+                            }) {
+                                Text("Soruyu aç →")
                             }
                         }
                     }
@@ -398,6 +422,7 @@ fun LearningHubPanel(
                 Spacer(Modifier.height(8.dp))
                 Text("Bu öneriler işaretlediğin verilere dayanır; fotoğrafların içeriği otomatik okunmaz.",
                     color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+            }
             }
         }
     }
@@ -541,6 +566,93 @@ fun LearningHubPanel(
                 onDeleteQuestion(id); deleteQuestion = null
             }) { Text("Sil", color = c.error) } },
             dismissButton = { TextButton(onClick = { deleteQuestion = null }) { Text("Vazgeç") } })
+    }
+}
+
+
+@Composable
+private fun ReviewSessionPanel(
+    outcome: LearningOutcome,
+    linkedQuestions: List<QuestionCard>,
+    onBack: () -> Unit,
+    onLearned: () -> Unit,
+    onNotSolved: () -> Unit,
+    onPostpone: () -> Unit,
+    onCapture: (String) -> Unit,
+    onGallery: (String) -> Unit,
+    onReviewQuestion: (String, Boolean) -> Unit,
+    onMarkUnsolved: (String) -> Unit,
+    onRemovePhoto: (String, String) -> Unit,
+    onDeleteQuestion: (String) -> Unit
+) {
+    val c = MaterialTheme.colorScheme
+    val ordered = remember(linkedQuestions) {
+        linkedQuestions.sortedWith(
+            compareBy<QuestionCard> { it.status == QuestionStatus.COZULDU }
+                .thenBy { it.dueDate }
+                .thenBy { it.createdAt }
+        )
+    }
+    var showCount by remember(outcome.id) { mutableIntStateOf(4) }
+    val openCount = linkedQuestions.count { it.status != QuestionStatus.COZULDU }
+    DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+        TextButton(onClick = onBack) {
+            Text("← Tekrar listesine dön")
+        }
+        Text("TEKRAR OTURUMU", color = c.secondary,
+            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.sp)
+        Text(outcome.topic, color = c.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium)
+        Text(outcome.title, color = c.onSurface,
+            style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(8.dp))
+        Text("Önce konuyu hatırla ve aşağıdaki soruları yeniden çöz. Sonra gerçekten nasıl geçtiğini işaretle.",
+            color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+        if (outcome.lastReviewedDate.isNotBlank()) {
+            Text("Son tekrar: " + outcome.lastReviewedDate,
+                color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+        }
+        Spacer(Modifier.height(10.dp))
+        Text("$openCount açık soru · ${linkedQuestions.size} bağlantılı soru",
+            color = c.secondary, fontWeight = FontWeight.SemiBold)
+        if (ordered.isEmpty()) {
+            Text("Bu kazanıma eklenmiş soru yok. Konuyu kaynaklarından çalışıp aşağıda sonucu işaretleyebilirsin.",
+                color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+        } else {
+            ordered.take(showCount).forEach { card ->
+                QuestionJournalCard(
+                    card = card, outcome = outcome,
+                    onCapture = onCapture, onGallery = onGallery,
+                    onReviewQuestion = onReviewQuestion,
+                    onMarkUnsolved = onMarkUnsolved,
+                    onRemovePhoto = onRemovePhoto,
+                    onDelete = onDeleteQuestion
+                )
+            }
+            if (ordered.size > showCount) {
+                TextButton(onClick = { showCount += 4 }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Diğer ${ordered.size - showCount} soruyu göster")
+                }
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        HorizontalDivider(color = c.outlineVariant)
+        Spacer(Modifier.height(12.dp))
+        Text("Tekrar nasıl geçti?", color = c.onSurface, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(5.dp))
+        Button(onClick = onLearned, modifier = Modifier.fillMaxWidth()) {
+            Text("✓ Konuyu öğrendim")
+        }
+        OutlinedButton(onClick = onNotSolved, modifier = Modifier.fillMaxWidth()) {
+            Text("✕ Yine çözemedim")
+        }
+        OutlinedButton(onClick = onPostpone, modifier = Modifier.fillMaxWidth()) {
+            Text("↻ Daha fazla çalışmam gerek")
+        }
+        Text("Öğrendim: sonraki tekrar 1 / 3 / 7 / 14 / 30 gün aralıklarıyla planlanır. " +
+            "Zorlandım veya daha fazla çalışmam gerek: yarına alınır. " +
+            "Kazanım değerlendirmesi açık soru kayıtlarını otomatik kapatmaz.",
+            color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
     }
 }
 
