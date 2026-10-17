@@ -19,15 +19,85 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.*
 import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.model.StudyDay
 import com.deniz0706.ykstakip.ui.MainActivity
 import com.deniz0706.ykstakip.ui.theme.YksTheme
 import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 
 class SettingsFragment : Fragment() {
     private lateinit var repository: ExamRepository
+    private lateinit var studyRepository: StudyRepository
     private val theme = mutableStateOf("system")
     private val learningZipBusy = mutableStateOf(false)
     private var stagedLearningZip: LearningArchiveManager.PreparedImport? = null
+
+    private val exportStudy = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri == null || !isAdded) return@registerForActivityResult
+        lifecycleScope.launch {
+            val saved = withContext(Dispatchers.IO) {
+                runCatching {
+                    val json = StudyBackupManager.exportJson(studyRepository.getAll())
+                    val out = requireContext().contentResolver.openOutputStream(uri)
+                        ?: error("Dosya yazılamadı.")
+                    out.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+                }.isSuccess
+            }
+            if (isAdded) Toast.makeText(requireContext(),
+                if (saved) "Çalışma JSON yedeği oluşturuldu." else "Yedek oluşturulamadı.",
+                Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private val importStudy = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null || !isAdded) return@registerForActivityResult
+        lifecycleScope.launch {
+            val parsed = withContext(Dispatchers.IO) {
+                runCatching {
+                    val input = requireContext().contentResolver.openInputStream(uri)
+                        ?: error("Dosya okunamadı.")
+                    val text = input.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    require(text.length <= 1500000) { "Yedek dosyası çok büyük." }
+                    StudyBackupManager.parseJson(text)
+                }
+            }
+            if (!isAdded) return@launch
+            parsed.onFailure {
+                Toast.makeText(requireContext(), "Dosya geçersiz: " +
+                    (it.message ?: "Okuma hatası"), Toast.LENGTH_LONG).show()
+            }
+            parsed.onSuccess { data ->
+                val existing = studyRepository.getAll().map { it.date }.toSet()
+                val duplicates = data.days.count { it.date in existing }
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Çalışma geçmişini içe aktar")
+                    .setMessage(
+                        data.days.size.toString() + " gün bulundu (" +
+                        data.estimatedDays + " tahmini). " + duplicates +
+                        " gün zaten kayıtlı.\n\n" +
+                        "Eksik günleri ekle: eskilere dokunma.\n" +
+                        "Üzerine yaz: çakışan günleri değiştir."
+                    )
+                    .setPositiveButton("Eksik günleri ekle") { _, _ ->
+                        applyStudyImport(data.days, false)
+                    }
+                    .setNeutralButton("Üzerine yaz") { _, _ ->
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Mevcut günlerin üzerine yazılsın mı?")
+                            .setMessage("Kayıtlı gerçek çalışma verileri değişebilir. Önce kendi JSON yedeğini alman önerilir.")
+                            .setNegativeButton("Vazgeç", null)
+                            .setPositiveButton("Değiştir") { _, _ ->
+                                applyStudyImport(data.days, true)
+                            }.show()
+                    }
+                    .setNegativeButton("Vazgeç", null)
+                    .show()
+            }
+        }
+    }
 
     private val exportLearningZip = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
@@ -105,6 +175,36 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private fun applyStudyImport(imported: List<StudyDay>, overwrite: Boolean) {
+        val result = runCatching { studyRepository.importDays(imported, overwrite) }
+        result.onSuccess { count ->
+            Toast.makeText(requireContext(), "$count çalışma günü içe aktarıldı.",
+                Toast.LENGTH_LONG).show()
+        }.onFailure {
+            Toast.makeText(requireContext(), "İçe aktarılamadı: " +
+                (it.message ?: "Kayıt hatası"), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun confirmUndoStudyImport() {
+        if (!studyRepository.canUndoLastImport()) {
+            Toast.makeText(requireContext(), "Geri alınacak içe aktarma yok.",
+                Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Son içe aktarmayı geri al")
+            .setMessage("Son içe aktarma öncesindeki tüm çalışma günlerine dönülecek. İçe aktarmadan sonra elle yaptığın değişiklikler de geri alınabilir.")
+            .setNegativeButton("Vazgeç", null)
+            .setPositiveButton("Geri al") { _, _ ->
+                val done = studyRepository.undoLastImport()
+                if (done) refresh()
+                Toast.makeText(requireContext(),
+                    if (done) "Son içe aktarma geri alındı." else "Geri alma başarısız.",
+                    Toast.LENGTH_LONG).show()
+            }.show()
+    }
+
     private fun cancelLearningZip() {
         stagedLearningZip?.discard()
         stagedLearningZip = null
@@ -147,6 +247,7 @@ class SettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         repository = ExamRepository.getInstance(requireContext())
+        studyRepository = StudyRepository(requireContext())
         theme.value = ThemeManager.currentTheme(requireContext())
     }
 
@@ -174,6 +275,13 @@ class SettingsFragment : Fragment() {
                         onSave = { tyt, ayt, obp, daily -> saveGoals(tyt, ayt, obp, daily) },
                         onExport = { exportLauncher.launch("yks-takip-yedek.json") },
                         onImport = { importLauncher.launch(arrayOf("application/json")) },
+                        onImportStudy = {
+                            importStudy.launch(arrayOf("application/json", "text/plain", "*/*"))
+                        },
+                        onExportStudy = {
+                            exportStudy.launch("yks-calisma-${LocalDate.now()}.json")
+                        },
+                        onUndoStudyImport = { confirmUndoStudyImport() },
                         learningZipBusy = learningZipBusy.value,
                         onExportLearningZip = {
                             if (!learningZipBusy.value)

@@ -79,9 +79,6 @@ fun StudyScreenV2(
     onFocusSaved: () -> Unit,
     onEditDay: (String) -> Unit,
     onPickDay: () -> Unit,
-    onImportStudy: () -> Unit,
-    onExportStudy: () -> Unit,
-    onUndoStudyImport: () -> Unit,
     onAddPlan: (Int) -> Unit,
     onEditPlan: (StudyPlanItem) -> Unit,
     onTogglePlan: (Long) -> Unit,
@@ -364,36 +361,6 @@ fun StudyScreenV2(
         }
         }
         if (section == "analysis") {
-        item(key = "study-json-backup") {
-            DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("Çalışma geçmişi JSON", color = colors.onSurface,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold)
-                Text("Çalışma süresi ve soru sayılarını yedekle veya geri yükle. Deneme kayıtları ayrı yedeklenir.",
-                    color = colors.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall)
-                if (estimatedDays > 0) {
-                    Spacer(Modifier.height(7.dp))
-                    Text("$estimatedDays tahmini gün · İstatistiklere dahildir, gerçek ölçüm değildir.",
-                        color = colors.secondary,
-                        style = MaterialTheme.typography.bodySmall)
-                }
-                Spacer(Modifier.height(9.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    OutlinedButton(onClick = onExportStudy, modifier = Modifier.weight(1f)) {
-                        Text("Dışa aktar")
-                    }
-                    Button(onClick = onImportStudy, modifier = Modifier.weight(1f)) {
-                        Text("İçe aktar")
-                    }
-                }
-                TextButton(onClick = onUndoStudyImport) {
-                    Text("Son içe aktarmayı geri al")
-                }
-            }
-        }
-        }
-        if (section == "analysis") {
         item(key = "weekly-comparison") {
             val currentTotal = weeklyComparison.first
             val previousTotal = weeklyComparison.second
@@ -466,6 +433,11 @@ fun StudyScreenV2(
                     }
                 }
                 Spacer(Modifier.height(12.dp))
+                if (estimatedDays > 0) {
+                    Text("$estimatedDays tahmini çalışma günü; gerçek ölçüm değil.",
+                        color = colors.secondary, style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(7.dp))
+                }
                 if (sorted.isEmpty()) {
                     Text("Henüz kayıtlı çalışma günü yok.", color = colors.onSurfaceVariant)
                 } else {

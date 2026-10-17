@@ -29,6 +29,9 @@ fun SettingsScreenV2(
     onSave: (String, String, String, String) -> String?,
     onExport: () -> Unit,
     onImport: () -> Unit,
+    onImportStudy: () -> Unit,
+    onExportStudy: () -> Unit,
+    onUndoStudyImport: () -> Unit,
     learningZipBusy: Boolean,
     onExportLearningZip: () -> Unit,
     onImportLearningZip: () -> Unit
@@ -153,6 +156,24 @@ fun SettingsScreenV2(
             OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(16.dp)) { Text("Yedekten içe aktar") }
             Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = colors.outlineVariant)
+            Spacer(Modifier.height(12.dp))
+            Text("Çalışma geçmişi · JSON", color = colors.onSurface,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold)
+            Text("Günlük çalışma saati ve soru sayısını yedekle ya da içe aktar. " +
+                "Tahmini veriler işaretli kalır, mevcut günler varsayılan olarak korunur.",
+                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = onExportStudy, modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(16.dp)) { Text("Çalışma geçmişini yedekle · JSON") }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onImportStudy, modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(16.dp)) { Text("Çalışma geçmişini içe aktar") }
+            TextButton(onClick = onUndoStudyImport) {
+                Text("Son çalışma geçmişi içe aktarmasını geri al")
+            }
+            Spacer(Modifier.height(8.dp))
             HorizontalDivider(color = colors.outlineVariant)
             Spacer(Modifier.height(12.dp))
             Text("Öğrenme arşivi · ZIP", color = colors.onSurface,
