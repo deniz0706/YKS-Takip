@@ -477,7 +477,8 @@ fun StudyScreenV2(
                             Column(Modifier.weight(1f)) {
                                 Text(day.date, fontWeight = FontWeight.SemiBold,
                                     color = colors.onSurface)
-                                Text("${day.studyMinutes / 60} sa ${day.studyMinutes % 60} dk",
+                                Text("${day.studyMinutes / 60} sa ${day.studyMinutes % 60} dk" +
+                                        if (day.estimated) " · Tahmini" else "",
                                     color = colors.onSurfaceVariant,
                                     style = MaterialTheme.typography.bodySmall)
                             }

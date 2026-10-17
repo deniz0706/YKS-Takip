@@ -68,4 +68,6 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     testImplementation("junit:junit:4.13.2")
+    // Android's org.json methods are not functional in host-JVM unit tests.
+    testImplementation("org.json:json:20240303")
 }
