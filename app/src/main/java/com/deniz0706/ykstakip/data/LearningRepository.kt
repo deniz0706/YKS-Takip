@@ -21,6 +21,31 @@ class LearningRepository(context: Context) {
 
     init {
         migrateOldSkillsOnce()
+        migrateMebVerifiedUnitsOnce()
+    }
+
+    /** Apply post-2026-MEB-audit unit renames without losing photo references. */
+    private fun migrateMebVerifiedUnitsOnce() {
+        if (prefs.getBoolean("learning_meb_units_v1", false)) return
+        val savedOutcomes = try {
+            val arr = JSONArray(prefs.getString("outcomes", "[]") ?: "[]")
+            (0 until arr.length()).map { LearningOutcome.fromJson(arr.getJSONObject(it)) }
+        } catch (_: Exception) { return }
+        val savedQuestions = try {
+            val arr = JSONArray(prefs.getString("questions", "[]") ?: "[]")
+            (0 until arr.length()).map { QuestionCard.fromJson(arr.getJSONObject(it)) }
+        } catch (_: Exception) { return }
+        val migrated = LearningSeed.mergeLegacyProgress(savedOutcomes)
+        val remapped = savedQuestions.map { card ->
+            card.copy(outcomeId = LearningSeed.topicIdFor(card.outcomeId))
+        }
+        val defaults = LearningSeed.starter.associateBy { it.id }
+        val changes = migrated.filter { defaults[it.id] != it }
+        prefs.edit()
+            .putString("outcomes", JSONArray(changes.map { it.toJson() }).toString())
+            .putString("questions", JSONArray(remapped.map { it.toJson() }).toString())
+            .putBoolean("learning_meb_units_v1", true)
+            .commit()
     }
 
     /**

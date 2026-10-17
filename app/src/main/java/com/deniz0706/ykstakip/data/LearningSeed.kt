@@ -125,13 +125,28 @@ object LearningSeed {
         legacyStarter.associate { it.id to legacyTarget(it) }
     }
 
-    fun topicIdFor(id: String): String = legacyToTopicId[id] ?: id
+    /**
+     * Units renamed or consolidated after cross-checking the MEB OGM unit
+     * tables. IDs are mapped both for existing devices and imported ZIP files.
+     * The old combined Gazlar/Çözeltiler record cannot be split accurately;
+     * it is kept under Gazlar, while the solutions unit starts unmarked.
+     */
+    private val renamedUnitIds: Map<String, String> = mapOf(
+        "unit|AYT|Kimya|Gazlar ve Çözeltiler" to "unit|AYT|Kimya|Gazlar",
+        "unit|AYT|Kimya|Organik Kimya" to "unit|AYT|Kimya|Organik Bileşikler",
+        "unit|AYT|Biyoloji|Komünite Ekolojisi" to
+            "unit|AYT|Biyoloji|Komünite ve Popülasyon Ekolojisi",
+        "unit|AYT|Biyoloji|Popülasyon Ekolojisi" to
+            "unit|AYT|Biyoloji|Komünite ve Popülasyon Ekolojisi"
+    )
+
+    fun topicIdFor(id: String): String = renamedUnitIds[id] ?: legacyToTopicId[id] ?: id
 
     /** Converts saved old checkmarks and wrong counts into the new topic rows. */
     fun mergeLegacyProgress(recorded: List<LearningOutcome>): List<LearningOutcome> {
         val current = linkedMapOf<String, LearningOutcome>()
-        recorded.filter { it.id !in legacyToTopicId }.forEach { current[it.id] = it }
-        val groups = recorded.filter { it.id in legacyToTopicId }.groupBy {
+        recorded.filter { topicIdFor(it.id) == it.id }.forEach { current[it.id] = it }
+        val groups = recorded.filter { topicIdFor(it.id) != it.id }.groupBy {
             topicIdFor(it.id)
         }
         for ((id, old) in groups) {

@@ -285,7 +285,6 @@ AYT|Fizik|Atom Fiziğine Giriş ve Radyoaktivite
 AYT|Fizik|Modern Fiziğin Teknolojideki Uygulamaları
 AYT|Kimya|Karbon Kimyasına Giriş
 AYT|Kimya|Enerji Kaynakları ve Bilimsel Gelişmeler
-AYT|Biyoloji|Popülasyon Ekolojisi
 AYT|Biyoloji|Canlılar ve Çevre
 AYT|Edebiyat|Hikâye ve Roman
 AYT|Edebiyat|Destan ve Efsane
@@ -376,14 +375,18 @@ AYT|Din Kültürü / Ek Felsefe|Dünya Dinleri
             topic in setOf("Dalgalar", "Elektromanyetik Dalgalar")) return "Dalgalar"
         if (exam == "AYT" && subject == "Fizik" &&
             topic in setOf("Modern Fizik", "Atom ve Çekirdek")) return "Modern Fizik"
+        if (exam == "AYT" && subject == "Kimya" && topic == "Gaz Yasaları") return "Gazlar"
         if (exam == "AYT" && subject == "Kimya" &&
-            topic in setOf("Gaz Yasaları", "Çözeltiler", "Koligatif Özellikler")) return "Gazlar ve Çözeltiler"
+            topic in setOf("Çözeltiler", "Koligatif Özellikler")) return "Sıvı Çözeltiler ve Çözünürlük"
         if (exam == "AYT" && subject == "Kimya" &&
             topic in setOf("Kimyasal Denge", "Asit Baz Dengesi", "Çözünürlük Dengesi")) return "Kimyasal Denge"
         if (exam == "AYT" && subject == "Kimya" &&
             topic in setOf("Elektrokimya", "Elektroliz")) return "Elektrokimya"
         if (exam == "AYT" && subject == "Kimya" &&
-            topic in setOf("Organik Kimya", "Alkanlar ve Sikloalkanlar", "Alken ve Alkinler", "Aromatik Bileşikler", "Organik Fonksiyonel Gruplar")) return "Organik Kimya"
+            topic in setOf("Organik Kimya", "Alkanlar ve Sikloalkanlar", "Alken ve Alkinler", "Aromatik Bileşikler", "Organik Fonksiyonel Gruplar")) return "Organik Bileşikler"
+        if (exam == "AYT" && subject == "Biyoloji" && topic == "Komünite Ekolojisi") {
+            return "Komünite ve Popülasyon Ekolojisi"
+        }
         if (exam == "AYT" && subject == "Biyoloji" &&
             topic in setOf("Sinir Sistemi", "Endokrin Sistem", "Duyu Organları", "Destek Hareket", "Sindirim Sistemi", "Dolaşım Sistemi", "Solunum Sistemi", "Boşaltım Sistemi", "Üreme Sistemi")) return "İnsan Fizyolojisi"
         if (exam == "AYT" && subject == "Biyoloji" &&
