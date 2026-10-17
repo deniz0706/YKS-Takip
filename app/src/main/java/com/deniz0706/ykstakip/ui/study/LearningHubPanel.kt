@@ -28,6 +28,8 @@ import com.deniz0706.ykstakip.ui.components.DashboardProgress
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.util.ReviewSignal
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 @Composable
@@ -492,9 +494,11 @@ private fun QuestionJournalCard(
                 horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 card.photos.forEach { filename ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val bitmap = remember(filename) {
+                        val bitmap by produceState<android.graphics.Bitmap?>(
+                            initialValue = null, key1 = filename
+                        ) {
                             val file = File(context.filesDir, "review_photos/" + File(filename).name)
-                            decodePhoto(file, 360)
+                            value = withContext(Dispatchers.IO) { decodePhoto(file, 360) }
                         }
                         if (bitmap != null) {
                             Image(bitmap = bitmap.asImageBitmap(),
@@ -544,8 +548,12 @@ private fun QuestionJournalCard(
         }
     }
     fullPhoto?.let { filename ->
-        val bitmap = remember(filename) {
-            decodePhoto(File(context.filesDir, "review_photos/" + File(filename).name), 1400)
+        val bitmap by produceState<android.graphics.Bitmap?>(
+            initialValue = null, key1 = filename
+        ) {
+            value = withContext(Dispatchers.IO) {
+                decodePhoto(File(context.filesDir, "review_photos/" + File(filename).name), 1400)
+            }
         }
         AlertDialog(onDismissRequest = { fullPhoto = null },
             title = { Text("Soru fotoğrafı") },

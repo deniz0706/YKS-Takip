@@ -11,6 +11,10 @@ import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.LearningOutcome
 import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.app.DatePickerDialog
 import java.util.Calendar
 import android.text.InputType
@@ -72,14 +76,19 @@ class StudyFragment : Fragment() {
 
     private val pickPhoto = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         val q = galleryQuestionId
+        galleryQuestionId = null
         if (q != null && uri != null) {
-            if (!learningRepository.attachGalleryPhoto(q, uri)) {
-                if (isAdded) Toast.makeText(requireContext(),
-                    "Fotoğraf kaydedilemedi.", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                val saved = withContext(Dispatchers.IO) {
+                    learningRepository.attachGalleryPhoto(q, uri)
+                }
+                if (isAdded) {
+                    if (!saved) Toast.makeText(requireContext(),
+                        "Fotoğraf kaydedilemedi.", Toast.LENGTH_SHORT).show()
+                    refresh()
+                }
             }
         }
-        galleryQuestionId = null
-        if (isAdded) refresh()
     }
 
     private val days = mutableStateOf<List<StudyDay>>(emptyList())
