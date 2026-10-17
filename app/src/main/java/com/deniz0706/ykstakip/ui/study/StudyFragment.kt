@@ -65,13 +65,20 @@ class StudyFragment : Fragment() {
     private val takePhoto = registerForActivityResult(ActivityResultContracts.TakePicture()) { succeeded ->
         val q = cameraQuestionId
         val name = cameraFilename
-        if (q != null && name != null) {
-            if (succeeded) learningRepository.attachCapturedPhoto(q, name)
-            else learningRepository.discardCameraPhoto(name)
-        }
+        val stored = if (q != null && name != null && succeeded) {
+            learningRepository.attachCapturedPhoto(q, name)
+        } else false
+        if (!stored && name != null) learningRepository.discardCameraPhoto(name)
         cameraQuestionId = null
         cameraFilename = null
-        if (isAdded) refresh()
+        if (isAdded) {
+            if (succeeded && !stored) {
+                Toast.makeText(requireContext(),
+                    "Fotoğraf kaydedilemedi. Galeriden eklemeyi deneyebilirsin.",
+                    Toast.LENGTH_LONG).show()
+            }
+            refresh()
+        }
     }
 
     private val pickPhoto = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -174,19 +181,37 @@ class StudyFragment : Fragment() {
     }
 
     private fun openCamera(questionId: String) {
-        val (filename, target) = learningRepository.newCameraPhoto()
-        cameraQuestionId = questionId
-        cameraFilename = filename
+        if (!isAdded || !::learningRepository.isInitialized) return
+        // Fall back to the gallery if the tablet has no camera application or
+        // the photo target cannot be opened. Never lose the new question entry.
+        var createdFilename: String? = null
         try {
-            val uri = FileProvider.getUriForFile(requireContext(),
-                requireContext().packageName + ".reviewphotos", target)
+            val (filename, target) = learningRepository.newCameraPhoto()
+            createdFilename = filename
+            cameraQuestionId = questionId
+            cameraFilename = filename
+            val uri = FileProvider.getUriForFile(
+                requireContext(),
+                requireContext().packageName + ".reviewphotos",
+                target
+            )
             takePhoto.launch(uri)
         } catch (_: Exception) {
-            learningRepository.discardCameraPhoto(filename)
+            createdFilename?.let(learningRepository::discardCameraPhoto)
             cameraQuestionId = null
             cameraFilename = null
-            Toast.makeText(requireContext(),
-                "Kamera açılamadı. Galeriden ekleyebilirsin.", Toast.LENGTH_SHORT).show()
+            if (isAdded) {
+                Toast.makeText(requireContext(),
+                    "Kamera bu cihazda açılamadı. Fotoğraf seçicisi açılıyor.",
+                    Toast.LENGTH_LONG).show()
+                galleryQuestionId = questionId
+                try { pickPhoto.launch("image/*") }
+                catch (_: Exception) {
+                    galleryQuestionId = null
+                    Toast.makeText(requireContext(),
+                        "Fotoğraf seçicisi de açılamadı.", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 

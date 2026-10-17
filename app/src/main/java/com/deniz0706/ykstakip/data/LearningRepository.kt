@@ -120,17 +120,25 @@ class LearningRepository(context: Context) {
     fun photo(name: String): File = File(photoDir, File(name).name)
     fun newCameraPhoto(): Pair<String, File> {
         val name = UUID.randomUUID().toString() + ".jpg"
-        return name to photo(name)
+        val file = photo(name)
+        // FileProvider needs a real writable target before the camera starts.
+        file.parentFile?.mkdirs()
+        file.createNewFile()
+        return name to file
     }
     fun discardCameraPhoto(name: String) { photo(name).delete() }
 
-    fun attachCapturedPhoto(id: String, filename: String) {
+    fun attachCapturedPhoto(id: String, filename: String): Boolean {
         if (!photo(filename).isFile || photo(filename).length() == 0L) {
             discardCameraPhoto(filename)
-            return
+            return false
         }
-        if (questions().none { it.id == id }) { discardCameraPhoto(filename); return }
+        if (questions().none { it.id == id }) {
+            discardCameraPhoto(filename)
+            return false
+        }
         updateQuestion(id) { it.copy(photos = it.photos + filename) }
+        return true
     }
 
     fun attachGalleryPhoto(id: String, uri: Uri): Boolean {
