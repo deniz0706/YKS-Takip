@@ -47,6 +47,7 @@ private class SubjectDraft(
 fun NewExamScreenV2(
     initialType: ExamType,
     existing: Exam?,
+    learningOutcomes: List<LearningOutcome>,
     onBack: () -> Unit,
     onPickDate: (LocalDate, (LocalDate) -> Unit) -> Unit,
     onSave: (Exam) -> String?
@@ -207,9 +208,56 @@ fun NewExamScreenV2(
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(row.topics, { row.topics = it },
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
-                    label = { Text("Tekrar edilecek konular (virgülle)") },
+                    label = { Text("Tekrar edilecek konular / kazanımlar (virgülle)") },
                     shape = RoundedCornerShape(13.dp),
                     textStyle = MaterialTheme.typography.bodySmall)
+                val choices = remember(learningOutcomes, type, row.config.name) {
+                    learningOutcomes.filter {
+                        it.examType == type.name && it.subject == row.config.name
+                    }
+                }
+                if (choices.isNotEmpty()) {
+                    var menuOpen by remember(type, row.config.name) { mutableStateOf(false) }
+                    Box {
+                        TextButton(onClick = { menuOpen = true }) {
+                            Text("+ Kazanım listesinden işaretle",
+                                style = MaterialTheme.typography.labelMedium)
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = {
+                            menuOpen = false
+                        }) {
+                            choices.forEach { choice ->
+                                val tagged = row.topics.split(",").map { it.trim() }
+                                val checked = choice.title in tagged
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Checkbox(checked = checked,
+                                                onCheckedChange = null)
+                                            Column {
+                                                Text(choice.topic,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = colors.onSurfaceVariant)
+                                                Text(choice.title, maxLines = 2,
+                                                    style = MaterialTheme.typography.bodySmall)
+                                            }
+                                        }
+                                    },
+                                    onClick = {
+                                        val current = row.topics.split(",").map { it.trim() }
+                                            .filter { it.isNotBlank() }
+                                        row.topics = (if (checked) current.filterNot {
+                                            it == choice.title
+                                        } else current + choice.title).distinct().joinToString(", ")
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    Text("Burada işaretlediğin kazanımlar tekrar radarında değerlendirilir.",
+                        color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall)
+                }
                 if (row.error != null) {
                     Spacer(Modifier.height(6.dp))
                     Text(row.error.orEmpty(), color = colors.error,

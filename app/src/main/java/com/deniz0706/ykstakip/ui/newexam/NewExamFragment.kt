@@ -8,6 +8,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import com.deniz0706.ykstakip.data.ThemeManager
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.ExamRepository
+import com.deniz0706.ykstakip.data.LearningRepository
 import com.deniz0706.ykstakip.data.ExamValidator
 import com.deniz0706.ykstakip.model.*
 import com.deniz0706.ykstakip.ui.MainActivity
@@ -31,6 +32,7 @@ class NewExamFragment : Fragment() {
     override fun onCreateView(inflater: android.view.LayoutInflater,
         container: android.view.ViewGroup?, savedInstanceState: Bundle?): View {
         val repository = ExamRepository.getInstance(requireContext())
+        val learning = LearningRepository(requireContext()).outcomes()
         val id = arguments?.getLong(ARG_EDIT_ID, -1L)?.takeIf { it > 0 }
         val existing = id?.let { examId -> repository.getAllExams().find { it.id == examId } }
         val initialType = existing?.type ?: arguments?.getString(ARG_TYPE)
@@ -44,6 +46,7 @@ class NewExamFragment : Fragment() {
                 NewExamScreenV2(
                     initialType = initialType,
                     existing = existing,
+                    learningOutcomes = learning,
                     onBack = { (activity as? MainActivity)?.goBack() },
                     onPickDate = { current, onDate ->
                         val cal = Calendar.getInstance().apply {
