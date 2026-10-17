@@ -16,6 +16,20 @@ android {
         versionName = "0.3"
     }
 
+    // Android Studio retains its normal debug configuration.
+    // Only CI explicitly supplies this stable preview development keystore.
+    signingConfigs {
+        getByName("debug") {
+            val ciPreviewKeystore = System.getenv("YKS_PREVIEW_DEBUG_KEYSTORE")
+            if (!ciPreviewKeystore.isNullOrBlank()) {
+                storeFile = file(ciPreviewKeystore)
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false

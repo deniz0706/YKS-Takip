@@ -54,8 +54,18 @@ jobs:
           elif [ -s "$HOME/.android/debug.keystore" ]; then
             echo "Using cached development signing key."
           else
-            echo "::warning::No permanent signing key configured. A new debug key will be generated and cached. GitHub may evict caches after inactivity."
+            echo "::warning::No permanent signing key configured; generating first-time development key. The cache may be evicted after inactivity."
+            keytool -genkeypair \
+              -keystore "$HOME/.android/debug.keystore" \
+              -storepass android -keypass android \
+              -alias androiddebugkey -keyalg RSA -keysize 2048 \
+              -validity 10000 -dname "CN=Android Debug,O=Android,C=US" \
+              -noprompt
           fi
+          chmod 600 "$HOME/.android/debug.keystore"
+          test -s "$HOME/.android/debug.keystore"
+          # Force Gradle to use EXACTLY the same key that will be cached.
+          echo "YKS_PREVIEW_DEBUG_KEYSTORE=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
 
       - name: Build APK
         run: gradle --no-daemon assembleDebug assembleRelease

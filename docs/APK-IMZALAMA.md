@@ -7,8 +7,12 @@ derleme yaptığı için Android Gradle debug keystore'u kalıcı tutulmuyordu.
 
 ## 2.0 geliştirme dalındaki geçici çözüm
 - Debug anahtarı GitHub Actions cache'inden geri yüklenir.
-- İlk derlemede anahtar yoksa Gradle oluşturur ve başarılı job'un sonunda
-  cache'e kaydeder.
+- İlk derlemede anahtar yoksa GitHub Actions `keytool` ile oluşturur,
+  `app/build.gradle.kts` içindeki debug yapılandırmasına **tam yolunu**
+  bildirir ve başarılı job'un sonunda cache'e kaydeder.
+- Böylece Gradle'ın hangi anahtarla APK'yı imzaladığı ile cache'e
+  kaydedilen dosya kesin olarak aynı olur. Yerel Android Studio derlemeleri
+  ise varsayılan debug yapılandırmasını kullanmaya devam eder.
 - Sonraki derlemeler cache varsa **aynı imzayı** kullanır.
 - İmzayı karşılaştırmak için Actions'ta sertifikanın SHA-256 parmak izi
   kaydedilir. Private key asla loga yazdırılmaz.
