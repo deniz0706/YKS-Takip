@@ -146,6 +146,10 @@ class StudyFragment : Fragment() {
                         onLearningComplete = { id,checked ->
                             learningRepository.setCompleted(id,checked); refresh()
                         },
+                        onLearningSubtopicComplete = { id, subtopic, checked ->
+                            learningRepository.setSubtopicCompleted(id, subtopic, checked)
+                            refresh()
+                        },
                         onLearningWrong = { learningRepository.markWrong(it); refresh() },
                         onLearningRequestReview = { learningRepository.requestReview(it); refresh() },
                         onLearningReviewed = { learningRepository.reviewOutcome(it); refresh() },

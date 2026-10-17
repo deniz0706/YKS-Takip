@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.data.LearningSubtopics
 import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.util.LearningFields
 import com.deniz0706.ykstakip.model.QuestionCard
@@ -49,6 +50,7 @@ fun LearningHubPanel(
     onLearningFieldChange: (AytField) -> Unit,
     modifier: Modifier = Modifier,
     onCompleted: (String, Boolean) -> Unit,
+    onSubtopicCompleted: (String, String, Boolean) -> Unit,
     onWrong: (String) -> Unit,
     onRequestReview: (String) -> Unit,
     onReviewed: (String) -> Unit,
@@ -76,6 +78,7 @@ fun LearningHubPanel(
     var deleteQuestion by remember { mutableStateOf<String?>(null) }
     var outcomeSearch by remember { mutableStateOf("") }
     var outcomeStatus by remember { mutableStateOf("all") }
+    var expandedOutcomeId by remember { mutableStateOf<String?>(null) }
     var questionSearch by remember { mutableStateOf("") }
     var questionStatus by remember { mutableStateOf("open") }
 
@@ -312,6 +315,13 @@ fun LearningHubPanel(
                     }
                 }
                 itemsIndexed(filtered, key = { _, outcome -> "outcome:" + outcome.id }) { index, outcome ->
+                    val subtopics = remember(outcome.examType, outcome.subject, outcome.title) {
+                        LearningSubtopics.forOutcome(outcome)
+                    }
+                    val finishedSubtopics = if (outcome.completed && outcome.completedSubtopics.isEmpty())
+                        subtopics.toSet() else outcome.completedSubtopics.toSet()
+                    val finishedCount = subtopics.count { it in finishedSubtopics }
+                    val expanded = expandedOutcomeId == outcome.id && subtopics.isNotEmpty()
                     if (index == 0 || filtered[index - 1].topic != outcome.topic) {
                         val stats = topicStats[outcome.topic] ?: (0 to 0)
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
@@ -328,13 +338,69 @@ fun LearningHubPanel(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Checkbox(checked = outcome.completed,
                                     onCheckedChange = { onCompleted(outcome.id, it) })
-                                Column(Modifier.weight(1f)) {
-                                    Text(outcome.title, color = c.onSurface,
-                                        style = MaterialTheme.typography.bodyMedium)
+                                Column(
+                                    Modifier.weight(1f).then(
+                                        if (subtopics.isNotEmpty()) Modifier.clickable {
+                                            expandedOutcomeId = if (expanded) null else outcome.id
+                                        } else Modifier
+                                    )
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            if (outcome.examType == "TYT" && outcome.subject == "Fizik"
+                                                && outcome.title == "İş Güç Enerji") "Enerji"
+                                            else outcome.title,
+                                            color = c.onSurface,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        if (subtopics.isNotEmpty()) {
+                                            Text(if (expanded) "▾" else "▸",
+                                                color = c.primary,
+                                                style = MaterialTheme.typography.titleMedium)
+                                        }
+                                    }
+                                    if (subtopics.isNotEmpty()) {
+                                        Text("$finishedCount / ${subtopics.size} alt konu tamamlandı",
+                                            color = c.onSurfaceVariant,
+                                            style = MaterialTheme.typography.labelSmall)
+                                        Spacer(Modifier.height(4.dp))
+                                        DashboardProgress(
+                                            finishedCount.toFloat() / subtopics.size,
+                                            Modifier.fillMaxWidth()
+                                        )
+                                    }
                                     if (outcome.wrongCount > 0) {
                                         Text("Yanlış işaretlemesi: ${outcome.wrongCount}",
                                             color = c.onSurfaceVariant,
                                             style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                            }
+                            if (expanded) {
+                                Spacer(Modifier.height(6.dp))
+                                HorizontalDivider(color = c.outlineVariant)
+                                Column(Modifier.padding(start = 23.dp, top = 4.dp, bottom = 4.dp)) {
+                                    subtopics.forEach { subtopic ->
+                                        Row(verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.fillMaxWidth()) {
+                                            Checkbox(
+                                                checked = subtopic in finishedSubtopics,
+                                                onCheckedChange = {
+                                                    onSubtopicCompleted(outcome.id, subtopic, it)
+                                                }
+                                            )
+                                            Text(
+                                                subtopic,
+                                                modifier = Modifier.weight(1f).clickable {
+                                                    onSubtopicCompleted(
+                                                        outcome.id, subtopic, subtopic !in finishedSubtopics
+                                                    )
+                                                },
+                                                color = c.onSurface,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
                                     }
                                 }
                             }
