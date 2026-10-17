@@ -196,8 +196,13 @@ class LearningRepository(context: Context) {
             "outcomes", JSONArray(changed.map { it.toJson() }).toString()
         ).apply()
     }
-    private fun saveQuestions(cards: List<QuestionCard>) {
-        prefs.edit().putString("questions", JSONArray(cards.map { it.toJson() }).toString()).apply()
+    private fun saveQuestions(cards: List<QuestionCard>, durable: Boolean = false) {
+        val edit = prefs.edit().putString(
+            "questions", JSONArray(cards.map { it.toJson() }).toString()
+        )
+        // Commit deletion metadata before touching photo files.
+        if (durable) check(edit.commit()) { "Soru kayıtları kaydedilemedi." }
+        else edit.apply()
     }
 
     /** Persist a verified archive merge in one preferences transaction. */
@@ -310,9 +315,11 @@ class LearningRepository(context: Context) {
             dueDate = LocalDate.now().plusDays(1).toString()) }
     }
     fun deleteQuestion(id: String) {
-        val q = questions().find { it.id == id } ?: return
-        saveQuestions(questions().filterNot { it.id == id })
-        q.photos.forEach { photo(it).delete() }
+        val existing = questions()
+        val q = existing.find { it.id == id } ?: return
+        val remaining = existing.filterNot { it.id == id }
+        saveQuestions(remaining, durable = true)
+        LearningPhotoOwnership.unreferenced(q.photos, remaining).forEach { photo(it).delete() }
     }
 
     fun photo(name: String): File = File(photoDir, File(name).name)
@@ -376,8 +383,14 @@ class LearningRepository(context: Context) {
     }
 
     fun removePhoto(id: String, filename: String) {
-        if (questions().none { it.id == id && filename in it.photos }) return
-        updateQuestion(id) { it.copy(photos = it.photos.filterNot { name -> name == filename }) }
-        photo(filename).delete()
+        val existing = questions()
+        if (existing.none { it.id == id && filename in it.photos }) return
+        val remaining = existing.map { card ->
+            if (card.id == id) card.copy(photos = card.photos.filterNot { it == filename })
+            else card
+        }
+        saveQuestions(remaining, durable = true)
+        LearningPhotoOwnership.unreferenced(listOf(filename), remaining)
+            .forEach { photo(it).delete() }
     }
 }
