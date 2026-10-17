@@ -263,7 +263,7 @@ class LearningRepository(context: Context) {
 
     fun addQuestion(outcomeId: String, title: String, notes: String,
                     status: QuestionStatus): QuestionCard {
-        require(outcomes().any { it.id == outcomeId }) { "Kazanım bulunamadı" }
+        require(outcomes().any { it.id == outcomeId }) { "Konu bulunamadı" }
         val today = LocalDate.now().toString()
         val card = QuestionCard(UUID.randomUUID().toString(), outcomeId, title.trim(),
             notes.trim(), status, today, LocalDate.now().plusDays(1).toString())

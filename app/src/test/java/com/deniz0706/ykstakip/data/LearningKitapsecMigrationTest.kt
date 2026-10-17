@@ -26,6 +26,41 @@ class LearningKitapsecMigrationTest {
         assertTrue(result.outcomes.single { it.id == target }.completed)
     }
 
+    @Test fun aBroadOldTopicCannotAutoCompleteAnUnrelatedNarrowUnit() {
+        val old = LearningOutcome(
+            "unit|TYT|Matematik|Sayma ve Olasılık", "TYT", "Matematik",
+            "Matematik", "Sayma ve Olasılık", completed = true
+        )
+        val result = LearningKitapsecMigration.convert(listOf(old), emptyList())
+        assertEquals(old.id, result.outcomes.single().id)
+        assertEquals("Eski Kayıtlar", result.outcomes.single().subject)
+        assertTrue(result.outcomes.single().completed)
+    }
+
+    @Test fun renamedButExpandedTopicDoesNotClaimUnstudiedChildren() {
+        val old = LearningOutcome(
+            "unit|TYT|Fizik|Isı Sıcaklık", "TYT", "Fizik",
+            "Fizik", "Isı Sıcaklık", completed = true
+        )
+        val result = LearningKitapsecMigration.convert(listOf(old), emptyList())
+        val newUnit = result.outcomes.single { it.id == "unit|TYT|Fizik|Isı, Sıcaklık ve Genleşme" }
+        assertTrue(!newUnit.completed)
+        assertEquals("Eski Kayıtlar", result.outcomes.single { it.id == old.id }.subject)
+        assertTrue(result.outcomes.single { it.id == old.id }.completed)
+    }
+
+    @Test fun previouslyCheckedChildOnlyCompletesThatChild() {
+        val old = LearningOutcome(
+            "unit|AYT|Biyoloji|Komünite Ekolojisi", "AYT", "Biyoloji",
+            "Biyoloji", "Komünite Ekolojisi", completed = true
+        )
+        val result = LearningKitapsecMigration.convert(listOf(old), emptyList())
+        val migrated = result.outcomes.single()
+        assertEquals("Komünite ve Popülasyon Ekolojisi", migrated.title)
+        assertEquals(listOf("Komünite Ekolojisi"), migrated.completedSubtopics)
+        assertTrue(!migrated.completed)
+    }
+
     @Test fun unknownProgressAndUnmappedQuestionAreArchivedNotLost() {
         val old = LearningOutcome(
             id = "unit|TYT|Tarih|UnknownLegacyTitle", examType = "TYT",

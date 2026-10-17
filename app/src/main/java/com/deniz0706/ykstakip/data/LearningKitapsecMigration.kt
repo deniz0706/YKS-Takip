@@ -39,19 +39,15 @@ object LearningKitapsecMigration {
         "TYT|Türkçe|Fiilde Çatı" to "Fiiller",
         "TYT|Türkçe|Anlatım Bozuklukları" to "Anlatım Bozukluğu",
         "TYT|Türkçe|İsim Sıfat Tamlamaları" to "Sözcük Türleri",
-        "TYT|Matematik|Sayı Kümeleri" to "Temel Kavramlar",
         "TYT|Matematik|Bölme Bölünebilme" to "Bölme ve Bölünebilme",
         "TYT|Matematik|EBOB EKOK" to "EBOB – EKOK",
         "TYT|Matematik|Oran Orantı" to "Oran Orantı",
         "TYT|Matematik|Denklemler" to "Denklem Çözme",
         "TYT|Matematik|Fonksiyon Temelleri" to "Fonksiyonlar",
-        "TYT|Matematik|Sayma ve Olasılık" to "Permütasyon ve Kombinasyon",
         "TYT|Matematik|İstatistik" to "Veri – İstatistik",
-        "TYT|Geometri|Dörtgenler ve Çokgenler" to "Özel Dörtgenler",
         "TYT|Fizik|Fiziğin Doğası" to "Fizik Bilimine Giriş",
         "TYT|Fizik|İş Güç Enerji" to "İş, Güç ve Enerji",
         "TYT|Fizik|Isı Sıcaklık" to "Isı, Sıcaklık ve Genleşme",
-        "TYT|Fizik|Basınç ve Kaldırma" to "Basınç",
         "TYT|Fizik|Elektrostatik" to "Elektrik",
         "TYT|Kimya|Kimyasal Türler" to "Kimyasal Türler Arası Etkileşimler",
         "TYT|Kimya|Mol Hesapları" to "Kimyasal Hesaplamalar",
@@ -65,13 +61,10 @@ object LearningKitapsecMigration {
         "TYT|Coğrafya|İklim Bilgisi" to "İklimler",
         "TYT|Coğrafya|Yer Şekilleri" to "İç Kuvvetler / Dış Kuvvetler",
         "TYT|Coğrafya|Su ve Toprak" to "Su – Toprak ve Bitkiler",
-        "TYT|Coğrafya|Nüfus ve Göç" to "Nüfus",
-        "TYT|Coğrafya|Bölgeler ve Afetler" to "Bölgeler",
         "TYT|Felsefe|Felsefeye Giriş" to "Felsefe’nin Konusu",
         "TYT|Din Kültürü|İnanç" to "Bilgi ve İnanç",
         "TYT|Din Kültürü|İbadet" to "İslam ve İbadet",
         "TYT|Din Kültürü|Hz. Muhammed" to "Hz. Muhammed (S.A.V.)",
-        "TYT|Din Kültürü|Din ve Hayat" to "Din, Kültür ve Medeniyet",
         "AYT|Matematik|İkinci Dereceden Denklemler ve Parabol" to "İkinci Dereceden Denklem ve Fonksiyonlar",
         "AYT|Matematik|Sayma ve Binom" to "Sayma",
         "AYT|Matematik|Limit ve Süreklilik" to "Türev",
@@ -105,7 +98,24 @@ object LearningKitapsecMigration {
         "AYT|Matematik|Limit ve Süreklilik" to "Limit ve Süreklilik",
         "TYT|Türkçe|Ek Fiil" to "Ek Fiil",
         "TYT|Türkçe|Fiilde Çatı" to "Fiilde Çatı",
-        "TYT|Türkçe|Fiilimsiler" to "Fiilimsi"
+        "TYT|Türkçe|Fiilimsiler" to "Fiilimsi",
+        "AYT|Biyoloji|Komünite Ekolojisi" to "Komünite Ekolojisi",
+        "AYT|Biyoloji|Popülasyon Ekolojisi" to "Popülasyon Ekolojisi"
+    )
+
+    // A true whole-unit rename means the old completion tick still covers
+    // the same scope; broad-to-narrow / narrow-to-broad matches must not
+    // automatically claim 100% of unfamiliar new child topics.
+    private val equivalentWholeUnitAliases = setOf(
+        "TYT|Fizik|İş Güç Enerji",
+        "TYT|Türkçe|Noktalama",
+        "TYT|Türkçe|Anlatım Bozuklukları",
+        "TYT|Matematik|Bölme Bölünebilme",
+        "TYT|Matematik|EBOB EKOK",
+        "TYT|Kimya|Kimyasal Türler",
+        "TYT|Kimya|Asit Baz Tuz",
+        "TYT|Coğrafya|Dünya Hareketleri",
+        "TYT|Tarih|Millî Mücadele"
     )
 
     private fun destination(record: LearningOutcome): Destination? {
@@ -158,17 +168,24 @@ object LearningKitapsecMigration {
             val reference = unitsById.getValue(dest.id)
             val base = saved[dest.id] ?: reference
             val available = LearningKitapsecCatalog.forOutcome(reference)
-            val oldSubtopics = old.completedSubtopics.filter { it in available }
+            val oldSubtopics = old.completedSubtopics.mapNotNull { previousTitle ->
+                available.singleOrNull { norm(it) == norm(previousTitle) }
+            }
+            val oldKey = "${old.examType}|${old.subject}|${old.title}"
+            val equivalent = norm(old.title) == norm(reference.title) ||
+                oldKey in equivalentWholeUnitAliases
+            val entireUnitFinished = old.completed && equivalent && dest.child == null
             val selected = (base.completedSubtopics + oldSubtopics +
-                if (old.completed) {
-                    if (dest.child != null) listOf(dest.child)
-                    else available
-                } else emptyList()
+                when {
+                    old.completed && dest.child != null -> listOf(dest.child)
+                    entireUnitFinished -> available
+                    else -> emptyList()
+                }
             ).distinct()
             val updated = base.copy(
                 completedSubtopics = selected,
                 completed = if (available.isNotEmpty()) selected.size == available.size
-                    else base.completed || old.completed,
+                    else base.completed || entireUnitFinished,
                 wrongCount = base.wrongCount + old.wrongCount,
                 acknowledgedWrongCount = base.acknowledgedWrongCount + old.acknowledgedWrongCount,
                 reviewRequested = base.reviewRequested || old.reviewRequested,
@@ -180,6 +197,12 @@ object LearningKitapsecMigration {
                     .filter { it.isNotBlank() }.maxOrNull().orEmpty()
             )
             saved[dest.id] = updated
+            // The user's original completed status is retained separately if
+            // the replacement covers a different syllabus scope. This avoids
+            // both data loss and a falsely completed replacement unit.
+            if (old.completed && !equivalent && dest.child == null) {
+                saved[old.id] = archive(old)
+            }
         }
 
         val convertedCards = linked.map { card ->

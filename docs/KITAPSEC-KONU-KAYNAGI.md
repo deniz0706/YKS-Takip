@@ -29,6 +29,10 @@ başlığı **YKS 2027 TYT AYT Konuları**.
 - Açık ve kesin isim eşleşmeleri yeni ünite kimliğine taşınır.
 - Belirsiz/yanlış birleştirme tehlikesi taşıyan kayıtlar **Eski Kayıtlar**
   adlı ayrı derste tutulur; bağlı soru fotoğrafları silinmez.
+- Bir önceki *geniş* konu ile yeni *dar* konu aynı kapsam sanılmaz. Örneğin
+  “Sayma ve Olasılık” ilerlemesi “Permütasyon ve Kombinasyon”u otomatik
+  tamamlamaz. Yeni başlığın tüm alt konularının öğrenildiği güvenle
+  çıkarılamıyorsa eski tamamlanma işareti de ayrıca arşivlenir.
 - Soruların kendi kimlikleri, fotoğraf dosyası adları ve mevcut durumları
   korunur; yalnızca güvenli eşleşmelerin konu kimliği değiştirilir.
 - Uygulama verisini silmek yine bu yerel korumayı siler. Android'i

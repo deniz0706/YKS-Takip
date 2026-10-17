@@ -322,7 +322,10 @@ fun LearningHubPanel(
                         subtopics.toSet() else outcome.completedSubtopics.toSet()
                     val finishedCount = subtopics.count { it in finishedSubtopics }
                     val expanded = expandedOutcomeId == outcome.id && subtopics.isNotEmpty()
-                    if (index == 0 || filtered[index - 1].topic != outcome.topic) {
+                    // Defaults all use topic=subject. Do not repeat the same
+                    // course name as a heading above each list of units.
+                    if (topics.size > 1 &&
+                        (index == 0 || filtered[index - 1].topic != outcome.topic)) {
                         val stats = topicStats[outcome.topic] ?: (0 to 0)
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically) {
@@ -359,7 +362,8 @@ fun LearningHubPanel(
                                         }
                                     }
                                     if (subtopics.isNotEmpty()) {
-                                        Text("$finishedCount / ${subtopics.size} alt konu tamamlandı",
+                                        Text("$finishedCount / ${subtopics.size} alt konu · " +
+                                                "${finishedCount * 100 / subtopics.size}%",
                                             color = c.onSurfaceVariant,
                                             style = MaterialTheme.typography.labelSmall)
                                         Spacer(Modifier.height(4.dp))
