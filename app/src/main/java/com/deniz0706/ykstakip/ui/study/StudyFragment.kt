@@ -35,6 +35,7 @@ import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.data.StudyRepository
+import com.deniz0706.ykstakip.data.StudyBackupManager
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.model.StudyDay
 import com.deniz0706.ykstakip.model.StudyPlanItem
@@ -108,6 +109,74 @@ class StudyFragment : Fragment() {
         }
     }
 
+    private val exportStudy = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri == null || !isAdded) return@registerForActivityResult
+        lifecycleScope.launch {
+            val saved = withContext(Dispatchers.IO) {
+                runCatching {
+                    val json = StudyBackupManager.exportJson(repository.getAll())
+                    val out = requireContext().contentResolver.openOutputStream(uri)
+                        ?: error("Dosya yazılamadı.")
+                    out.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+                }.isSuccess
+            }
+            if (isAdded) Toast.makeText(requireContext(),
+                if (saved) "Çalışma JSON yedeği oluşturuldu." else "Yedek oluşturulamadı.",
+                Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private val importStudy = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null || !isAdded) return@registerForActivityResult
+        lifecycleScope.launch {
+            val parsed = withContext(Dispatchers.IO) {
+                runCatching {
+                    val input = requireContext().contentResolver.openInputStream(uri)
+                        ?: error("Dosya okunamadı.")
+                    val text = input.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    require(text.length <= 1500000) { "Yedek dosyası çok büyük." }
+                    StudyBackupManager.parseJson(text)
+                }
+            }
+            if (!isAdded) return@launch
+            parsed.onFailure {
+                Toast.makeText(requireContext(), "Dosya geçersiz: " +
+                    (it.message ?: "Okuma hatası"), Toast.LENGTH_LONG).show()
+            }
+            parsed.onSuccess { data ->
+                val existing = repository.getAll().map { it.date }.toSet()
+                val duplicates = data.days.count { it.date in existing }
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Çalışma geçmişini içe aktar")
+                    .setMessage(
+                        data.days.size.toString() + " gün bulundu (" +
+                        data.estimatedDays + " tahmini). " + duplicates +
+                        " gün zaten kayıtlı.\n\n" +
+                        "Eksik günleri ekle: eskilere dokunma.\n" +
+                        "Üzerine yaz: çakışan günleri değiştir."
+                    )
+                    .setPositiveButton("Eksik günleri ekle") { _, _ ->
+                        applyStudyImport(data.days, false)
+                    }
+                    .setNeutralButton("Üzerine yaz") { _, _ ->
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Mevcut günlerin üzerine yazılsın mı?")
+                            .setMessage("Kayıtlı gerçek çalışma verileri değişebilir. Önce kendi JSON yedeğini alman önerilir.")
+                            .setNegativeButton("Vazgeç", null)
+                            .setPositiveButton("Değiştir") { _, _ ->
+                                applyStudyImport(data.days, true)
+                            }.show()
+                    }
+                    .setNegativeButton("Vazgeç", null)
+                    .show()
+            }
+        }
+    }
+
     private val days = mutableStateOf<List<StudyDay>>(emptyList())
     private val plan = mutableStateOf<List<StudyPlanItem>>(emptyList())
     private val goal = mutableStateOf<Int?>(null)
@@ -177,6 +246,9 @@ class StudyFragment : Fragment() {
                         onFocusSaved = { refresh() },
                         onEditDay = { editDay(it) },
                         onPickDay = { pickDay() },
+                        onImportStudy = { importStudy.launch(arrayOf("application/json", "text/plain", "*/*")) },
+                        onExportStudy = { exportStudy.launch("yks-calisma-yedegi.json") },
+                        onUndoStudyImport = { confirmUndoStudyImport() },
                         onAddPlan = { addPlan(it) },
                         onEditPlan = { editPlan(it) },
                         onTogglePlan = { planRepository.toggleCompleted(it); refresh() },
@@ -249,6 +321,37 @@ class StudyFragment : Fragment() {
         goal.value = AppSettings.getDailyGoal(requireContext())
     }
 
+    private fun applyStudyImport(imported: List<StudyDay>, overwrite: Boolean) {
+        val result = runCatching { repository.importDays(imported, overwrite) }
+        result.onSuccess { count ->
+            refresh()
+            Toast.makeText(requireContext(), "$count çalışma günü içe aktarıldı.",
+                Toast.LENGTH_LONG).show()
+        }.onFailure {
+            Toast.makeText(requireContext(), "İçe aktarılamadı: " +
+                (it.message ?: "Kayıt hatası"), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun confirmUndoStudyImport() {
+        if (!repository.canUndoLastImport()) {
+            Toast.makeText(requireContext(), "Geri alınacak içe aktarma yok.",
+                Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Son içe aktarmayı geri al")
+            .setMessage("Son içe aktarma öncesindeki tüm çalışma günlerine dönülecek. İçe aktarmadan sonra elle yaptığın değişiklikler de geri alınabilir.")
+            .setNegativeButton("Vazgeç", null)
+            .setPositiveButton("Geri al") { _, _ ->
+                val done = repository.undoLastImport()
+                if (done) refresh()
+                Toast.makeText(requireContext(),
+                    if (done) "Son içe aktarma geri alındı." else "Geri alma başarısız.",
+                    Toast.LENGTH_LONG).show()
+            }.show()
+    }
+
     private fun input(hintText: String, initial: String = "", number: Boolean = false): EditText =
         EditText(requireContext()).apply {
             // The study editor is a native Android dialog, not Compose.
@@ -289,7 +392,7 @@ class StudyFragment : Fragment() {
                     m.error = "0–1440 arasında dakika gir"
                     return@setOnClickListener
                 }
-                repository.save(StudyDay(date, questions, minutes))
+                repository.save(StudyDay(date, questions, minutes, estimated = false))
                 refresh()
                 dialog.dismiss()
             }
