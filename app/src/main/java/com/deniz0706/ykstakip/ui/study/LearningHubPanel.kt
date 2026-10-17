@@ -45,7 +45,7 @@ fun LearningHubPanel(
     onReviewed: (String) -> Unit,
     onCreateOutcome: (String, String, String, String) -> Unit,
     onDeleteOutcome: (String) -> Unit,
-    onCreateQuestion: (String, String, String, QuestionStatus) -> Unit,
+    onCreateQuestion: (String, String, String, QuestionStatus) -> String,
     onDeleteQuestion: (String) -> Unit,
     onReviewQuestion: (String, Boolean) -> Unit,
     onMarkUnsolved: (String) -> Unit,
@@ -63,6 +63,9 @@ fun LearningHubPanel(
     var subjectMenu by remember { mutableStateOf(false) }
     var createOutcome by remember { mutableStateOf(false) }
     var createQuestion by remember { mutableStateOf(false) }
+    var actionFeedback by remember { mutableStateOf<String?>(null) }
+    var focusedReviewId by remember { mutableStateOf<String?>(null) }
+    var outcomePage by remember(examType, subjectFilter, topicFilter) { mutableIntStateOf(0) }
     var deleteQuestion by remember { mutableStateOf<String?>(null) }
 
     val scoped = remember(outcomes, examType) { outcomes.filter { it.examType == examType } }
@@ -111,10 +114,20 @@ fun LearningHubPanel(
             }
         }
         Spacer(Modifier.height(9.dp))
-        Text("Başlangıç listesi örnektir; kendi konu ve kazanımlarını da ekleyebilirsin.",
+        Text("Kazanımlar resmî MEB metinlerinin birebir aktarımı değil, müfredat odaklı takip maddeleridir. Eksiklerini de ekleyebilirsin.",
             color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
     }
 
+    if (actionFeedback != null) {
+        Surface(color = c.primaryContainer, shape = RoundedCornerShape(14.dp)) {
+            Row(Modifier.fillMaxWidth().padding(11.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(actionFeedback.orEmpty(), modifier = Modifier.weight(1f),
+                    color = c.onPrimaryContainer, style = MaterialTheme.typography.bodySmall)
+                TextButton(onClick = { actionFeedback = null }) { Text("✕") }
+            }
+        }
+    }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
         listOf("outcomes" to "Kazanımlar", "questions" to "Sorular", "review" to "Tekrar")
             .forEach { (key, label) ->
@@ -177,7 +190,11 @@ fun LearningHubPanel(
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                filtered.groupBy { it.topic }.forEach { (topicName, outcomesInTopic) ->
+                // Cap the composed rows: a full curriculum can contain hundreds of
+                // outcomes and rendering them all in one LazyColumn item causes jank.
+                val pageSize = 25
+                val visibleOutcomes = filtered.take((outcomePage + 1) * pageSize)
+                visibleOutcomes.groupBy { it.topic }.forEach { (topicName, outcomesInTopic) ->
                     val groupDone = outcomesInTopic.count { it.completed }
                     Row(Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween) {
@@ -206,12 +223,20 @@ fun LearningHubPanel(
                             }
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            TextButton(onClick = { onWrong(outcome.id) }) {
+                            TextButton(onClick = {
+                                onWrong(outcome.id)
+                                actionFeedback = "Yanlış işaretlendi: bu kazanım yarın yeniden önerilecek."
+                            }) {
                                 Text("+ Yanlış", color = c.error,
                                     style = MaterialTheme.typography.labelSmall)
                             }
-                            TextButton(onClick = { onRequestReview(outcome.id) }) {
-                                Text("Tekrar et", style = MaterialTheme.typography.labelSmall)
+                            TextButton(onClick = {
+                                onRequestReview(outcome.id)
+                                focusedReviewId = outcome.id
+                                pane = "review"
+                                actionFeedback = "Tekrar listesi açıldı. Bitirince 'Tekrar ettim' ile sonraki tarihi oluştur."
+                            }) {
+                                Text("↻ Tekrar et", style = MaterialTheme.typography.labelSmall)
                             }
                             if (outcome.custom && questions.none { it.outcomeId == outcome.id }) {
                                 TextButton(onClick = { onDeleteOutcome(outcome.id) }) {
@@ -223,6 +248,13 @@ fun LearningHubPanel(
                         HorizontalDivider(color = c.outlineVariant)
                     }
                     Spacer(Modifier.height(12.dp))
+                }
+                if (filtered.size > visibleOutcomes.size) {
+                    OutlinedButton(onClick = { outcomePage++ },
+                        modifier = Modifier.fillMaxWidth()) {
+                        Text("Diğer ${minOf(pageSize, filtered.size - visibleOutcomes.size)} kazanımı göster · ${visibleOutcomes.size}/${filtered.size}")
+                    }
+                    Spacer(Modifier.height(9.dp))
                 }
                 Button(onClick = { createOutcome = true }, modifier = Modifier.fillMaxWidth()) {
                     Text("+  Kendi kazanımını ekle")
@@ -301,7 +333,10 @@ fun LearningHubPanel(
                     Text("Şu an bu ders için işaretlenmiş tekrar ihtiyacı yok.",
                         color = c.onSurfaceVariant)
                 }
-                relevant.take(20).forEach { alert ->
+                relevant.sortedWith(compareByDescending<com.deniz0706.ykstakip.util.ReviewSignal> {
+                    it.outcome.id == focusedReviewId
+                }.thenByDescending { it.urgent }.thenByDescending { it.due })
+                    .take(30).forEach { alert ->
                     HorizontalDivider(color = c.outlineVariant)
                     Column(Modifier.fillMaxWidth().padding(vertical = 11.dp)) {
                         Row(Modifier.fillMaxWidth(),
@@ -320,10 +355,18 @@ fun LearningHubPanel(
                             style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(5.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                            TextButton(onClick = { onReviewed(alert.outcome.id) }) {
+                            TextButton(onClick = {
+                                onReviewed(alert.outcome.id)
+                                focusedReviewId = null
+                                actionFeedback = "Tekrar tamamlandı ✓ Sonraki kontrol tarihi otomatik planlandı."
+                            }) {
                                 Text("Tekrar ettim ✓", style = MaterialTheme.typography.labelMedium)
                             }
-                            TextButton(onClick = { onRequestReview(alert.outcome.id) }) {
+                            TextButton(onClick = {
+                                onRequestReview(alert.outcome.id)
+                                focusedReviewId = alert.outcome.id
+                                actionFeedback = "Bu kazanım bugünün tekrar listesinde öne alındı."
+                            }) {
                                 Text("Bugün tekrar", style = MaterialTheme.typography.labelMedium)
                             }
                         }
@@ -395,7 +438,7 @@ fun LearningHubPanel(
             title = { Text("Soru defterine ekle") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text("Önce kazanımı seç; soruyu ekledikten sonra kamera/galeriyi kullan.",
+                    Text("Kazanımı seç; soruyu doğrudan kamera ya da galeriden fotoğrafıyla ekleyebilirsin.",
                         color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     Box {
                         OutlinedButton(onClick = { showOutcomes = true },
@@ -427,12 +470,38 @@ fun LearningHubPanel(
                     }
                 }
             },
-            confirmButton = { TextButton(enabled = selectedOutcome != null, onClick = {
-                selectedOutcome?.let {
-                    onCreateQuestion(it.id, title, notes, status)
-                    createQuestion = false
+            confirmButton = {
+                Column(horizontalAlignment = Alignment.End) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        OutlinedButton(enabled = selectedOutcome != null, onClick = {
+                            selectedOutcome?.let {
+                                val id = onCreateQuestion(it.id, title, notes, status)
+                                createQuestion = false
+                                pane = "questions"
+                                actionFeedback = "Soru eklendi. Kamera açılıyor..."
+                                onCapture(id)
+                            }
+                        }) { Text("📷 Çekerek ekle", style = MaterialTheme.typography.labelSmall) }
+                        OutlinedButton(enabled = selectedOutcome != null, onClick = {
+                            selectedOutcome?.let {
+                                val id = onCreateQuestion(it.id, title, notes, status)
+                                createQuestion = false
+                                pane = "questions"
+                                actionFeedback = "Soru eklendi. Galeriden fotoğraf seç."
+                                onGallery(id)
+                            }
+                        }) { Text("＋ Galeri", style = MaterialTheme.typography.labelSmall) }
+                    }
+                    TextButton(enabled = selectedOutcome != null, onClick = {
+                        selectedOutcome?.let {
+                            onCreateQuestion(it.id, title, notes, status)
+                            createQuestion = false
+                            pane = "questions"
+                            actionFeedback = "Soru defterine eklendi; istersen sonra fotoğraf iliştirebilirsin."
+                        }
+                    }) { Text("Fotoğrafsız kaydet") }
                 }
-            }) { Text("Soru oluştur") } },
+            },
             dismissButton = { TextButton(onClick = { createQuestion = false }) { Text("Vazgeç") } })
     }
 

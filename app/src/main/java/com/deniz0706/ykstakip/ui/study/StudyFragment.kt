@@ -131,7 +131,9 @@ class StudyFragment : Fragment() {
                         },
                         onLearningDelete = { learningRepository.deleteCustomOutcome(it); refresh() },
                         onQuestionCreate = { outcomeId,title,notes,status ->
-                            learningRepository.addQuestion(outcomeId,title,notes,status); refresh()
+                            val saved = learningRepository.addQuestion(outcomeId,title,notes,status)
+                            refresh()
+                            saved.id
                         },
                         onQuestionDelete = { learningRepository.deleteQuestion(it); refresh() },
                         onQuestionReview = { id, solved ->

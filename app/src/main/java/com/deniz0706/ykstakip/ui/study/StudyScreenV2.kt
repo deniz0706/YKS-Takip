@@ -62,7 +62,7 @@ fun StudyScreenV2(
     onLearningReviewed: (String) -> Unit,
     onLearningCreate: (String, String, String, String) -> Unit,
     onLearningDelete: (String) -> Unit,
-    onQuestionCreate: (String, String, String, QuestionStatus) -> Unit,
+    onQuestionCreate: (String, String, String, QuestionStatus) -> String,
     onQuestionDelete: (String) -> Unit,
     onQuestionReview: (String, Boolean) -> Unit,
     onQuestionUnsolved: (String) -> Unit,
