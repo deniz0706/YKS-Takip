@@ -28,7 +28,10 @@ fun SettingsScreenV2(
     daily: String,
     onSave: (String, String, String, String) -> String?,
     onExport: () -> Unit,
-    onImport: () -> Unit
+    onImport: () -> Unit,
+    learningZipBusy: Boolean,
+    onExportLearningZip: () -> Unit,
+    onImportLearningZip: () -> Unit
 ) {
     var tytValue by remember { mutableStateOf(tyt) }
     var aytValue by remember { mutableStateOf(ayt) }
@@ -149,6 +152,32 @@ fun SettingsScreenV2(
             Spacer(Modifier.height(8.dp))
             OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(16.dp)) { Text("Yedekten içe aktar") }
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = colors.outlineVariant)
+            Spacer(Modifier.height(12.dp))
+            Text("Öğrenme arşivi · ZIP", color = colors.onSurface,
+                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("Kazanım ilerlemeni, tekrar tarihlerini ve fotoğraflı soru defterini yedekler. " +
+                "Denemeler bu ZIP'e dahil değildir; onlar için yukarıdaki JSON yedeğini de oluştur.",
+                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = onExportLearningZip, enabled = !learningZipBusy,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(16.dp)) {
+                Text("Öğrenme arşivi oluştur · ZIP")
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onImportLearningZip, enabled = !learningZipBusy,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(16.dp)) {
+                Text("Öğrenme ZIP'ini birleştir")
+            }
+            if (learningZipBusy) {
+                Spacer(Modifier.height(9.dp))
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Text("Fotoğraflar işleniyor…", color = colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall)
+            }
         }
 
         Text("GELİŞTİRİCİ", color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)

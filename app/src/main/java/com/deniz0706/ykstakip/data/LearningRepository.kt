@@ -68,6 +68,16 @@ class LearningRepository(context: Context) {
         prefs.edit().putString("questions", JSONArray(cards.map { it.toJson() }).toString()).apply()
     }
 
+    /** Persist a verified archive merge in one preferences transaction. */
+    fun persistRestoredSnapshot(outcomes: List<LearningOutcome>, cards: List<QuestionCard>): Boolean {
+        val defaults = LearningSeed.starter.associateBy { it.id }
+        val changed = outcomes.filter { defaults[it.id] != it }
+        return prefs.edit()
+            .putString("outcomes", JSONArray(changed.map { it.toJson() }).toString())
+            .putString("questions", JSONArray(cards.map { it.toJson() }).toString())
+            .commit()
+    }
+
     fun addOutcome(examType: String, subject: String, topic: String, title: String): LearningOutcome {
         require(examType in setOf("TYT","AYT") && subject.isNotBlank() && title.isNotBlank())
         val item = LearningOutcome(
