@@ -49,34 +49,22 @@ private val AuroraPalette = darkColorScheme(
 
 /**
  * Koyu / Graphite: one cohesive black, champagne-gold and sea-glass palette.
- * Set every Material 3 role explicitly: the defaults include lavender accents
- * which leak into chips, menus, overlays and interactive widgets otherwise.
+ * Set all supported Material 3 color roles explicitly to avoid the default
+ * lavender values leaking into menus, chips and interactive widgets.
  */
 private val DarkPalette = darkColorScheme(
     primary = Color(0xFFE6C38F),
     onPrimary = Color(0xFF302111),
     primaryContainer = Color(0xFF493923),
     onPrimaryContainer = Color(0xFFFFE8C6),
-    primaryFixed = Color(0xFFFFE4B5),
-    primaryFixedDim = Color(0xFFE6C38F),
-    onPrimaryFixed = Color(0xFF241806),
-    onPrimaryFixedVariant = Color(0xFF604621),
     secondary = Color(0xFFB4C6CF),
     onSecondary = Color(0xFF1B2A30),
     secondaryContainer = Color(0xFF27373D),
     onSecondaryContainer = Color(0xFFDEEAF0),
-    secondaryFixed = Color(0xFFDCE7EC),
-    secondaryFixedDim = Color(0xFFB4C6CF),
-    onSecondaryFixed = Color(0xFF13232B),
-    onSecondaryFixedVariant = Color(0xFF344951),
     tertiary = Color(0xFF83D0BE),
     onTertiary = Color(0xFF0A2C25),
     tertiaryContainer = Color(0xFF20463F),
     onTertiaryContainer = Color(0xFFCCF7EA),
-    tertiaryFixed = Color(0xFFC7F2E7),
-    tertiaryFixedDim = Color(0xFF83D0BE),
-    onTertiaryFixed = Color(0xFF062820),
-    onTertiaryFixedVariant = Color(0xFF235D50),
     background = Color(0xFF090B10),
     onBackground = Color(0xFFF5F6FA),
     surface = Color(0xFF15181F),
