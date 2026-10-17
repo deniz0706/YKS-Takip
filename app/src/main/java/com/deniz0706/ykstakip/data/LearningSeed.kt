@@ -73,7 +73,8 @@ object LearningSeed {
         val subject = when (outcome.subject) {
             "Sosyal Bilimler" -> outcome.topic
             "Fen Bilimleri" -> outcome.topic
-            else -> outcome.subject
+            else -> if (outcome.examType == "TYT" && outcome.subject == "Matematik"
+                && outcome.topic == "Geometri") "Geometri" else outcome.subject
         }
         val exam = outcome.examType
         val topic = when {

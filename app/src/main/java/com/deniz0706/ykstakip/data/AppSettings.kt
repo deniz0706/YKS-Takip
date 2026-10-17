@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
+import com.deniz0706.ykstakip.model.AytField
 
 object AppSettings {
     private const val PREFS = "yks_takip_prefs"
@@ -9,6 +10,16 @@ object AppSettings {
     private const val KEY_EXAM_DATE = "yks_exam_date_millis" // yyyy-MM-dd formatında epoch millis
     private const val KEY_DAILY_GOAL = "daily_question_goal"
     private const val KEY_OBP = "obp"
+    private const val KEY_LEARNING_FIELD = "learning_ayt_field"
+
+    fun getLearningField(context: Context): AytField =
+        runCatching {
+            AytField.valueOf(prefs(context).getString(KEY_LEARNING_FIELD, "SAYISAL") ?: "SAYISAL")
+        }.getOrDefault(AytField.SAYISAL)
+
+    fun setLearningField(context: Context, field: AytField) {
+        prefs(context).edit().putString(KEY_LEARNING_FIELD, field.name).apply()
+    }
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 

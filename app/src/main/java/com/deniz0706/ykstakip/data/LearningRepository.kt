@@ -19,6 +19,38 @@ class LearningRepository(context: Context) {
     private val photoDir = File(app.filesDir, "review_photos").apply { mkdirs() }
     private val maxPhotoBytes = 20_000_000L
 
+    init {
+        migrateOldSkillsOnce()
+    }
+
+    /**
+     * Migrate before displaying any rows: otherwise historical skill IDs
+     * appear as user-defined topics and attached photos become orphaned.
+     * A single committed preferences transaction preserves the links.
+     */
+    private fun migrateOldSkillsOnce() {
+        if (prefs.getBoolean("learning_topics_v1", false)) return
+        val storedOutcomes = try {
+            val arr = JSONArray(prefs.getString("outcomes", "[]") ?: "[]")
+            (0 until arr.length()).map { LearningOutcome.fromJson(arr.getJSONObject(it)) }
+        } catch (_: Exception) { return }
+        val storedQuestions = try {
+            val arr = JSONArray(prefs.getString("questions", "[]") ?: "[]")
+            (0 until arr.length()).map { QuestionCard.fromJson(arr.getJSONObject(it)) }
+        } catch (_: Exception) { return }
+        val migrated = LearningSeed.mergeLegacyProgress(storedOutcomes)
+        val linked = storedQuestions.map {
+            it.copy(outcomeId = LearningSeed.topicIdFor(it.outcomeId))
+        }
+        val defaults = LearningSeed.starter.associateBy { it.id }
+        val changed = migrated.filter { defaults[it.id] != it }
+        prefs.edit()
+            .putString("outcomes", JSONArray(changed.map { it.toJson() }).toString())
+            .putString("questions", JSONArray(linked.map { it.toJson() }).toString())
+            .putBoolean("learning_topics_v1", true)
+            .commit()
+    }
+
     private fun isValidImage(file: File): Boolean {
         if (!file.isFile || file.length() !in 1L..maxPhotoBytes) return false
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }

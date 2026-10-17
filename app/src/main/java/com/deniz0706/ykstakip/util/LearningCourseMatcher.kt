@@ -8,6 +8,8 @@ package com.deniz0706.ykstakip.util
 object LearningCourseMatcher {
     fun matches(examType: String, examSubject: String, learningSubject: String): Boolean {
         if (examSubject == learningSubject) return true
+        if (examType == "AYT" && examSubject == "Matematik" &&
+            learningSubject == "Geometri") return true
         if (examType != "TYT") return false
         return when (examSubject) {
             "Fen Bilimleri" -> learningSubject in setOf("Fizik", "Kimya", "Biyoloji")

@@ -183,7 +183,7 @@ class LearningArchiveManager(context: Context) {
         val defaults = LearningSeed.starter.associateBy { it.id }
         val outcomes = LinkedHashMap(localOutcomes.associateBy { it.id })
         var newOutcomes = 0
-        pending.outcomes.forEach { incoming ->
+        LearningSeed.mergeLegacyProgress(pending.outcomes).forEach { incoming ->
             val local = outcomes[incoming.id]
             if (local == null) {
                 outcomes[incoming.id] = incoming
@@ -193,7 +193,9 @@ class LearningArchiveManager(context: Context) {
             }
         }
         val existing = localQuestions.map { it.id }.toSet()
-        val additions = pending.questions.filter { it.id !in existing }
+        val additions = pending.questions.filter { it.id !in existing }.map { card ->
+            card.copy(outcomeId = LearningSeed.topicIdFor(card.outcomeId))
+        }
         val restoreMissing = localQuestions.flatMap { it.photos }.toSet().filter {
             !repo.photo(it).exists() && pending.files.containsKey(it)
         }
