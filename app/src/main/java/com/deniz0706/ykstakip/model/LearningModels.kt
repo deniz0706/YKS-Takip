@@ -16,6 +16,7 @@ data class LearningOutcome(
     val acknowledgedWrongCount: Int = 0,
     val nextReviewDate: String = "",
     val reviewLevel: Int = 0,
+    val lastReviewedDate: String = "",
     val custom: Boolean = false
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
@@ -24,7 +25,7 @@ data class LearningOutcome(
         put("reviewRequested", reviewRequested); put("wrongCount", wrongCount)
         put("acknowledgedWrongCount", acknowledgedWrongCount)
         put("nextReviewDate", nextReviewDate); put("reviewLevel", reviewLevel)
-        put("custom", custom)
+        put("lastReviewedDate", lastReviewedDate); put("custom", custom)
     }
     companion object {
         fun fromJson(j: JSONObject): LearningOutcome = LearningOutcome(
@@ -34,7 +35,9 @@ data class LearningOutcome(
             reviewRequested = j.optBoolean("reviewRequested"),
             wrongCount = j.optInt("wrongCount"), acknowledgedWrongCount = j.optInt("acknowledgedWrongCount"),
             nextReviewDate = j.optString("nextReviewDate", ""),
-            reviewLevel = j.optInt("reviewLevel"), custom = j.optBoolean("custom")
+            reviewLevel = j.optInt("reviewLevel"),
+            lastReviewedDate = j.optString("lastReviewedDate", ""),
+            custom = j.optBoolean("custom")
         )
     }
 }

@@ -76,7 +76,7 @@ class LearningRepository(context: Context) {
         updateOutcome(id) {
             val next = (it.reviewLevel + 1).coerceAtMost(intervals.lastIndex)
             it.copy(reviewRequested = false, acknowledgedWrongCount = it.wrongCount,
-                reviewLevel = next,
+                reviewLevel = next, lastReviewedDate = LocalDate.now().toString(),
                 nextReviewDate = LocalDate.now().plusDays(intervals[next]).toString())
         }
     }
@@ -136,15 +136,22 @@ class LearningRepository(context: Context) {
     fun attachGalleryPhoto(id: String, uri: Uri): Boolean {
         if (questions().none { it.id == id }) return false
         val (name, target) = newCameraPhoto()
-        return try {
-            app.contentResolver.openInputStream(uri)?.use { input ->
-                target.outputStream().use { input.copyTo(it) }
-            } ?: return false
-            if (target.length() == 0L) return false
-            updateQuestion(id) { it.copy(photos = it.photos + name) }
-            true
-        } catch (_: Exception) { false }
-            .also { success -> if (!success) target.delete() }
+        var success = false
+        try {
+            val stream = app.contentResolver.openInputStream(uri)
+            if (stream != null) {
+                stream.use { input -> target.outputStream().use { input.copyTo(it) } }
+                if (target.length() in 1L..20_000_000L) {
+                    updateQuestion(id) { it.copy(photos = it.photos + name) }
+                    success = true
+                }
+            }
+        } catch (_: Exception) {
+            success = false
+        } finally {
+            if (!success) target.delete()
+        }
+        return success
     }
 
     fun removePhoto(id: String, filename: String) {

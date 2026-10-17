@@ -34,7 +34,6 @@ object ReviewAdvisor {
         today: LocalDate = LocalDate.now()
     ): List<ReviewSignal> {
         val date = today.toString()
-        val recent = exams.groupBy { it.type.name to it.subjects.map { s -> s.subject } }
         // We need the LAST three exams for EACH type and subject, not the last
         // three exams globally (TYT and AYT interleave).
         val byCourse = mutableMapOf<Pair<String,String>, List<Exam>>()
@@ -52,6 +51,7 @@ object ReviewAdvisor {
             val normalizedTopic = normalize(outcome.topic)
             val normalizedTitle = normalize(outcome.title)
             val hits = last.count { exam ->
+                (outcome.lastReviewedDate.isBlank() || exam.date > outcome.lastReviewedDate) &&
                 exam.subjects.find { it.subject == outcome.subject }?.weakTopics.orEmpty().any { raw ->
                     val tag = normalize(raw)
                     tag.isNotBlank() && (
