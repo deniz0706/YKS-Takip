@@ -18,6 +18,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Only trusted branch pushes/maintainer dispatches trigger this workflow.
+    # Cache access is needed to retain the private development signing key.
+    cache-mode: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,8 +62,14 @@ jobs:
 
       - name: Report APK signing fingerprint
         run: |
-          # Never publish the private key. Only the public certificate hash.
-          keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey | grep 'SHA256:'
+          # Inspect the actual signed APK, not a locale-dependent keytool label.
+          # Print only the public certificate digest, never private key material.
+          APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          if [ -z "$APK_SIGNER" ]; then
+            echo "::error::Android SDK apksigner was not installed."
+            exit 1
+          fi
+          "$APK_SIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -Ei 'SHA-256|SHA256'
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
