@@ -76,7 +76,7 @@ object ReviewAdvisor {
             if (freshWrong > 0) reasons += "$freshWrong kez yanlış olarak işaretledin"
             if (open > 0) reasons += "$open çözülmemiş/geri dönülecek soru"
             if (due) reasons += "Tekrar zamanı geldi"
-            if (outcome.reviewRequested && reasons.isEmpty()) reasons += "Tekrar isteği işaretlendi"
+            if (outcome.reviewRequested) reasons.add(0, "Kendin tekrar için işaretledin")
             if (reasons.isEmpty()) null
             else ReviewSignal(
                 outcome = outcome, examHits = hits, examSample = last.size,
@@ -85,7 +85,8 @@ object ReviewAdvisor {
                 urgent = hits >= 2 || freshWrong >= 2 || open >= 2,
                 explanation = reasons.joinToString(" · ")
             )
-        }.sortedWith(compareByDescending<ReviewSignal> { it.urgent }
+        }.sortedWith(compareByDescending<ReviewSignal> { it.outcome.reviewRequested }
+            .thenByDescending { it.urgent }
             .thenByDescending { it.due }
             .thenByDescending { it.examHits }
             .thenBy { it.outcome.subject }

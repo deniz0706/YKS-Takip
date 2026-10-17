@@ -81,6 +81,7 @@ fun LearningHubPanel(
     var expandedOutcomeId by remember { mutableStateOf<String?>(null) }
     var questionSearch by remember { mutableStateOf("") }
     var questionStatus by remember { mutableStateOf("open") }
+    var reviewFilter by remember { mutableStateOf("all") }
 
     val scoped = remember(outcomes, examType, learningField) {
         outcomes.filter { it.examType == examType &&
@@ -132,14 +133,20 @@ fun LearningHubPanel(
                 }
         }.sortedWith(compareByDescending<QuestionCard> { it.createdAt }.thenBy { it.id })
     }
-    val activeReview = focusedReviewId?.let { available[it] }?.takeIf {
-        it.examType == examType && it.subject == subject
+    // Review sessions and reminders are global, regardless of the selected course.
+    val activeReview = focusedReviewId?.let { available[it] }
+    val manualCount = signals.count { it.outcome.reviewRequested }
+    val shownSignals = remember(signals, reviewFilter) {
+        signals.filter { signal ->
+            when (reviewFilter) {
+                "manual" -> signal.outcome.reviewRequested
+                "due" -> signal.due
+                else -> true
+            }
+        }
     }
-    val relevantSignals = remember(signals, examType, subject) {
-        signals.filter { it.outcome.examType == examType && it.outcome.subject == subject }
-    }
-    val dueQuestions = remember(courseQuestions) {
-        courseQuestions.filter {
+    val dueQuestions = remember(questions) {
+        questions.filter {
             it.status != QuestionStatus.COZULDU && it.dueDate.isNotBlank() &&
                 it.dueDate <= LocalDate.now().toString()
         }
@@ -190,6 +197,15 @@ fun LearningHubPanel(
                         )
                     }
                 }
+                Spacer(Modifier.height(10.dp))
+                OutlinedButton(onClick = {
+                    pane = "review"
+                    reviewFilter = "manual"
+                    focusedReviewId = null
+                    actionFeedback = null
+                }, modifier = Modifier.fillMaxWidth()) {
+                    Text("↻ Tekrar listem · $manualCount işaretli →")
+                }
                 Text("Konu başlıkları müfredat odaklıdır; eksik gördüğün konuyu ekleyebilirsin.",
                     color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
             }
@@ -208,14 +224,17 @@ fun LearningHubPanel(
         item(key = "learning-navigation") {
             Column {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    listOf("outcomes" to "Konular", "questions" to "Sorular", "review" to "Tekrar")
-                        .forEach { (key, label) ->
-                            FilterChip(selected = pane == key, onClick = {
-                                pane = key
-                                if (key != "review") focusedReviewId = null
-                            }, label = { Text(label, maxLines = 1) }, modifier = Modifier.weight(1f))
-                        }
+                    listOf("outcomes" to "Konular", "questions" to "Sorular",
+                        "review" to "Tekrar Listem").forEach { (key, label) ->
+                        FilterChip(selected = pane == key, onClick = {
+                            pane = key
+                            focusedReviewId = null
+                            if (key == "review") reviewFilter = "all"
+                        }, label = { Text(label, maxLines = 1) },
+                            modifier = Modifier.weight(1f))
+                    }
                 }
+                if (pane != "review") {
                 if (examType == "AYT") {
                     Text("AYT alanı", color = c.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall)
@@ -260,6 +279,11 @@ fun LearningHubPanel(
                             }
                         }
                     }
+                }
+                } else {
+                    Text("Tüm TYT ve AYT derslerinden, alan filtresinden bağımsız tekrarların.",
+                        color = c.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -415,12 +439,19 @@ fun LearningHubPanel(
                                         style = MaterialTheme.typography.labelSmall)
                                 }
                                 TextButton(onClick = {
-                                    onRequestReview(outcome.id)
-                                    focusedReviewId = outcome.id
-                                    pane = "review"
-                                    actionFeedback = null
+                                    if (outcome.reviewRequested) {
+                                        pane = "review"
+                                        reviewFilter = "manual"
+                                        focusedReviewId = null
+                                        actionFeedback = null
+                                    } else {
+                                        onRequestReview(outcome.id)
+                                        actionFeedback = "Tekrar listene eklendi. Tüm derslerden Tekrar Listem'de bulabilirsin."
+                                    }
                                 }) {
-                                    Text("↻ Tekrar et", style = MaterialTheme.typography.labelSmall)
+                                    Text(if (outcome.reviewRequested) "✓ Tekrar listemde →"
+                                        else "+ Tekrara ekle",
+                                        style = MaterialTheme.typography.labelSmall)
                                 }
                                 if (outcome.custom && outcome.id !in linkedQuestionIds) {
                                     TextButton(onClick = { onDeleteOutcome(outcome.id) }) {
@@ -512,29 +543,45 @@ fun LearningHubPanel(
                 } else {
                     item(key = "review-intro") {
                         DashboardPanel(Modifier.fillMaxWidth()) {
-                            Text("TEKRAR RADARI", color = c.secondary,
+                            Text("TEKRAR LİSTEM", color = c.secondary,
                                 style = MaterialTheme.typography.labelSmall)
-                            Text("Neye tekrar bakmalıyım?", color = c.onSurface,
+                            Text("İşaretlediklerin tek yerde", color = c.onSurface,
                                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                            Text("Denemelerde işaretlediğin konular, yanlışların ve açık soruların değerlendirilir.",
+                            Text("TYT, AYT ve tüm derslerde işaretlediğin konular burada. " +
+                                "Yanlışlar ve günü gelen tekrarlar da otomatik önerilir.",
                                 color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.height(8.dp))
-                            Text("${relevantSignals.size} öneri",
+                            Text("$manualCount işaretli · ${signals.size} toplam öneri",
                                 color = c.secondary, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(8.dp))
+                            Row(Modifier.horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                listOf("all" to "Tümü", "manual" to "İşaretlediklerim",
+                                    "due" to "Günü gelen").forEach { (key, label) ->
+                                    FilterChip(selected = reviewFilter == key,
+                                        onClick = { reviewFilter = key },
+                                        label = { Text(label) })
+                                }
+                            }
                         }
                     }
-                    if (relevantSignals.isEmpty()) {
+                    if (shownSignals.isEmpty()) {
                         item(key = "no-review") {
-                            Text("Bu ders için şu an tekrar önerisi yok.", color = c.onSurfaceVariant)
+                            Text(if (reviewFilter == "manual")
+                                "Henüz kendin tekrar için işaretlediğin konu yok."
+                                else "Bu filtrede tekrar önerisi yok.",
+                                color = c.onSurfaceVariant)
                         }
                     }
-                    items(relevantSignals, key = { "review:" + it.outcome.id }) { alert ->
+                    items(shownSignals, key = { "review:" + it.outcome.id }) { alert ->
                         DashboardPanel(Modifier.fillMaxWidth()) {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Text(alert.outcome.topic, color = c.secondary,
+                                Text("${alert.outcome.examType} · ${alert.outcome.subject} · ${alert.outcome.topic}",
+                                    color = c.secondary,
                                     modifier = Modifier.weight(1f),
                                     style = MaterialTheme.typography.labelSmall)
-                                Text(if (alert.urgent) "ÖNCELİKLİ" else "TEKRAR",
+                                Text(if (alert.outcome.reviewRequested) "İŞARETLEDİN"
+                                    else if (alert.urgent) "ÖNCELİKLİ" else "TEKRAR",
                                     color = if (alert.urgent) c.error else c.primary,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold)
@@ -549,16 +596,23 @@ fun LearningHubPanel(
                             }) { Text("Çalışmaya başla →") }
                         }
                     }
-                    if (dueQuestions.isNotEmpty()) {
+                    if (reviewFilter != "manual" && dueQuestions.isNotEmpty()) {
                         item(key = "due-question-title") {
                             Text("GÜNÜ GELEN SORULAR", color = c.secondary,
                                 style = MaterialTheme.typography.labelSmall)
                         }
                         items(dueQuestions, key = { "due:" + it.id }) { card ->
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Text(card.title.ifBlank { available[card.outcomeId]?.title.orEmpty() },
-                                    modifier = Modifier.weight(1f), color = c.onSurface,
-                                    style = MaterialTheme.typography.bodyMedium)
+                                Column(Modifier.weight(1f)) {
+                                    Text(card.title.ifBlank {
+                                        available[card.outcomeId]?.title.orEmpty()
+                                    }, color = c.onSurface, style = MaterialTheme.typography.bodyMedium)
+                                    val linked = available[card.outcomeId]
+                                    Text(linked?.let { "${it.examType} · ${it.subject} · ${it.title}" }
+                                        ?: "Eski soru kaydı",
+                                        color = c.onSurfaceVariant,
+                                        style = MaterialTheme.typography.labelSmall)
+                                }
                                 TextButton(onClick = {
                                     focusedReviewId = card.outcomeId
                                     actionFeedback = null

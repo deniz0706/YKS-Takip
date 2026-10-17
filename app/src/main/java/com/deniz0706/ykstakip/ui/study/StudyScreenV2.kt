@@ -195,7 +195,8 @@ fun StudyScreenV2(
                 questions = learningQuestions,
                 startingExamType = learningJump?.examType ?: "TYT",
                 startingSubject = learningJump?.subject.orEmpty(),
-                signals = visibleReviewSignals,
+                // Repeat inbox should span all TYT/AYT courses and fields.
+                signals = reviewSignals,
                 learningField = learningField,
                 onLearningFieldChange = onLearningFieldChange,
                 modifier = Modifier.fillMaxWidth().weight(1f),
