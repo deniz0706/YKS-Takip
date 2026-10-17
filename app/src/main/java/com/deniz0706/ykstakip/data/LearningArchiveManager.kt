@@ -185,9 +185,16 @@ class LearningArchiveManager(context: Context) {
         var newOutcomes = 0
         // Convert even older ZIP archives before merging. IDs/photos are
         // remapped together, and uncertain entries are retained in Eski Kayıtlar.
+        val restoredOldOutcomes = LearningSeed.mergeLegacyProgress(pending.outcomes)
+        // Old archive ZIPs sometimes contain question links to the original
+        // 'expanded|...' skill IDs. Normalize those before converting the
+        // old unit catalog, or pictures become linked only to orphan archives.
+        val restoredOldQuestions = pending.questions.map { card ->
+            card.copy(outcomeId = LearningSeed.topicIdFor(card.outcomeId))
+        }
         val imported = LearningKitapsecMigration.convert(
-            LearningSeed.mergeLegacyProgress(pending.outcomes),
-            pending.questions
+            restoredOldOutcomes,
+            restoredOldQuestions
         )
         imported.outcomes.forEach { incoming ->
             val local = outcomes[incoming.id]

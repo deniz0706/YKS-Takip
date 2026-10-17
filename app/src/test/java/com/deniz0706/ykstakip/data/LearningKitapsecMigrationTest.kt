@@ -49,6 +49,24 @@ class LearningKitapsecMigrationTest {
         assertTrue(result.outcomes.single { it.id == old.id }.completed)
     }
 
+    @Test fun veryOldZipSkillPhotoRemapsToNewKitapsecTopic() {
+        val skill = LearningSeed.legacyStarter.first {
+            it.id.startsWith("expanded|TYT|Fizik|İş Güç Enerji|")
+        }.copy(completed = true)
+        val originalQuestion = QuestionCard("q-legacy-zip", skill.id, "Eski soru", "",
+            QuestionStatus.COZULEMEDI, "2026-10-17", "2026-10-18",
+            photos = listOf("original-photo.png"))
+        val oldOutcomes = LearningSeed.mergeLegacyProgress(listOf(skill))
+        val oldQuestions = listOf(originalQuestion.copy(
+            outcomeId = LearningSeed.topicIdFor(originalQuestion.outcomeId)
+        ))
+        val result = LearningKitapsecMigration.convert(oldOutcomes, oldQuestions)
+        val expectedUnit = "unit|TYT|Fizik|İş, Güç ve Enerji"
+        assertEquals(expectedUnit, result.questions.single().outcomeId)
+        assertEquals(listOf("original-photo.png"), result.questions.single().photos)
+        assertTrue(result.outcomes.any { it.id == expectedUnit })
+    }
+
     @Test fun previouslyCheckedChildOnlyCompletesThatChild() {
         val old = LearningOutcome(
             "unit|AYT|Biyoloji|Komünite Ekolojisi", "AYT", "Biyoloji",
