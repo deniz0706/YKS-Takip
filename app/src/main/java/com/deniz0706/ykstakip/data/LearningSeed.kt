@@ -12,9 +12,11 @@ object LearningSeed {
     private fun group(exam: String, subject: String, topic: String, vararg items: String) =
         Group(exam, subject, topic, items.toList())
 
+    val starter: List<LearningOutcome> by lazy { LearningSeedExpanded.starter }
     val starterIds: Set<String> by lazy { starter.map { it.id }.toSet() }
 
-    val starter: List<LearningOutcome> by lazy {
+    /** Old catalog is kept for lossless ID migration, not shown in the UI. */
+    val legacyStarter: List<LearningOutcome> by lazy {
         val groups = listOf(
             group("TYT","Türkçe","Paragraf","Ana düşünceyi belirler","Yardımcı düşünceyi bulur","Paragrafta yapı ve akışı yorumlar"),
             group("TYT","Türkçe","Dil bilgisi","Sözcük türlerini ayırt eder","Cümlenin ögelerini belirler","Yazım ve noktalama kurallarını uygular"),
@@ -64,6 +66,90 @@ object LearningSeed {
         }
         // Original IDs stay unchanged. Expanded identifiers use an isolated prefix
         // so historical ticks, reviews, wrong answers and photos remain linked.
-        original + LearningSeedExpanded.starter
+        original + LearningSeedExpanded.legacyStarter
+    }
+
+    private fun legacyTarget(outcome: LearningOutcome): String {
+        val subject = when (outcome.subject) {
+            "Sosyal Bilimler" -> outcome.topic
+            "Fen Bilimleri" -> outcome.topic
+            else -> outcome.subject
+        }
+        val exam = outcome.examType
+        val topic = when {
+            outcome.subject == "Sosyal Bilimler" && subject == "Tarih" ->
+                when {
+                    outcome.title.contains("Mücadele") -> "Millî Mücadele"
+                    outcome.title.contains("Atatürk") -> "Atatürk İlkeleri ve İnkılaplar"
+                    else -> "Osmanlı Devleti"
+                }
+            outcome.subject == "Sosyal Bilimler" && subject == "Coğrafya" ->
+                when {
+                    outcome.title.contains("Harita") -> "Harita Bilgisi"
+                    outcome.title.contains("İklim") -> "İklim Bilgisi"
+                    else -> "Nüfus ve Göç"
+                }
+            outcome.subject == "Sosyal Bilimler" -> "Felsefeye Giriş"
+            outcome.subject == "Fen Bilimleri" && subject == "Fizik" ->
+                when {
+                    outcome.title.contains("Optik") || outcome.title.contains("dalga") -> "Optik"
+                    else -> "Hareket ve Kuvvet"
+                }
+            outcome.subject == "Fen Bilimleri" && subject == "Kimya" ->
+                if (outcome.title.contains("Karışım")) "Karışımlar" else "Atom ve Periyodik Sistem"
+            outcome.subject == "Fen Bilimleri" && subject == "Biyoloji" ->
+                if (outcome.title.contains("sınıflandırma", true)) "Sınıflandırma" else "Hücre"
+            exam == "TYT" && outcome.subject == "Matematik" && outcome.topic == "Geometri" ->
+                if (outcome.title.contains("Çember")) "Çember ve Daire" else "Üçgenler"
+            exam == "TYT" && outcome.subject == "Türkçe" && outcome.topic == "Paragraf" -> "Paragraf"
+            exam == "TYT" && outcome.subject == "Türkçe" && outcome.topic == "Dil bilgisi" -> "Sözcükte Yapı"
+            exam == "TYT" && outcome.subject == "Matematik" && outcome.topic == "Temel Kavramlar" -> "Sayı Kümeleri"
+            exam == "TYT" && outcome.subject == "Matematik" && outcome.topic == "Problemler" -> "Problemler"
+            exam == "AYT" && outcome.subject == "Matematik" && outcome.topic == "Limit - Türev - İntegral" ->
+                when {
+                    outcome.title.contains("İntegral") -> "İntegral"
+                    outcome.title.contains("Türev") -> "Türev"
+                    else -> "Limit ve Süreklilik"
+                }
+            else -> LearningSeedExpanded.normalizedTopic(exam, subject, outcome.topic)
+        }
+        val course = starter.filter { it.examType == exam && it.subject == subject }
+        return course.find { it.title == topic }?.id
+            ?: course.find { it.title.equals(outcome.topic, true) }?.id
+            ?: course.firstOrNull()?.id
+            ?: outcome.id
+    }
+
+    val legacyToTopicId: Map<String, String> by lazy {
+        legacyStarter.associate { it.id to legacyTarget(it) }
+    }
+
+    fun topicIdFor(id: String): String = legacyToTopicId[id] ?: id
+
+    /** Converts saved old checkmarks and wrong counts into the new topic rows. */
+    fun mergeLegacyProgress(recorded: List<LearningOutcome>): List<LearningOutcome> {
+        val current = linkedMapOf<String, LearningOutcome>()
+        recorded.filter { it.id !in legacyToTopicId }.forEach { current[it.id] = it }
+        val groups = recorded.filter { it.id in legacyToTopicId }.groupBy {
+            topicIdFor(it.id)
+        }
+        for ((id, old) in groups) {
+            val base = current[id] ?: starter.firstOrNull { it.id == id } ?: continue
+            val dueDates = (old.map { it.nextReviewDate } + base.nextReviewDate)
+                .filter { it.isNotBlank() }
+            current[id] = base.copy(
+                completed = base.completed || old.any { it.completed },
+                reviewRequested = base.reviewRequested || old.any { it.reviewRequested },
+                wrongCount = base.wrongCount + old.sumOf { it.wrongCount },
+                acknowledgedWrongCount = base.acknowledgedWrongCount +
+                    old.sumOf { it.acknowledgedWrongCount },
+                nextReviewDate = dueDates.minOrNull().orEmpty(),
+                reviewLevel = if (old.any { it.reviewLevel == 0 }) 0
+                    else minOf(base.reviewLevel, old.minOf { it.reviewLevel }),
+                lastReviewedDate = (old.map { it.lastReviewedDate } +
+                    base.lastReviewedDate).filter { it.isNotBlank() }.maxOrNull().orEmpty()
+            )
+        }
+        return current.values.toList()
     }
 }

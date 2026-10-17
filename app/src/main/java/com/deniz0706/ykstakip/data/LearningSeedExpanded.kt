@@ -261,7 +261,107 @@ AYT|Felsefe Grubu|Mantık|Kavram ve önermeyi açıklar;Kıyas kurallarını yor
 AYT|Din Kültürü / Ek Felsefe|İnanç ve Değer|İnanç esaslarını ayırt eder;Din ahlak ilişkisini açıklar;Evrensel değerleri yorumlar
     """.trimIndent()
 
+    fun normalizedTopic(exam: String, subject: String, topic: String): String {
+        if (exam == "TYT" && subject == "Türkçe" &&
+            topic in setOf("Paragrafta Anlam", "Paragrafta Yapı", "Anlatım Biçimleri", "Düşünceyi Geliştirme")) return "Paragraf"
+        if (exam == "TYT" && subject == "Matematik" &&
+            topic in setOf("Sayı Problemleri", "Kesir Problemleri", "Yaş Problemleri", "İşçi Havuz Problemleri", "Hareket Problemleri", "Yüzde Problemleri", "Kâr Zarar Problemleri", "Karışım Problemleri", "Grafik Tablo Problemleri")) return "Problemler"
+        if (exam == "TYT" && subject == "Geometri" &&
+            topic in setOf("Üçgende Açılar", "Üçgende Kenar", "Açıortay", "Kenarortay", "Benzerlik", "Üçgende Alan")) return "Üçgenler"
+        if (exam == "TYT" && subject == "Geometri" &&
+            topic in setOf("Çokgenler", "Dörtgenler", "Paralelkenar", "Dikdörtgen ve Kare", "Yamuk", "Eşkenar Dörtgen ve Deltoid")) return "Dörtgenler ve Çokgenler"
+        if (exam == "TYT" && subject == "Geometri" &&
+            topic in setOf("Çemberde Açılar", "Çemberde Uzunluk", "Daire")) return "Çember ve Daire"
+        if (exam == "TYT" && subject == "Tarih" &&
+            topic in setOf("Osmanlı Kuruluş", "Osmanlı Yükseliş", "Osmanlı Islahatları", "19. Yüzyıl Osmanlı")) return "Osmanlı Devleti"
+        if (exam == "TYT" && subject == "Tarih" &&
+            topic in setOf("Trablusgarp ve Balkan Savaşları", "I. Dünya Savaşı")) return "20. Yüzyıl Başlarında Osmanlı"
+        if (exam == "TYT" && subject == "Tarih" &&
+            topic in setOf("Millî Mücadele Hazırlık", "Kurtuluş Savaşı")) return "Millî Mücadele"
+        if (exam == "TYT" && subject == "Coğrafya" &&
+            topic in setOf("Atmosfer ve Sıcaklık", "Basınç ve Rüzgâr", "Nem ve Yağış", "İklim Tipleri")) return "İklim Bilgisi"
+        if (exam == "TYT" && subject == "Coğrafya" &&
+            topic in setOf("İç Kuvvetler", "Dış Kuvvetler")) return "Yer Şekilleri"
+        if (exam == "TYT" && subject == "Fizik" &&
+            topic in setOf("Hareket", "Kuvvet")) return "Hareket ve Kuvvet"
+        if (exam == "TYT" && subject == "Fizik" &&
+            topic in setOf("Elektrostatik", "Elektrik Devreleri")) return "Elektrik"
+        if (exam == "TYT" && subject == "Kimya" &&
+            topic in setOf("Atom Modelleri", "Periyodik Sistem")) return "Atom ve Periyodik Sistem"
+        if (exam == "TYT" && subject == "Kimya" &&
+            topic in setOf("Maddenin Halleri", "Gazlar")) return "Maddenin Halleri"
+        if (exam == "TYT" && subject == "Biyoloji" &&
+            topic in setOf("İnorganik Bileşikler", "Organik Bileşikler", "Enzimler")) return "Canlıların Temel Bileşenleri"
+        if (exam == "TYT" && subject == "Biyoloji" &&
+            topic in setOf("Hücre", "Madde Geçişleri")) return "Hücre"
+        if (exam == "AYT" && subject == "Matematik" &&
+            topic in setOf("Trigonometri Temelleri", "Trigonometrik Denklemler", "Trigonometrik Grafikler")) return "Trigonometri"
+        if (exam == "AYT" && subject == "Matematik" &&
+            topic in setOf("İkinci Dereceden Denklemler", "Parabol")) return "İkinci Dereceden Denklemler ve Parabol"
+        if (exam == "AYT" && subject == "Matematik" &&
+            topic in setOf("Logaritma", "Üstel Fonksiyon")) return "Üstel ve Logaritmik Fonksiyonlar"
+        if (exam == "AYT" && subject == "Matematik" &&
+            topic in setOf("Diziler", "Seriler")) return "Diziler"
+        if (exam == "AYT" && subject == "Matematik" &&
+            topic in setOf("Permütasyon Kombinasyon", "Binom")) return "Sayma ve Binom"
+        if (exam == "AYT" && subject == "Matematik" &&
+            topic in setOf("Limit", "Süreklilik")) return "Limit ve Süreklilik"
+        if (exam == "AYT" && subject == "Matematik" &&
+            topic in setOf("Türev", "Türev Uygulamaları")) return "Türev"
+        if (exam == "AYT" && subject == "Matematik" &&
+            topic in setOf("İntegral", "Alan İntegrali")) return "İntegral"
+        if (exam == "AYT" && subject == "Fizik" &&
+            topic in setOf("Vektörler", "Bağıl Hareket", "Newton Yasaları", "Sabit İvmeli Hareket", "Atışlar", "Enerji", "İtme Momentum", "Tork Denge", "Basit Makineler")) return "Kuvvet ve Hareket"
+        if (exam == "AYT" && subject == "Fizik" &&
+            topic in setOf("Çembersel Hareket", "Dönme Hareketi", "Kütle Çekim")) return "Çembersel Hareket"
+        if (exam == "AYT" && subject == "Fizik" &&
+            topic in setOf("Elektrik Alan", "Elektrik Potansiyel", "Kondansatörler")) return "Elektrik Alan ve Potansiyel"
+        if (exam == "AYT" && subject == "Fizik" &&
+            topic in setOf("Manyetik Alan", "Elektromanyetik İndüksiyon")) return "Manyetizma ve İndüksiyon"
+        if (exam == "AYT" && subject == "Fizik" &&
+            topic in setOf("Dalgalar", "Elektromanyetik Dalgalar")) return "Dalgalar"
+        if (exam == "AYT" && subject == "Fizik" &&
+            topic in setOf("Modern Fizik", "Atom ve Çekirdek")) return "Modern Fizik"
+        if (exam == "AYT" && subject == "Kimya" &&
+            topic in setOf("Gaz Yasaları", "Çözeltiler", "Koligatif Özellikler")) return "Gazlar ve Çözeltiler"
+        if (exam == "AYT" && subject == "Kimya" &&
+            topic in setOf("Kimyasal Denge", "Asit Baz Dengesi", "Çözünürlük Dengesi")) return "Kimyasal Denge"
+        if (exam == "AYT" && subject == "Kimya" &&
+            topic in setOf("Elektrokimya", "Elektroliz")) return "Elektrokimya"
+        if (exam == "AYT" && subject == "Kimya" &&
+            topic in setOf("Organik Kimya", "Alkanlar ve Sikloalkanlar", "Alken ve Alkinler", "Aromatik Bileşikler", "Organik Fonksiyonel Gruplar")) return "Organik Kimya"
+        if (exam == "AYT" && subject == "Biyoloji" &&
+            topic in setOf("Sinir Sistemi", "Endokrin Sistem", "Duyu Organları", "Destek Hareket", "Sindirim Sistemi", "Dolaşım Sistemi", "Solunum Sistemi", "Boşaltım Sistemi", "Üreme Sistemi")) return "İnsan Fizyolojisi"
+        if (exam == "AYT" && subject == "Biyoloji" &&
+            topic in setOf("Nükleik Asitler", "Protein Sentezi", "Genetik Mühendisliği")) return "Genden Proteine"
+        if (exam == "AYT" && subject == "Biyoloji" &&
+            topic in setOf("Enerji Dönüşümleri", "Fotosentez", "Hücresel Solunum")) return "Enerji Dönüşümleri"
+        if (exam == "AYT" && subject == "Biyoloji" &&
+            topic in setOf("Bitkisel Dokular", "Bitkilerde Taşıma", "Bitkilerde Üreme", "Bitki Hormonları")) return "Bitki Biyolojisi"
+        if (exam == "AYT" && subject == "Edebiyat" &&
+            topic in setOf("Cumhuriyet Şiiri", "Cumhuriyet Romanı", "Tiyatro ve Öğretici Metinler")) return "Cumhuriyet Dönemi Edebiyatı"
+        return topic
+    }
+
+    /** One checklist row per real topic, rather than three artificial skill rows. */
     val starter: List<LearningOutcome> by lazy {
+        val topics = linkedMapOf<String, LearningOutcome>()
+        catalog.lineSequence().filter { it.isNotBlank() }.forEach { row ->
+            val parts = row.trim().split('|', limit = 4)
+            require(parts.size == 4) { "Invalid learning catalog entry" }
+            val exam = parts[0].trim()
+            val subject = parts[1].trim()
+            val title = normalizedTopic(exam, subject, parts[2].trim())
+            val id = "unit|$exam|$subject|$title"
+            topics.putIfAbsent(id, LearningOutcome(
+                id = id, examType = exam, subject = subject, topic = subject, title = title
+            ))
+        }
+        topics.values.toList()
+    }
+
+    /** Previous three-skills-per-topic catalog, used ONLY for migration. */
+    val legacyStarter: List<LearningOutcome> by lazy {
         catalog.lineSequence().filter { it.isNotBlank() }.flatMap { row ->
             val parts = row.trim().split('|', limit = 4)
             require(parts.size == 4) { "Invalid learning catalog entry" }
