@@ -68,6 +68,9 @@ class StudyRepository(context: Context) {
 
         prefs.edit()
             .putString(KEY_STUDY_DAYS, array.toString())
+            // A manual edit invalidates the import rollback snapshot.
+            .remove(KEY_BEFORE_IMPORT)
+            .remove(KEY_AFTER_IMPORT)
             .apply()
     }
 
@@ -93,22 +96,33 @@ class StudyRepository(context: Context) {
                 put("estimated", day.estimated)
             })
         }
-        require(prefs.edit().putString("study_before_import", raw)
-            .putString(KEY_STUDY_DAYS, json.toString()).commit()) {
+        val updated = json.toString()
+        require(prefs.edit().putString(KEY_BEFORE_IMPORT, raw)
+            .putString(KEY_AFTER_IMPORT, updated)
+            .putString(KEY_STUDY_DAYS, updated).commit()) {
             "Çalışma geçmişi kaydedilemedi."
         }
         return changes
     }
 
-    fun canUndoLastImport() = prefs.contains("study_before_import")
+    fun canUndoLastImport(): Boolean = StudyBackupManager.canUndoImport(
+        prefs.getString(KEY_BEFORE_IMPORT, null),
+        prefs.getString(KEY_AFTER_IMPORT, null),
+        prefs.getString(KEY_STUDY_DAYS, null)
+    )
 
     fun undoLastImport(): Boolean {
-        val previous = prefs.getString("study_before_import", null) ?: return false
+        // Older backups lack an after-import snapshot: do not restore blindly.
+        if (!canUndoLastImport()) return false
+        val previous = prefs.getString(KEY_BEFORE_IMPORT, null) ?: return false
         return prefs.edit().putString(KEY_STUDY_DAYS, previous)
-            .remove("study_before_import").commit()
+            .remove(KEY_BEFORE_IMPORT)
+            .remove(KEY_AFTER_IMPORT).commit()
     }
 
     companion object {
         private const val KEY_STUDY_DAYS = "study_days"
+        private const val KEY_BEFORE_IMPORT = "study_before_import"
+        private const val KEY_AFTER_IMPORT = "study_after_import"
     }
 }

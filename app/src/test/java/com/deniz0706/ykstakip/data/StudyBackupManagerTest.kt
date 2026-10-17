@@ -47,6 +47,15 @@ class StudyBackupManagerTest {
         }
     }
 
+    @Test fun undoImportRequiresExactUnmodifiedSnapshot() {
+        val before = """[{"date":"2026-10-01","questionCount":100,"studyMinutes":200}]"""
+        val after = """[{"date":"2026-10-01","questionCount":120,"studyMinutes":250}]"""
+        assertTrue(StudyBackupManager.canUndoImport(before, after, after))
+        assertTrue(!StudyBackupManager.canUndoImport(before, after, before))
+        assertTrue(!StudyBackupManager.canUndoImport(before, null, after))
+        assertTrue(!StudyBackupManager.canUndoImport(null, after, after))
+    }
+
     @Test fun examJsonIsNotMistakenForStudyHistory() {
         assertThrows(IllegalArgumentException::class.java) {
             StudyBackupManager.parseJson(

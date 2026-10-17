@@ -194,7 +194,7 @@ class SettingsFragment : Fragment() {
         }
         AlertDialog.Builder(requireContext())
             .setTitle("Son içe aktarmayı geri al")
-            .setMessage("Son içe aktarma öncesindeki tüm çalışma günlerine dönülecek. İçe aktarmadan sonra elle yaptığın değişiklikler de geri alınabilir.")
+            .setMessage("Çalışma günlerini son içe aktarmadan beri düzenlemediysen önceki kayıtlar geri yüklenir. Sonradan eklenen veya düzenlenen günler varsa geri alma seçeneği kapanır.")
             .setNegativeButton("Vazgeç", null)
             .setPositiveButton("Geri al") { _, _ ->
                 val done = studyRepository.undoLastImport()

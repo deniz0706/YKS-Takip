@@ -10,6 +10,10 @@ object StudyBackupManager {
     const val SCHEMA = "yks_takip_study_backup"
     data class Parsed(val days: List<StudyDay>, val estimatedDays: Int)
 
+    /** An import may be rolled back only while its exact resulting data is intact. */
+    internal fun canUndoImport(before: String?, after: String?, current: String?): Boolean =
+        before != null && after != null && current == after
+
     fun exportJson(days: List<StudyDay>): String {
         val rows = JSONArray()
         days.sortedBy { it.date }.forEach { day ->
