@@ -5,6 +5,7 @@ import com.deniz0706.ykstakip.model.AytField
 /** Only show the subjects belonging to the selected AYT track. */
 object LearningFields {
     fun includes(exam: String, subject: String, field: AytField): Boolean {
+        if (subject == "Eski Kayıtlar") return true
         if (exam == "TYT") return true
         if (exam != "AYT") return false
         return when (field) {

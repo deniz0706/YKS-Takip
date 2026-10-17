@@ -18,7 +18,7 @@ object LearningKitapsecCatalog {
                 Group(p[0].trim(), p[1].trim(), it.trim())
             }
         }.toList().also { list ->
-            require(list.map { "unit|\${it.exam}|\${it.subject}|\${it.title}" }.distinct().size == list.size)
+            require(list.map { "unit|${it.exam}|${it.subject}|${it.title}" }.distinct().size == list.size)
         }
     }
 
@@ -32,7 +32,7 @@ object LearningKitapsecCatalog {
         childrenRows.trimIndent().lineSequence().filter { it.isNotBlank() }.associate { row ->
             val p = row.split('|', limit = 4)
             require(p.size == 4)
-            val key = "unit|\${p[0]}|\${p[1]}|\${p[2]}"
+            val key = "unit|${p[0]}|${p[1]}|${p[2]}"
             key to p[3].split(';').map { it.trim() }.filter { it.isNotBlank() }.distinct()
         }.also { all ->
             require((all.keys - starter.mapTo(mutableSetOf()) { it.id }).isEmpty()) {

@@ -13,12 +13,11 @@ class LearningSubtopicsTest {
     @Test fun tytEnergyHasExactlyFiveSourceHeadings() {
         val energy = LearningSeed.starter.single {
             it.examType == "TYT" && it.subject == "Fizik" &&
-                it.title == "İş Güç Enerji"
+                it.title == "İş, Güç ve Enerji"
         }
         assertEquals(listOf(
-            "İş, Güç ve Enerji", "Mekanik Enerji",
-            "Enerjinin Korunumu ve Enerji Dönüşümleri",
-            "Verim", "Enerji Kaynakları"
+            "İş, Enerji ve Güç", "Mekanik Enerji",
+            "Enerjinin Korunumu ve Dönüşümleri", "Verim"
         ), LearningSubtopics.forOutcome(energy))
     }
 
@@ -26,8 +25,20 @@ class LearningSubtopicsTest {
         val science = LearningSeed.starter.filter {
             it.examType == "TYT" && it.subject == "Fizik"
         }
-        assertTrue(science.any { it.title == "Elektrostatik" })
         assertTrue(science.any { it.title == "Elektrik" })
+        assertTrue(!science.any { it.title == "Elektrostatik" })
+    }
+
+    @Test fun allTwentyTwoSubjectGroupsAreAvailable() {
+        assertEquals(22, LearningKitapsecCatalog.groupedSubjects().size)
+    }
+
+    @Test fun specificSourceOutlineTotals() {
+        val counts = LearningKitapsecCatalog.groupedSubjects()
+        assertEquals(22, counts["TYT/Tarih"])
+        assertEquals(15, counts["TYT/Türkçe"])
+        assertEquals(12, counts["TYT/Fizik"])
+        assertEquals(4, counts["AYT/Edebiyat"])
     }
 
     @Test fun nestedHeadingsAreDistinctWithinEachUnit() {

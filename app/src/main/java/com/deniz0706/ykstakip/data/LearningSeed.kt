@@ -12,7 +12,7 @@ object LearningSeed {
     private fun group(exam: String, subject: String, topic: String, vararg items: String) =
         Group(exam, subject, topic, items.toList())
 
-    val starter: List<LearningOutcome> by lazy { LearningSeedExpanded.starter }
+    val starter: List<LearningOutcome> by lazy { LearningKitapsecCatalog.starter }
     val starterIds: Set<String> by lazy { starter.map { it.id }.toSet() }
 
     /** Old catalog is kept for lossless ID migration, not shown in the UI. */
@@ -114,7 +114,11 @@ object LearningSeed {
                 }
             else -> LearningSeedExpanded.normalizedTopic(exam, subject, outcome.topic)
         }
-        val course = starter.filter { it.examType == exam && it.subject == subject }
+        // Preserve the exact old migration target, then run the Kitapsec
+        // transition separately. New units must not absorb obsolete skills.
+        val course = LearningSeedExpanded.starter.filter {
+            it.examType == exam && it.subject == subject
+        }
         return course.find { it.title == topic }?.id
             ?: course.find { it.title.equals(outcome.topic, true) }?.id
             ?: course.firstOrNull()?.id

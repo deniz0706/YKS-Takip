@@ -347,9 +347,7 @@ fun LearningHubPanel(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
-                                            if (outcome.examType == "TYT" && outcome.subject == "Fizik"
-                                                && outcome.title == "İş Güç Enerji") "Enerji"
-                                            else outcome.title,
+                                            outcome.title,
                                             color = c.onSurface,
                                             style = MaterialTheme.typography.bodyMedium,
                                             modifier = Modifier.weight(1f)

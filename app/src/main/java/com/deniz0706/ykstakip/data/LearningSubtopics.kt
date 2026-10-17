@@ -23,10 +23,10 @@ object LearningSubtopics {
     }
     /** Used by CI tests to prevent unreachable accordion groups. */
     internal fun catalogUnitIds(): Set<String> =
-        catalog.keys.mapTo(linkedSetOf()) { "unit|$it" }
+        LearningKitapsecCatalog.expandableIds()
 
     fun forOutcome(outcome: LearningOutcome): List<String> =
-        catalog["${outcome.examType}|${outcome.subject}|${outcome.title}"].orEmpty()
+        LearningKitapsecCatalog.forOutcome(outcome)
 
     private val rows = """
 TYT|Fizik|Fiziğin Doğası|Fiziğin Tanımı ve Özellikleri;Fiziğin Alt Dalları;Fiziğin Diğer Disiplinlerle İlişkisi;Fiziksel Niceliklerin Sınıflandırılması;Fizik ve Bilim Araştırma Merkezleri
