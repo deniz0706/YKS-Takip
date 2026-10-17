@@ -23,6 +23,34 @@ class LearningRepository(context: Context) {
         migrateOldSkillsOnce()
         migrateMebVerifiedUnitsOnce()
         migrateMebUnitNamesV2Once()
+        migrateKitapsecOnce()
+    }
+
+    /** One-time, transactional change of curriculum without deleting linked photos. */
+    private fun migrateKitapsecOnce() {
+        if (prefs.getBoolean("learning_kitapsec_v1", false)) return
+        val oldRawOutcomes = prefs.getString("outcomes", "[]") ?: "[]"
+        val oldRawQuestions = prefs.getString("questions", "[]") ?: "[]"
+        val recorded = try {
+            val arr = JSONArray(oldRawOutcomes)
+            (0 until arr.length()).map { LearningOutcome.fromJson(arr.getJSONObject(it)) }
+        } catch (_: Exception) { return }
+        val linked = try {
+            val arr = JSONArray(oldRawQuestions)
+            (0 until arr.length()).map { QuestionCard.fromJson(arr.getJSONObject(it)) }
+        } catch (_: Exception) { return }
+
+        val migrated = LearningKitapsecMigration.convert(recorded, linked)
+        val defaults = LearningSeed.starter.associateBy { it.id }
+        val saved = migrated.outcomes.filter { defaults[it.id] != it }
+        prefs.edit()
+            // Raw snapshots are retained for recovery, separately from JSON/ZIP exports.
+            .putString("before_kitapsec_outcomes_v1", oldRawOutcomes)
+            .putString("before_kitapsec_questions_v1", oldRawQuestions)
+            .putString("outcomes", JSONArray(saved.map { it.toJson() }).toString())
+            .putString("questions", JSONArray(migrated.questions.map { it.toJson() }).toString())
+            .putBoolean("learning_kitapsec_v1", true)
+            .commit()
     }
 
     /** Second official unit-name review. Runs also on devices that completed v1. */

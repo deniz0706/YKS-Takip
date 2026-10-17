@@ -167,7 +167,10 @@ object LearningSeed {
             topicIdFor(it.id)
         }
         for ((id, old) in groups) {
-            val base = current[id] ?: starter.firstOrNull { it.id == id } ?: continue
+            // Early migrations may still target the pre-Kitapsec unit IDs.
+            val base = current[id] ?: LearningSeedExpanded.starter.firstOrNull {
+                it.id == id
+            } ?: starter.firstOrNull { it.id == id } ?: continue
             val dueDates = (old.map { it.nextReviewDate } + base.nextReviewDate)
                 .filter { it.isNotBlank() }
             current[id] = base.copy(
