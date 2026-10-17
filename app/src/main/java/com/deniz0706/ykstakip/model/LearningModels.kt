@@ -17,7 +17,9 @@ data class LearningOutcome(
     val nextReviewDate: String = "",
     val reviewLevel: Int = 0,
     val lastReviewedDate: String = "",
-    val custom: Boolean = false
+    val custom: Boolean = false,
+    /** PDF-derived subtopic titles checked within this unit. */
+    val completedSubtopics: List<String> = emptyList()
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("id", id); put("examType", examType); put("subject", subject)
@@ -26,6 +28,7 @@ data class LearningOutcome(
         put("acknowledgedWrongCount", acknowledgedWrongCount)
         put("nextReviewDate", nextReviewDate); put("reviewLevel", reviewLevel)
         put("lastReviewedDate", lastReviewedDate); put("custom", custom)
+        put("completedSubtopics", JSONArray(completedSubtopics))
     }
     companion object {
         fun fromJson(j: JSONObject): LearningOutcome = LearningOutcome(
@@ -37,7 +40,11 @@ data class LearningOutcome(
             nextReviewDate = j.optString("nextReviewDate", ""),
             reviewLevel = j.optInt("reviewLevel"),
             lastReviewedDate = j.optString("lastReviewedDate", ""),
-            custom = j.optBoolean("custom")
+            custom = j.optBoolean("custom"),
+            completedSubtopics = (j.optJSONArray("completedSubtopics") ?: JSONArray()).let { a ->
+                (0 until a.length()).map { a.optString(it) }
+                    .filter { it.isNotBlank() }.distinct()
+            }
         )
     }
 }

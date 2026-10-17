@@ -176,7 +176,23 @@ class LearningRepository(context: Context) {
     }
 
     fun setCompleted(id: String, checked: Boolean) {
-        updateOutcome(id) { it.copy(completed = checked) }
+        updateOutcome(id) { unit ->
+            unit.copy(completed = checked,
+                completedSubtopics = if (checked) LearningSubtopics.forOutcome(unit) else emptyList())
+        }
+    }
+
+    fun setSubtopicCompleted(id: String, subtopic: String, checked: Boolean) {
+        updateOutcome(id) { unit ->
+            val all = LearningSubtopics.forOutcome(unit)
+            if (subtopic !in all) unit else {
+                val previous = if (unit.completed && unit.completedSubtopics.isEmpty())
+                    all.toSet() else unit.completedSubtopics.toSet()
+                val selected = if (checked) previous + subtopic else previous - subtopic
+                val done = all.filter { it in selected }
+                unit.copy(completedSubtopics = done, completed = done.size == all.size)
+            }
+        }
     }
     fun markWrong(id: String) {
         updateOutcome(id) { it.copy(
@@ -203,7 +219,9 @@ class LearningRepository(context: Context) {
             // Preserve the existing saved level as the next index after each success.
             val days = intervals[it.reviewLevel.coerceIn(0, intervals.lastIndex)]
             val nextLevel = (it.reviewLevel + 1).coerceAtMost(intervals.lastIndex)
-            it.copy(completed = true, reviewRequested = false,
+            it.copy(completed = true,
+                completedSubtopics = LearningSubtopics.forOutcome(it),
+                reviewRequested = false,
                 acknowledgedWrongCount = it.wrongCount,
                 reviewLevel = nextLevel, lastReviewedDate = LocalDate.now().toString(),
                 nextReviewDate = LocalDate.now().plusDays(days).toString())

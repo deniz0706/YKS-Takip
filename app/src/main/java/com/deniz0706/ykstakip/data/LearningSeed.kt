@@ -168,6 +168,8 @@ object LearningSeed {
                 .filter { it.isNotBlank() }
             current[id] = base.copy(
                 completed = base.completed || old.any { it.completed },
+                completedSubtopics = (base.completedSubtopics +
+                    old.flatMap { it.completedSubtopics }).distinct(),
                 reviewRequested = base.reviewRequested || old.any { it.reviewRequested },
                 wrongCount = base.wrongCount + old.sumOf { it.wrongCount },
                 acknowledgedWrongCount = base.acknowledgedWrongCount +
