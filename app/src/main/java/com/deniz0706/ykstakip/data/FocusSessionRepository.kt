@@ -14,38 +14,59 @@ class FocusSessionRepository(context: Context) {
     data class Snapshot(
         val durationMinutes: Int,
         val elapsedMs: Long,
-        val running: Boolean
+        val running: Boolean,
+        val stopwatch: Boolean = false
     ) {
         val totalMs: Long get() = durationMinutes * 60_000L
         val remainingMs: Long get() = (totalMs - elapsedMs).coerceAtLeast(0L)
-        val completed: Boolean get() = elapsedMs >= totalMs
+        val completed: Boolean get() = !stopwatch && elapsedMs >= totalMs
+        val limitReached: Boolean get() = stopwatch && elapsedMs >= MAX_STOPWATCH_MS
         val savedMinutes: Int get() = (elapsedMs / 60_000L).toInt()
     }
 
-    private fun targetMinutes(): Int = prefs.getInt("duration", 25).coerceIn(1, 180)
+    companion object {
+        const val MAX_MINUTES = 1440
+        const val MAX_STOPWATCH_MS = MAX_MINUTES * 60_000L
+    }
+
+    private fun targetMinutes(): Int = prefs.getInt("duration", 25).coerceIn(1, MAX_MINUTES)
     private fun accumulated(): Long = prefs.getLong("accumulated", 0L).coerceAtLeast(0L)
     private fun startTime(): Long = prefs.getLong("started_at", 0L)
 
-    /** A clock change cannot produce negative study time or more than one session's target. */
+    /** Keep prior countdown sessions compatible; stopwatch has no chosen target. */
     fun snapshot(): Snapshot {
         val target = targetMinutes()
+        val stopwatch = prefs.getBoolean("stopwatch_mode", false)
         val at = startTime()
         val running = at > 0L
-        val additional = if (running) (System.currentTimeMillis() - at).coerceAtLeast(0L) else 0L
-        val elapsed = (accumulated() + additional).coerceIn(0L, target * 60_000L)
-        return Snapshot(target, elapsed, running && elapsed < target * 60_000L)
+        val limit = if (stopwatch) MAX_STOPWATCH_MS else target * 60_000L
+        val elapsed = FocusTimerMath.elapsed(
+            accumulated(), at, System.currentTimeMillis(), stopwatch, target
+        )
+        return Snapshot(target, elapsed, running && elapsed < limit, stopwatch)
     }
 
     fun chooseDuration(minutes: Int): Snapshot {
-        require(minutes in listOf(25, 45, 60))
-        prefs.edit().putInt("duration", minutes).putLong("accumulated", 0L)
+        require(minutes in 1..MAX_MINUTES)
+        val state = snapshot()
+        require(!state.running && state.elapsedMs == 0L) { "Önce mevcut seansı kaydet veya sıfırla." }
+        prefs.edit().putBoolean("stopwatch_mode", false)
+            .putInt("duration", minutes).putLong("accumulated", 0L)
             .remove("started_at").apply()
+        return snapshot()
+    }
+
+    fun chooseStopwatch(): Snapshot {
+        val state = snapshot()
+        require(!state.running && state.elapsedMs == 0L) { "Önce mevcut seansı kaydet veya sıfırla." }
+        prefs.edit().putBoolean("stopwatch_mode", true)
+            .putLong("accumulated", 0L).remove("started_at").apply()
         return snapshot()
     }
 
     fun start(): Snapshot {
         val state = snapshot()
-        if (!state.running && !state.completed) {
+        if (!state.running && !state.completed && !state.limitReached) {
             prefs.edit().putLong("started_at", System.currentTimeMillis()).apply()
         }
         return snapshot()
@@ -61,6 +82,16 @@ class FocusSessionRepository(context: Context) {
     fun discard(): Snapshot {
         prefs.edit().putLong("accumulated", 0L).remove("started_at").apply()
         return snapshot()
+    }
+
+    fun addManualMinutes(minutes: Int): SaveResult {
+        if (minutes <= 0) return SaveResult.NoTime
+        if (minutes > MAX_MINUTES) return SaveResult.DailyLimit
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val previous = studyRepository.get(date)
+        val merged = StudyTimeAddition.add(previous, date, minutes) ?: return SaveResult.DailyLimit
+        studyRepository.save(merged)
+        return SaveResult.Saved(minutes, 0)
     }
 
     sealed class SaveResult {
