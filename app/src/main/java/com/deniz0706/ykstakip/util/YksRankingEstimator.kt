@@ -407,10 +407,6 @@ object YksRankingEstimator {
         val aytWeights = aytWeightsFor(field)
         val key = fieldKey(field)
 
-        val obpZ = (
-            obp.coerceIn(0.0, 100.0) - 65.0
-        ) / 15.0
-
         val tytZ2025 = normalizedZ(
             tytNets,
             tyt2025,
@@ -437,14 +433,12 @@ object YksRankingEstimator {
 
         val combinedZ2025 = combinePlacementZ(
             tytZ2025,
-            aytZ2025,
-            obpZ
+            aytZ2025
         )
 
         val combinedZ2026 = combinePlacementZ(
             tytZ2026,
-            aytZ2026,
-            obpZ
+            aytZ2026
         )
 
         val score2025 = estimatedPlacementScore(combinedZ2025, obp)
@@ -539,22 +533,18 @@ object YksRankingEstimator {
 
     private fun combinePlacementZ(
         tytZ: Double,
-        aytZ: Double,
-        obpZ: Double
+        aytZ: Double
     ): Double {
 
         val wt = 0.40
         val wa = 0.60
-        val wo = 0.08
-
         val calibratedAytZ = aytZ * AYT_Z_CALIBRATION
 
         val weighted =
             wt * tytZ +
-            wa * calibratedAytZ +
-            wo * obpZ
+            wa * calibratedAytZ
 
-        val totalWeight = wt + wa + wo
+        val totalWeight = wt + wa
 
         return weighted / totalWeight
     }
