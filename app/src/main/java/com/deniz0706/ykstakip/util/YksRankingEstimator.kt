@@ -44,24 +44,27 @@ object YksRankingEstimator {
         "Biyoloji" to Stats(2.596, 3.227)
     )
 
+    // ÖSYM standardizes every candidate using the statistics of candidates
+    // attending the final year of secondary education (not all candidates).
+    // Source: 2026-YKS numerical results, "Testlerin Ortalama ve Standart Sapmaları".
     private val tyt2026 = mapOf(
-        "Türkçe" to Stats(20.1, 8.3),
-        "Sosyal Bilimler" to Stats(10.0, 4.0),
-        "Matematik" to Stats(6.4, 7.5),
-        "Fen Bilimleri" to Stats(3.9, 5.0)
+        "Türkçe" to Stats(20.5, 8.4),
+        "Sosyal Bilimler" to Stats(10.2, 3.9),
+        "Matematik" to Stats(6.8, 8.0),
+        "Fen Bilimleri" to Stats(4.3, 5.3)
     )
 
     private val ayt2026 = mapOf(
-        "Edebiyat" to Stats(6.5, 5.4),
-        "Tarih-1" to Stats(2.9, 2.9),
-        "Coğrafya-1" to Stats(1.9, 1.8),
-        "Tarih-2" to Stats(1.9, 2.5),
-        "Coğrafya-2" to Stats(2.4, 2.7),
-        "Felsefe Grubu" to Stats(1.8, 2.2),
-        "Din Kültürü / Ek Felsefe" to Stats(2.0, 2.2),
-        "Matematik" to Stats(7.1, 8.9),
-        "Fizik" to Stats(2.6, 3.6),
-        "Kimya" to Stats(2.1, 3.6),
+        "Edebiyat" to Stats(6.1, 5.2),
+        "Tarih-1" to Stats(2.6, 2.7),
+        "Coğrafya-1" to Stats(1.7, 1.8),
+        "Tarih-2" to Stats(1.7, 2.3),
+        "Coğrafya-2" to Stats(2.1, 2.5),
+        "Felsefe Grubu" to Stats(1.6, 2.1),
+        "Din Kültürü / Ek Felsefe" to Stats(1.9, 2.2),
+        "Matematik" to Stats(7.0, 9.1),
+        "Fizik" to Stats(2.7, 3.7),
+        "Kimya" to Stats(2.2, 3.7),
         "Biyoloji" to Stats(3.0, 3.6)
     )
 
