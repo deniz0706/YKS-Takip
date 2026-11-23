@@ -524,7 +524,7 @@ object YksRankingEstimator {
         return weightedSum / totalWeight
     }
 
-    private const val AYT_Z_CALIBRATION = 0.6
+    private const val AYT_Z_CALIBRATION = 1.0 // AYT test weights already sum to 0.60; do not shrink twice.
 
     private fun combinePlacementZ(
         tytZ: Double,
