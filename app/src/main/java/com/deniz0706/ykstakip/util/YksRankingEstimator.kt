@@ -354,20 +354,29 @@ object YksRankingEstimator {
             weights
         )
 
-        val rank2025 = rankFromZ(
-            z2025,
-            tytExam2025.last().rank
-        )
+        // Approximate the 100–500 exam-score scale from the standardized
+        // composite, then add the exact OBP placement contribution.
+        // ÖSYM does not publish the annual minimum/maximum TASP values, so
+        // this score conversion remains an estimate; the rank lookup itself
+        // uses the published cumulative placement-score distributions.
+        val placement2025 = estimatedPlacementScore(z2025, obp)
+        val placement2026 = estimatedPlacementScore(z2026, obp)
 
-        val rank2026 = rankFromZ(
-            z2026,
-            tytExam2026.last().rank
-        )
+        val rank2025 = YksOfficialRankingLookup.estimateForYear(
+            placementScore = placement2025,
+            year = 2025,
+            field = null,
+            isTyt = true
+        ) ?: return null
 
-        return combine(
-            rank2025,
-            rank2026
-        )
+        val rank2026 = YksOfficialRankingLookup.estimateForYear(
+            placementScore = placement2026,
+            year = 2026,
+            field = null,
+            isTyt = true
+        ) ?: return null
+
+        return combine(rank2025, rank2026)
     }
 
     fun estimateAyt(
@@ -438,20 +447,22 @@ object YksRankingEstimator {
             obpZ
         )
 
-        val rank2025 = rankFromZ(
-            combinedZ2025,
-            placement2025.getValue(key).last().rank
-        )
+        val score2025 = estimatedPlacementScore(combinedZ2025, obp)
+        val score2026 = estimatedPlacementScore(combinedZ2026, obp)
 
-        val rank2026 = rankFromZ(
-            combinedZ2026,
-            placement2026.getValue(key).last().rank
-        )
+        val rank2025 = YksOfficialRankingLookup.estimateForYear(
+            placementScore = score2025,
+            year = 2025,
+            field = field
+        ) ?: return null
 
-        return combine(
-            rank2025,
-            rank2026
-        )
+        val rank2026 = YksOfficialRankingLookup.estimateForYear(
+            placementScore = score2026,
+            year = 2026,
+            field = field
+        ) ?: return null
+
+        return combine(rank2025, rank2026)
     }
 
     private fun tytWeights(): List<Pair<String, Double>> {
@@ -546,6 +557,24 @@ object YksRankingEstimator {
         val totalWeight = wt + wa + wo
 
         return weighted / totalWeight
+    }
+
+    /**
+     * Approximate placement score from the standardized composite.
+     * Diploma input is a 0–100 grade; OBP = max(grade, 50) × 5 and
+     * placement contribution = OBP × 0.12 (or × 0.06 if halved).
+     *
+     * The annual TASP min/max required for an exact 100–500 conversion
+     * are not published, therefore 300 + 40×Z is an explicit estimate.
+     */
+    private fun estimatedPlacementScore(
+        compositeZ: Double,
+        diplomaGrade: Double,
+        obpCoefficient: Double = 0.12
+    ): Double {
+        val examScore = (300.0 + 40.0 * compositeZ).coerceIn(100.0, 500.0)
+        val obp = diplomaGrade.coerceIn(50.0, 100.0) * 5.0
+        return examScore + obp * obpCoefficient
     }
 
     private fun rankFromZ(
