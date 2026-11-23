@@ -23,25 +23,27 @@ object YksRankingEstimator {
         val rank: Int
     )
 
+    // ÖSYM uses final-year secondary-school candidate statistics to standardize
+    // all candidates. These are not the "all candidates" averages in the PDF.
     private val tyt2025 = mapOf(
-        "Türkçe" to Stats(21.243, 7.848),
-        "Sosyal Bilimler" to Stats(9.496, 4.042),
-        "Matematik" to Stats(6.006, 7.067),
-        "Fen Bilimleri" to Stats(4.122, 4.862)
+        "Türkçe" to Stats(21.707, 7.87),
+        "Sosyal Bilimler" to Stats(9.722, 4.014),
+        "Matematik" to Stats(6.648, 7.793),
+        "Fen Bilimleri" to Stats(4.606, 5.195)
     )
 
     private val ayt2025 = mapOf(
-        "Edebiyat" to Stats(6.630, 5.452),
-        "Tarih-1" to Stats(2.243, 2.423),
-        "Coğrafya-1" to Stats(1.436, 1.515),
-        "Tarih-2" to Stats(1.426, 1.965),
-        "Coğrafya-2" to Stats(2.635, 2.808),
-        "Felsefe Grubu" to Stats(1.918, 2.372),
-        "Din Kültürü / Ek Felsefe" to Stats(1.473, 1.796),
-        "Matematik" to Stats(6.798, 8.120),
-        "Fizik" to Stats(2.442, 3.313),
-        "Kimya" to Stats(1.758, 3.229),
-        "Biyoloji" to Stats(2.596, 3.227)
+        "Edebiyat" to Stats(6.38, 5.407),
+        "Tarih-1" to Stats(2.083, 2.345),
+        "Coğrafya-1" to Stats(1.313, 1.464),
+        "Tarih-2" to Stats(1.266, 1.819),
+        "Coğrafya-2" to Stats(2.472, 2.738),
+        "Felsefe Grubu" to Stats(1.709, 2.216),
+        "Din Kültürü / Ek Felsefe" to Stats(1.377, 1.734),
+        "Matematik" to Stats(6.859, 8.582),
+        "Fizik" to Stats(2.512, 3.446),
+        "Kimya" to Stats(1.846, 3.373),
+        "Biyoloji" to Stats(2.581, 3.315)
     )
 
     // ÖSYM standardizes every candidate using the statistics of candidates
