@@ -28,3 +28,13 @@ jobs:
 
       - name: Run unit tests
         run: gradle :app:testDebugUnitTest
+
+      - name: Build Debug APK
+        run: gradle :app:assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YKS-Takip-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
