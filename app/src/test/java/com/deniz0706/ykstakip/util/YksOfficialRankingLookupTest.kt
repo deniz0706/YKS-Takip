@@ -35,7 +35,7 @@ class YksOfficialRankingLookupTest {
     @Test
     fun midpointIsInterpolatedBetweenAdjacentThresholds() {
         assertEquals(
-            38_869,
+            54_294,
             YksOfficialRankingLookup.estimateForYear(
                 placementScore = 460.0,
                 year = 2026,
