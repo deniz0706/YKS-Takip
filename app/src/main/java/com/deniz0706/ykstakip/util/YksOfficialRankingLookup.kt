@@ -117,7 +117,7 @@ object YksOfficialRankingLookup {
 
         val sorted = ranks.sorted()
         return OfficialRankRange(
-            estimate = sorted[sorted.size / 2],
+            estimate = ((sorted.first().toDouble() + sorted.last()) / 2.0).roundToInt(),
             bestCase = sorted.first(),
             worstCase = sorted.last()
         )
