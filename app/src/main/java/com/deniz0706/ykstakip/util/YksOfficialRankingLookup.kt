@@ -111,5 +111,4 @@ object YksOfficialRankingLookup {
     private fun points(vararg values: Pair<Int, Int>): List<Point> =
         values.map { Point(it.first.toDouble(), it.second) }
 
-    private data class Point(val score: Double, val rank: Int)
 }
