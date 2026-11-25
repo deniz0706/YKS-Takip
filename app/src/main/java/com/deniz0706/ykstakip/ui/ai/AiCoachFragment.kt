@@ -24,6 +24,9 @@ import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.CancellationException
 
 private data class CoachLine(val role: String, val text: String)
 
@@ -72,16 +75,27 @@ class AiCoachFragment : Fragment() {
         sending.value = true
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = runCatching {
-                val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
-                val messages = mutableListOf(NvidiaAiService.Message("system",
-                    "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Aşağıdaki güncel özet yalnızca bu sohbet yanıtı için kullanılmalı.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
-                lines.takeLast(12).forEach { messages.add(NvidiaAiService.Message(it.role, it.text)) }
-                NvidiaAiService(appContext).chat(messages)
+            var answer: String? = null
+            var failure: String? = null
+            try {
+                answer = withTimeout(100_000) {
+                    val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
+                    val messages = mutableListOf(NvidiaAiService.Message("system",
+                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Aşağıdaki güncel özet yalnızca bu sohbet yanıtı için kullanılmalı.\\n\\nÖĞRENCİ ÖZETİ:\\n$contextText"))
+                    lines.takeLast(12).forEach { messages.add(NvidiaAiService.Message(it.role, it.text)) }
+                    NvidiaAiService(appContext).chat(messages)
+                }
+            } catch (e: TimeoutCancellationException) {
+                failure = "Yanıt 100 saniyede gelmedi. NVIDIA modeli yoğun olabilir; tekrar deneyebilirsin."
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                failure = e.message ?: "Bağlantı hatası"
+            } finally {
+                sending.value = false
             }
             if (!isAdded) return@launch
-            lines.add(CoachLine("assistant", result.getOrElse { "Yanıt alınamadı: " + (it.message ?: "Bağlantı hatası") }))
-            sending.value = false
+            lines.add(CoachLine("assistant", answer ?: "Yanıt alınamadı: " + (failure ?: "Bilinmeyen hata")))
         }
     }
 }
