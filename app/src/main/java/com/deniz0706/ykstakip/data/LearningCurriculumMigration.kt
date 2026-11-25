@@ -127,18 +127,20 @@ object LearningCurriculumMigration {
             }
 
             remappedIds[record.id] = target.id
-            val previous = saved[target.id] ?: target
-            val dueDates = listOf(previous.nextReviewDate, record.nextReviewDate)
+            val previous = saved[target.id]
+            val base = previous ?: target
+            val dueDates = listOf(base.nextReviewDate, record.nextReviewDate)
                 .filter { it.isNotBlank() }
             saved[target.id] = target.copy(
-                completed = previous.completed || record.completed,
-                reviewRequested = previous.reviewRequested || record.reviewRequested,
-                wrongCount = previous.wrongCount + record.wrongCount,
-                acknowledgedWrongCount = previous.acknowledgedWrongCount +
+                completed = base.completed || record.completed,
+                reviewRequested = base.reviewRequested || record.reviewRequested,
+                wrongCount = base.wrongCount + record.wrongCount,
+                acknowledgedWrongCount = base.acknowledgedWrongCount +
                     record.acknowledgedWrongCount,
                 nextReviewDate = dueDates.minOrNull().orEmpty(),
-                reviewLevel = minOf(previous.reviewLevel, record.reviewLevel),
-                lastReviewedDate = listOf(previous.lastReviewedDate, record.lastReviewedDate)
+                reviewLevel = if (previous == null) record.reviewLevel
+                    else minOf(previous.reviewLevel, record.reviewLevel),
+                lastReviewedDate = listOf(base.lastReviewedDate, record.lastReviewedDate)
                     .filter { it.isNotBlank() }.maxOrNull().orEmpty(),
                 // The new syllabus intentionally has no deeper checklist layer.
                 completedSubtopics = emptyList(),
