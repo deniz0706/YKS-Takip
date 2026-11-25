@@ -50,7 +50,7 @@ class NvidiaAiService(private val context: Context) {
             doOutput = true
             setRequestProperty("Authorization", "Bearer $key")
             setRequestProperty("Content-Type", "application/json")
-            setRequestProperty("Accept", "text/event-stream, application/json")
+            setRequestProperty("Accept", "text/event-stream")
         }
 
         val cancellationHook = currentCoroutineContext()[Job]?.invokeOnCompletion { cause ->
