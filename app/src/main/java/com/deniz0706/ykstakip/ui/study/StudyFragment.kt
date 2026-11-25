@@ -240,14 +240,42 @@ class StudyFragment : Fragment() {
         }
     }
 
+    private var refreshJob: Job? = null
+
     private fun refresh() {
-        outcomes.value = learningRepository.outcomes()
-        cards.value = learningRepository.questions()
-        savedExams.value = examRepository.getAllExams()
-        days.value = repository.getAll()
-        plan.value = planRepository.getAll()
-        goal.value = AppSettings.getDailyGoal(requireContext())
+        if (!isAdded) return
+        refreshJob?.cancel()
+        val appContext = requireContext().applicationContext
+        refreshJob = viewLifecycleOwner.lifecycleScope.launch {
+            val snapshot = withContext(Dispatchers.IO) {
+                StudySnapshot(
+                    outcomes = learningRepository.outcomes(),
+                    cards = learningRepository.questions(),
+                    exams = examRepository.getAllExams(),
+                    days = repository.getAll(),
+                    plan = planRepository.getAll(),
+                    goal = AppSettings.getDailyGoal(appContext)
+                )
+            }
+            if (isAdded) {
+                outcomes.value = snapshot.outcomes
+                cards.value = snapshot.cards
+                savedExams.value = snapshot.exams
+                days.value = snapshot.days
+                plan.value = snapshot.plan
+                goal.value = snapshot.goal
+            }
+        }
     }
+
+    private data class StudySnapshot(
+        val outcomes: List<LearningOutcome>,
+        val cards: List<QuestionCard>,
+        val exams: List<Exam>,
+        val days: List<StudyDay>,
+        val plan: List<StudyPlanItem>,
+        val goal: Int?
+    )
 
     private fun input(hintText: String, initial: String = "", number: Boolean = false): EditText =
         EditText(requireContext()).apply {
