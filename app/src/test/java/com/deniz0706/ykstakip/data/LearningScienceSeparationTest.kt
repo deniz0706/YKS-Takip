@@ -17,9 +17,9 @@ class LearningScienceSeparationTest {
             assertTrue("Wrong AYT $subject units: ${ayt.intersect(removed)}",
                 ayt.intersect(removed).isEmpty())
         }
-        assertEquals(8, units.count { it.examType == "AYT" && it.subject == "Fizik" })
-        assertEquals(10, units.count { it.examType == "AYT" && it.subject == "Kimya" })
-        assertEquals(6, units.count { it.examType == "AYT" && it.subject == "Biyoloji" })
+        assertEquals(29, units.count { it.examType == "AYT" && it.subject == "Fizik" })
+        assertEquals(21, units.count { it.examType == "AYT" && it.subject == "Kimya" })
+        assertEquals(21, units.count { it.examType == "AYT" && it.subject == "Biyoloji" })
     }
 
     @Test fun questionsForRemovedUnitKeepOriginalPhotosAndProgress() {
