@@ -8,100 +8,130 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LearningKitapsecMigrationTest {
-    @Test fun correctUnitRenameKeepsPhotoLinkAndTick() {
+    @Test fun renamedTopicKeepsProgressAndQuestionPhoto() {
         val previous = LearningOutcome(
-            id = "unit|TYT|Fizik|İş Güç Enerji", examType = "TYT",
-            subject = "Fizik", topic = "Fizik", title = "İş Güç Enerji", completed = true
+            id = "unit|TYT|Fizik|Elektrik",
+            examType = "TYT",
+            subject = "Fizik",
+            topic = "Fizik",
+            title = "Elektrik",
+            completed = true,
+            wrongCount = 2,
+            reviewLevel = 3
         )
         val question = QuestionCard(
-            id = "photo-question", outcomeId = previous.id, title = "Soru",
-            notes = "", status = QuestionStatus.COZULEMEDI,
-            createdAt = "2026-10-17", dueDate = "2026-10-18",
+            id = "photo-question",
+            outcomeId = previous.id,
+            title = "Soru",
+            notes = "",
+            status = QuestionStatus.COZULEMEDI,
+            createdAt = "2026-10-17",
+            dueDate = "2026-10-18",
             photos = listOf("question-1.jpg")
         )
-        val result = LearningKitapsecMigration.convert(listOf(previous), listOf(question))
-        val target = "unit|TYT|Fizik|İş, Güç ve Enerji"
+
+        val result = LearningCurriculumMigration.convert(listOf(previous), listOf(question))
+        val target = "unit|TYT|Fizik|Elektrik Akımı ve Devreler"
         assertEquals(target, result.questions.single().outcomeId)
         assertEquals(listOf("question-1.jpg"), result.questions.single().photos)
-        assertTrue(result.outcomes.single { it.id == target }.completed)
+        val migrated = result.outcomes.single { it.id == target }
+        assertTrue(migrated.completed)
+        assertEquals(2, migrated.wrongCount)
+        assertEquals(3, migrated.reviewLevel)
+        assertEquals("Elektrik ve Manyetizma", migrated.topic)
     }
 
-    @Test fun aBroadOldTopicCannotAutoCompleteAnUnrelatedNarrowUnit() {
+    @Test fun existingTopicGetsItsNewUnitGroupWithoutLosingItsTick() {
         val old = LearningOutcome(
-            "unit|TYT|Matematik|Sayma ve Olasılık", "TYT", "Matematik",
-            "Matematik", "Sayma ve Olasılık", completed = true
+            id = "unit|TYT|Türkçe|Sözcükte Anlam",
+            examType = "TYT",
+            subject = "Türkçe",
+            topic = "Türkçe",
+            title = "Sözcükte Anlam",
+            completed = true
         )
-        val result = LearningKitapsecMigration.convert(listOf(old), emptyList())
-        assertEquals(old.id, result.outcomes.single().id)
-        assertEquals("Eski Kayıtlar", result.outcomes.single().subject)
-        assertTrue(result.outcomes.single().completed)
+        val migrated = LearningCurriculumMigration.convert(listOf(old), emptyList())
+            .outcomes.single()
+        assertEquals("Anlam Bilgisi", migrated.topic)
+        assertTrue(migrated.completed)
     }
 
-    @Test fun renamedButExpandedTopicDoesNotClaimUnstudiedChildren() {
+    @Test fun removedTopicAndItsQuestionAreArchivedNotDeleted() {
         val old = LearningOutcome(
-            "unit|TYT|Fizik|Isı Sıcaklık", "TYT", "Fizik",
-            "Fizik", "Isı Sıcaklık", completed = true
-        )
-        val result = LearningKitapsecMigration.convert(listOf(old), emptyList())
-        val newUnit = result.outcomes.single { it.id == "unit|TYT|Fizik|Isı, Sıcaklık ve Genleşme" }
-        assertTrue(!newUnit.completed)
-        assertEquals("Eski Kayıtlar", result.outcomes.single { it.id == old.id }.subject)
-        assertTrue(result.outcomes.single { it.id == old.id }.completed)
-    }
-
-    @Test fun veryOldZipSkillPhotoRemapsToNewKitapsecTopic() {
-        val skill = LearningSeed.legacyStarter.first {
-            it.id.startsWith("expanded|TYT|Fizik|İş Güç Enerji|")
-        }.copy(completed = true)
-        val originalQuestion = QuestionCard("q-legacy-zip", skill.id, "Eski soru", "",
-            QuestionStatus.COZULEMEDI, "2026-10-17", "2026-10-18",
-            photos = listOf("original-photo.png"))
-        val oldOutcomes = LearningSeed.mergeLegacyProgress(listOf(skill))
-        val oldQuestions = listOf(originalQuestion.copy(
-            outcomeId = LearningSeed.topicIdFor(originalQuestion.outcomeId)
-        ))
-        val result = LearningKitapsecMigration.convert(oldOutcomes, oldQuestions)
-        val expectedUnit = "unit|TYT|Fizik|İş, Güç ve Enerji"
-        assertEquals(expectedUnit, result.questions.single().outcomeId)
-        assertEquals(listOf("original-photo.png"), result.questions.single().photos)
-        assertTrue(result.outcomes.any { it.id == expectedUnit })
-    }
-
-    @Test fun previouslyCheckedChildOnlyCompletesThatChild() {
-        val old = LearningOutcome(
-            "unit|AYT|Biyoloji|Komünite Ekolojisi", "AYT", "Biyoloji",
-            "Biyoloji", "Komünite Ekolojisi", completed = true
-        )
-        val result = LearningKitapsecMigration.convert(listOf(old), emptyList())
-        val migrated = result.outcomes.single()
-        assertEquals("Komünite ve Popülasyon Ekolojisi", migrated.title)
-        assertEquals(listOf("Komünite Ekolojisi"), migrated.completedSubtopics)
-        assertTrue(!migrated.completed)
-    }
-
-    @Test fun unknownProgressAndUnmappedQuestionAreArchivedNotLost() {
-        val old = LearningOutcome(
-            id = "unit|TYT|Tarih|UnknownLegacyTitle", examType = "TYT",
-            subject = "Tarih", topic = "Tarih", title = "UnknownLegacyTitle",
+            id = "unit|TYT|Tarih|OldLegacyTitle",
+            examType = "TYT",
+            subject = "Tarih",
+            topic = "Tarih",
+            title = "OldLegacyTitle",
             wrongCount = 3
         )
-        val photo = QuestionCard("q2", old.id, "Unsolved", "",
-            QuestionStatus.COZULEMEDI, "2026-10-17", "2026-10-18",
-            photos = listOf("img.png"))
-        val result = LearningKitapsecMigration.convert(listOf(old), listOf(photo))
+        val question = QuestionCard(
+            id = "old-question",
+            outcomeId = old.id,
+            title = "Eski soru",
+            notes = "",
+            status = QuestionStatus.COZULEMEDI,
+            createdAt = "2026-10-17",
+            dueDate = "2026-10-18",
+            photos = listOf("old-photo.jpg")
+        )
+        val result = LearningCurriculumMigration.convert(listOf(old), listOf(question))
         assertEquals(old.id, result.questions.single().outcomeId)
-        assertEquals(listOf("img.png"), result.questions.single().photos)
-        assertEquals(3, result.outcomes.single().wrongCount)
-        assertEquals("Eski Kayıtlar", result.outcomes.single().subject)
+        assertEquals(listOf("old-photo.jpg"), result.questions.single().photos)
+        val archived = result.outcomes.single { it.id == old.id }
+        assertEquals("Eski Kayıtlar", archived.subject)
+        assertEquals(3, archived.wrongCount)
     }
 
-    @Test fun previousElectrostaticsTickCompletesOnlyItsChild() {
-        val old = LearningOutcome("unit|TYT|Fizik|Elektrostatik",
-            "TYT", "Fizik", "Fizik", "Elektrostatik", completed = true)
-        val record = LearningKitapsecMigration.convert(listOf(old), emptyList())
+    @Test fun questionOnlyReferenceIsRemappedEvenWithoutSavedProgress() {
+        val oldId = "unit|TYT|Matematik|Oran Orantı"
+        val question = QuestionCard(
+            id = "question-only",
+            outcomeId = oldId,
+            title = "Soru",
+            notes = "",
+            status = QuestionStatus.COZULEMEDI,
+            createdAt = "2026-10-17",
+            dueDate = "2026-10-18",
+            photos = listOf("ratio.jpg")
+        )
+        val result = LearningCurriculumMigration.convert(emptyList(), listOf(question))
+        assertEquals(
+            "unit|TYT|Matematik|Oran – Orantı",
+            result.questions.single().outcomeId
+        )
+        assertEquals(listOf("ratio.jpg"), result.questions.single().photos)
+    }
+
+    @Test fun previouslyArchivedLegacyRecordCanReturnToItsMatchingTopic() {
+        val old = LearningOutcome(
+            id = "unit|TYT|Türkçe|Paragraf",
+            examType = "TYT",
+            subject = "Eski Kayıtlar",
+            topic = "Önceki Müfredat",
+            title = "Türkçe: Paragraf",
+            completed = true,
+            custom = true
+        )
+        val migrated = LearningCurriculumMigration.convert(listOf(old), emptyList())
             .outcomes.single()
-        assertEquals("Elektrik", record.title)
-        assertTrue("Elektrik Yükleri" in record.completedSubtopics)
-        assertTrue(!record.completed)
+        assertEquals("unit|TYT|Türkçe|Paragrafta Anlam ve Yapı", migrated.id)
+        assertEquals("Anlam Bilgisi", migrated.topic)
+        assertTrue(migrated.completed)
+        assertTrue(!migrated.custom)
+    }
+
+    @Test fun userCreatedTopicsRemainUntouched() {
+        val custom = LearningOutcome(
+            id = "user-topic-1",
+            examType = "TYT",
+            subject = "Matematik",
+            topic = "Kişisel",
+            title = "Kendi konum",
+            custom = true
+        )
+        val migrated = LearningCurriculumMigration.convert(listOf(custom), emptyList())
+            .outcomes.single()
+        assertEquals(custom, migrated)
     }
 }
