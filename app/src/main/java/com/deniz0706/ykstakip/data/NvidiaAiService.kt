@@ -16,7 +16,7 @@ class NvidiaAiService(private val context: Context) {
 
     suspend fun chat(messages: List<Message>, maxTokens: Int = 700): String = withContext(Dispatchers.IO) {
         val key = AiSecretStore.readApiKey(context) ?: error("Önce Ayarlar bölümünden API anahtarını kaydet.")
-        val base = AppSettings.getAiBaseUrl(context).trim().trimEnd("/")
+        val base = AppSettings.getAiBaseUrl(context).trim().trimEnd('/')
         val model = AppSettings.getAiModel(context).trim()
         require(base.startsWith("https://")) { "Base URL HTTPS olmalı." }
         require(model.isNotBlank()) { "Model adı boş olamaz." }
