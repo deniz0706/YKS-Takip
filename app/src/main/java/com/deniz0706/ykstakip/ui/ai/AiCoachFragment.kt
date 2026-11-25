@@ -1,5 +1,6 @@
 package com.deniz0706.ykstakip.ui.ai
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,11 +9,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -27,6 +35,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.CancellationException
+import org.json.JSONArray
+import org.json.JSONObject
 
 private data class CoachLine(val role: String, val text: String)
 
@@ -35,43 +45,178 @@ class AiCoachFragment : Fragment() {
     private val draft = mutableStateOf("")
     private val sending = mutableStateOf(false)
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lines.clear()
+        lines.addAll(loadConversation(requireContext()))
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         androidx.compose.ui.platform.ComposeView(requireContext()).apply {
             setViewCompositionStrategy(androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 YksTheme(darkTheme = activeDarkTheme(context)) {
-                    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp)) {
-                        Text("YKS AI KOÇU", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
-                        Text("Çalışmanı birlikte değerlendirelim", style = MaterialTheme.typography.headlineSmall)
-                        Spacer(Modifier.height(10.dp))
-                        if (!AiSecretStore.hasApiKey(context)) {
-                            Text("Sohbeti kullanmak için Ayarlar bölümünden kendi API anahtarını eklemelisin.", color = MaterialTheme.colorScheme.error)
-                        }
-                        LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            if (lines.isEmpty()) item {
-                                Text("Deneme sonuçlarını, eksik konularını veya haftalık planını sorabilirsin. Verilerin yalnızca mesaj gönderdiğinde özetlenir.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    val listState = rememberLazyListState()
+                    LaunchedEffect(lines.size, sending.value) {
+                        val count = lines.size + if (sending.value) 1 else 0
+                        if (count > 0) listState.animateScrollToItem(count - 1)
+                    }
+                    Column(
+                        Modifier.fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text("AI KOÇUN", style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text("YKS sürecini birlikte yönetelim", style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.SemiBold)
+                                Text("Denemelerin ve çalışma kayıtların mesajlarına bağlam sağlar.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            itemsIndexed(lines) { _, line ->
-                                Surface(color = if (line.role == "user") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
-                                    Text(line.text, Modifier.padding(13.dp), color = if (line.role == "user") MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+                            Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.secondaryContainer) {
+                                Text("NVIDIA AI", Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        if (!AiSecretStore.hasApiKey(context)) {
+                            Surface(color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(14.dp)) {
+                                Text("Sohbet için Ayarlar bölümünden NVIDIA API anahtarını eklemelisin.",
+                                    Modifier.padding(12.dp), color = MaterialTheme.colorScheme.onErrorContainer)
+                            }
+                            Spacer(Modifier.height(8.dp))
+                        }
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (lines.isEmpty()) item {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f),
+                                    shape = RoundedCornerShape(20.dp)
+                                ) {
+                                    Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("Merhaba! 👋", style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.SemiBold)
+                                        Text("Deneme sonuçlarını yorumlayabilir, eksik konularını önceliklendirebilir veya haftalık çalışma planını birlikte düzenleyebiliriz.",
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("Örnek: Son üç denememde en çok nerede net kaybediyorum?",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.primary)
+                                    }
                                 }
                             }
-                            if (sending.value) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+                            itemsIndexed(lines) { _, line ->
+                                val isUser = line.role == "user"
+                                val isError = line.role == "error"
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement =
+                                    if (isUser) Arrangement.End else Arrangement.Start) {
+                                    Surface(
+                                        modifier = Modifier.widthIn(max = 340.dp, min = 80.dp),
+                                        color = when {
+                                            isUser -> MaterialTheme.colorScheme.primaryContainer
+                                            isError -> MaterialTheme.colorScheme.errorContainer
+                                            else -> MaterialTheme.colorScheme.surfaceVariant
+                                        },
+                                        shape = RoundedCornerShape(
+                                            topStart = 18.dp, topEnd = 18.dp,
+                                            bottomStart = if (isUser) 18.dp else 5.dp,
+                                            bottomEnd = if (isUser) 5.dp else 18.dp
+                                        )
+                                    ) {
+                                        MarkdownMessage(
+                                            text = line.text,
+                                            modifier = Modifier.padding(horizontal = 15.dp, vertical = 12.dp),
+                                            color = when {
+                                                isUser -> MaterialTheme.colorScheme.onPrimaryContainer
+                                                isError -> MaterialTheme.colorScheme.onErrorContainer
+                                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                            if (sending.value) item {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                                    Text("Koçun yanıt hazırlıyor…", style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
                         }
-                        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(value = draft.value, onValueChange = { draft.value = it }, modifier = Modifier.weight(1f), placeholder = { Text("Koçuna bir şey sor…") }, maxLines = 4)
-                            Button(onClick = { sendMessage() }, enabled = !sending.value && draft.value.isNotBlank() && AiSecretStore.hasApiKey(context)) { Text("Gönder") }
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f),
+                            shape = RoundedCornerShape(22.dp),
+                            tonalElevation = 1.dp
+                        ) {
+                            Row(
+                                Modifier.fillMaxWidth().padding(7.dp),
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedTextField(
+                                    value = draft.value,
+                                    onValueChange = { draft.value = it },
+                                    modifier = Modifier.weight(1f),
+                                    placeholder = { Text("Koçuna mesaj yaz…") },
+                                    maxLines = 5,
+                                    shape = RoundedCornerShape(18.dp),
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                                    keyboardActions = KeyboardActions(onSend = { sendMessage() })
+                                )
+                                FilledIconButton(
+                                    onClick = { sendMessage() },
+                                    enabled = !sending.value && draft.value.isNotBlank() && AiSecretStore.hasApiKey(context),
+                                    modifier = Modifier.size(50.dp)
+                                ) {
+                                    Text("➤", style = MaterialTheme.typography.titleLarge)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
+    private fun loadConversation(context: Context): List<CoachLine> {
+        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LINES, null)
+            ?: return emptyList()
+        return runCatching {
+            val array = JSONArray(raw)
+            (0 until array.length()).mapNotNull { index ->
+                val item = array.getJSONObject(index)
+                val role = item.optString("role")
+                val text = item.optString("text")
+                if (role in setOf("user", "assistant", "error") && text.isNotBlank()) CoachLine(role, text) else null
+            }.takeLast(MAX_SAVED_LINES)
+        }.getOrDefault(emptyList())
+    }
+
+    private fun persistConversation(context: Context) {
+        val array = JSONArray()
+        lines.takeLast(MAX_SAVED_LINES).forEach { line ->
+            array.put(JSONObject().put("role", line.role).put("text", line.text))
+        }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString(KEY_LINES, array.toString()).apply()
+    }
+
     private fun sendMessage() {
         val question = draft.value.trim()
         if (question.isEmpty() || sending.value || !AiSecretStore.hasApiKey(requireContext())) return
         draft.value = ""
         lines.add(CoachLine("user", question))
+        persistConversation(requireContext().applicationContext)
         sending.value = true
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
@@ -81,7 +226,7 @@ class AiCoachFragment : Fragment() {
                 answer = withTimeout(80_000) {
                     val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
                     val messages = mutableListOf(NvidiaAiService.Message("system",
-                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Aşağıdaki güncel özet yalnızca bu sohbet yanıtı için kullanılmalı.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
+                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Markdown biçimlendirmesi kullanabilirsin. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
                     lines.asSequence()
                         .filter { it.role == "user" || it.role == "assistant" }
                         .toList()
@@ -98,7 +243,7 @@ class AiCoachFragment : Fragment() {
                     NvidiaAiService(appContext).chat(messages)
                 }
             } catch (e: TimeoutCancellationException) {
-                failure = "Yanıt 80 saniyede tamamlanmadı. İstek güvenli biçimde sonlandırıldı; tekrar deneyebilirsin."
+                failure = "Yanıt 80 saniyede tamamlanmadı. Tekrar deneyebilirsin."
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -107,7 +252,50 @@ class AiCoachFragment : Fragment() {
                 sending.value = false
             }
             if (!isAdded) return@launch
-            lines.add(if (answer != null) CoachLine("assistant", answer) else CoachLine("error", "Yanıt alınamadı: " + (failure ?: "Bilinmeyen hata")))
+            val result = if (answer != null) CoachLine("assistant", answer!!) else
+                CoachLine("error", "Yanıt alınamadı: " + (failure ?: "Bilinmeyen hata"))
+            lines.add(result)
+            persistConversation(appContext)
         }
     }
+
+    companion object {
+        private const val PREFS = "ai_coach_conversation"
+        private const val KEY_LINES = "conversation_lines"
+        private const val MAX_SAVED_LINES = 200
+    }
+}
+
+@Composable
+private fun MarkdownMessage(text: String, modifier: Modifier = Modifier, color: androidx.compose.ui.graphics.Color) {
+    val annotated = remember(text, color) {
+        buildAnnotatedString {
+            val bold = Regex("\\*\\*(.+?)\\*\\*")
+            val lines = text.split("\n")
+            lines.forEachIndexed { index, line ->
+                val trimmed = line.trimStart()
+                val heading = trimmed.startsWith("#")
+                val clean = if (heading) trimmed.trimStart('#').trim() else
+                    trimmed.removePrefix("- ").removePrefix("* ").removePrefix("• ")
+                if (index > 0) append("\n")
+                if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("• ")) append("• ")
+                val weight = if (heading) FontWeight.Bold else FontWeight.Normal
+                val start = length
+                var cursor = 0
+                bold.findAll(clean).forEach { match ->
+                    append(clean.substring(cursor, match.range.first))
+                    val boldStart = length
+                    append(match.groupValues[1])
+                    addStyle(SpanStyle(fontWeight = FontWeight.Bold), boldStart, length)
+                    cursor = match.range.last + 1
+                }
+                append(clean.substring(cursor))
+                if (heading) addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, length)
+                if (clean.startsWith("**") && clean.endsWith("**") && length > start) {
+                    addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, length)
+                }
+            }
+        }
+    }
+    Text(annotated, modifier = modifier, color = color, style = MaterialTheme.typography.bodyMedium)
 }
