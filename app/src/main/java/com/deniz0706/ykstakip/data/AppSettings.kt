@@ -25,14 +25,15 @@ object AppSettings {
 
     fun getAiBaseUrl(context: Context): String = prefs(context).getString(KEY_AI_BASE_URL, "https://integrate.api.nvidia.com/v1") ?: "https://integrate.api.nvidia.com/v1"
     fun setAiBaseUrl(context: Context, value: String) { prefs(context).edit().putString(KEY_AI_BASE_URL, value.trim().trimEnd('/')).apply() }
-    private const val DEFAULT_AI_MODEL = "z-ai/glm-5.3-flash"
+    private const val DEFAULT_AI_MODEL = "mistralai/mistral-large-4-1t-a52b"
 
     fun getAiModel(context: Context): String {
         val saved = prefs(context).getString(KEY_AI_MODEL, null)?.trim()
-        // Migrate the retired Llama default instead of continuing to call its old endpoint.
+        // Move previous app defaults to the new NVIDIA free-endpoint model.
         return when (saved) {
             null, "", "meta/llama-3.3-70b-instruct",
-            "nvidia/llama-3.3-nemotron-super-49b-v1.5" -> DEFAULT_AI_MODEL
+            "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+            "z-ai/glm-5.3-flash" -> DEFAULT_AI_MODEL
             else -> saved
         }
     }
