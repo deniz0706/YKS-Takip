@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - '2.0'
+      - 'feature/nvidia-ai-coach'
   pull_request:
     branches:
       - '2.0'
