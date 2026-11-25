@@ -25,7 +25,17 @@ object AppSettings {
 
     fun getAiBaseUrl(context: Context): String = prefs(context).getString(KEY_AI_BASE_URL, "https://integrate.api.nvidia.com/v1") ?: "https://integrate.api.nvidia.com/v1"
     fun setAiBaseUrl(context: Context, value: String) { prefs(context).edit().putString(KEY_AI_BASE_URL, value.trim().trimEnd('/')).apply() }
-    fun getAiModel(context: Context): String = prefs(context).getString(KEY_AI_MODEL, "meta/llama-3.3-70b-instruct") ?: "meta/llama-3.3-70b-instruct"
+    private const val DEFAULT_AI_MODEL = "z-ai/glm-5.3-flash"
+
+    fun getAiModel(context: Context): String {
+        val saved = prefs(context).getString(KEY_AI_MODEL, null)?.trim()
+        // Migrate the retired Llama default instead of continuing to call its old endpoint.
+        return when (saved) {
+            null, "", "meta/llama-3.3-70b-instruct",
+            "nvidia/llama-3.3-nemotron-super-49b-v1.5" -> DEFAULT_AI_MODEL
+            else -> saved
+        }
+    }
     fun setAiModel(context: Context, value: String) { prefs(context).edit().putString(KEY_AI_MODEL, value.trim()).apply() }
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
