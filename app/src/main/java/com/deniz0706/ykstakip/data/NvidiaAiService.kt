@@ -14,34 +14,78 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** OpenAI-compatible NVIDIA NIM client with SSE support and cancellation-safe cleanup. */
+/** OpenAI-compatible NVIDIA NIM client with SSE support and a non-streaming fallback. */
 class NvidiaAiService(private val context: Context) {
     data class Message(val role: String, val content: String)
+
+    private class HttpFailure(val status: Int, message: String) : IOException(message)
 
     suspend fun testConnection(): String =
         chat(listOf(Message("user", "Reply briefly with exactly: bağlantı başarılı")), 256)
 
     suspend fun chat(messages: List<Message>, maxTokens: Int = 2048): String = withContext(Dispatchers.IO) {
-        val key = AiSecretStore.readApiKey(context) ?: error("Önce Ayarlar bölümünden API anahtarını kaydet.")
+        val key = AiSecretStore.readApiKey(context)
+            ?: error("Önce Ayarlar bölümünden API anahtarını kaydet.")
         val base = AppSettings.getAiBaseUrl(context).trim().trimEnd('/')
         val model = AppSettings.getAiModel(context).trim()
         require(base.startsWith("https://")) { "Base URL HTTPS olmalı." }
         require(model.isNotBlank()) { "Model adı boş olamaz." }
 
+        try {
+            request(key, base, model, messages, maxTokens, stream = true)
+        } catch (streamFailure: HttpFailure) {
+            // A 400 on the SSE request may be specific to streaming. Retry exactly once
+            // with the same model, messages and reasoning setting, but a JSON response.
+            if (streamFailure.status != 400) throw streamFailure
+            try {
+                request(key, base, model, messages, maxTokens, stream = false)
+            } catch (fallbackFailure: Exception) {
+                if (fallbackFailure is CancellationException) throw fallbackFailure
+                throw IOException(
+                    "Streaming isteği başarısız oldu: ${streamFailure.message}\n" +
+                        "Streaming kapalı tekrar da başarısız oldu: ${fallbackFailure.message}",
+                    fallbackFailure
+                )
+            }
+        }
+    }
+
+    /**
+     * Only send reasoning_effort for models whose setting is explicitly configured here.
+     * Unknown models receive no reasoning_effort parameter.
+     */
+    private fun reasoningEffort(model: String): String? = when {
+        model.startsWith("mistralai/mistral-large-4") -> "none"
+        model.startsWith("nvidia/nemotron-3.5-super-vl-120b") -> "none"
+        else -> null
+    }
+
+    private suspend fun request(
+        key: String,
+        base: String,
+        model: String,
+        messages: List<Message>,
+        maxTokens: Int,
+        stream: Boolean
+    ): String {
+        val effort = reasoningEffort(model)
         val payload = JSONObject().apply {
             put("model", model)
             put("temperature", 0.4)
             put("max_tokens", maxTokens.coerceIn(1, 4096))
-            put("reasoning_effort", if (model == "mistralai/mistral-large-4-1t-a52b") "high" else "low")
-            put("stream", true)
+            if (effort != null) put("reasoning_effort", effort)
+            put("stream", stream)
             put("messages", JSONArray().apply {
-                messages.forEach { put(JSONObject().put("role", it.role).put("content", it.content)) }
+                messages.forEach {
+                    put(JSONObject().put("role", it.role).put("content", it.content))
+                }
             })
         }
 
         val started = SystemClock.elapsedRealtime()
         var phase = "hazirlik"
-        fun diagnostic() = "[faz=$phase, ${(SystemClock.elapsedRealtime() - started) / 1000}sn]"
+        fun diagnostic(): String =
+            "[faz=$phase, ${(SystemClock.elapsedRealtime() - started) / 1000}sn]"
 
         val connection = (URL("$base/chat/completions").openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
@@ -50,7 +94,8 @@ class NvidiaAiService(private val context: Context) {
             doOutput = true
             setRequestProperty("Authorization", "Bearer $key")
             setRequestProperty("Content-Type", "application/json")
-            setRequestProperty("Accept", "text/event-stream")
+            // Do not combine media types in Accept; request the format expected for this attempt.
+            setRequestProperty("Accept", if (stream) "text/event-stream" else "application/json")
         }
 
         val cancellationHook = currentCoroutineContext()[Job]?.invokeOnCompletion { cause ->
@@ -67,42 +112,54 @@ class NvidiaAiService(private val context: Context) {
             val status = connection.responseCode
             if (status !in 200..299) {
                 phase = "hata-govdesi-okunuyor"
-                val response = connection.errorStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
-                val detail = runCatching {
-                    val body = JSONObject(response)
-                    val nested = body.optJSONObject("error")
-                    sequenceOf(
-                        nested?.optString("message"),
-                        body.optString("detail"),
-                        body.optString("message"),
-                        body.optString("title"),
-                        response
-                    ).firstOrNull { !it.isNullOrBlank() && it != "null" }
-                }.getOrNull()
-                throw IOException(
-                    "AI servisi HTTP $status: " +
-                        (detail?.takeIf { it.isNotBlank() }?.take(500) ?: "Yanıt gövdesi boş.") +
-                        " ${diagnostic()}"
+                val rawBody = connection.errorStream
+                    ?.bufferedReader(Charsets.UTF_8)
+                    ?.use { it.readText() }
+                    .orEmpty()
+                val detail = extractError(rawBody)
+                throw HttpFailure(
+                    status,
+                    "AI servisi HTTP $status: $detail" +
+                        " | ham: ${rawBody.take(1200).ifBlank { "(boş)" }}" +
+                        " | gönderilen: model=$model stream=$stream effort=${effort ?: "yok"}" +
+                        " | faz: $phase"
                 )
             }
 
             phase = "yanit-okunuyor"
             val isEventStream = connection.contentType.orEmpty()
                 .contains("text/event-stream", ignoreCase = true)
-            val (answer, finishReason) = if (isEventStream) readStream(connection) else readJson(connection)
+            val (answer, finishReason) =
+                if (isEventStream) readStream(connection) else readJson(connection)
 
             answer.takeIf { it.isNotBlank() } ?: error(
-                "Model cevap metni üretmedi (finish_reason=${finishReason ?: "bilinmiyor"}). ${diagnostic()}"
+                "Model cevap metni üretmedi (finish_reason=${finishReason ?: "bilinmiyor"}). " +
+                    "${diagnostic()} model=$model stream=$stream effort=${effort ?: "yok"}"
             )
         } catch (e: IOException) {
             if (!currentCoroutineContext().isActive) {
                 throw CancellationException("AI isteği iptal edildi", e)
             }
+            if (e is HttpFailure) throw e
             throw IOException("${e.javaClass.simpleName}: ${e.message} ${diagnostic()}", e)
         } finally {
             cancellationHook?.dispose()
             connection.disconnect()
         }
+    }
+
+    private fun extractError(rawBody: String): String {
+        if (rawBody.isBlank()) return "Yanıt gövdesi boş."
+        return runCatching {
+            val body = JSONObject(rawBody)
+            val nested = body.optJSONObject("error")
+            sequenceOf(
+                nested?.optString("message"),
+                body.optString("detail"),
+                body.optString("message"),
+                body.optString("title")
+            ).firstOrNull { !it.isNullOrBlank() && it != "null" }
+        }.getOrNull()?.take(500) ?: rawBody.take(500)
     }
 
     private fun readStream(connection: HttpURLConnection): Pair<String, String?> {
@@ -125,8 +182,12 @@ class NvidiaAiService(private val context: Context) {
                     JSONObject(data).optJSONArray("choices")?.optJSONObject(0)
                 }.getOrNull() ?: continue
                 val delta = choice.optJSONObject("delta")
-                if (delta != null && !delta.isNull("content")) answer.append(delta.optString("content"))
-                if (!choice.isNull("finish_reason")) finishReason = choice.optString("finish_reason")
+                if (delta != null && !delta.isNull("content")) {
+                    answer.append(delta.optString("content"))
+                }
+                if (!choice.isNull("finish_reason")) {
+                    finishReason = choice.optString("finish_reason")
+                }
             }
         }
 
