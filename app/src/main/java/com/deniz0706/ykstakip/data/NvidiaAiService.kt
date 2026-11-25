@@ -24,7 +24,8 @@ class NvidiaAiService(private val context: Context) {
             put("model", model)
             put("temperature", 0.4)
             put("max_tokens", maxTokens.coerceIn(1, 4096))
-            put("reasoning_effort", "low")
+            // Mistral Large 4 accepts only "none" or "high"; GLM supports "low".
+            put("reasoning_effort", if (model == "mistralai/mistral-large-4-1t-a52b") "none" else "low")
             put("messages", JSONArray().apply { messages.forEach { put(JSONObject().put("role", it.role).put("content", it.content)) } })
         }
         val connection = (URL("$base/chat/completions").openConnection() as HttpURLConnection).apply {
