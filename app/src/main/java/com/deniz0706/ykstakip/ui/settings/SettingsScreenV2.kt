@@ -27,6 +27,11 @@ fun SettingsScreenV2(
     obp: String,
     daily: String,
     onSave: (String, String, String, String) -> String?,
+    aiBaseUrl: String,
+    aiModel: String,
+    hasAiKey: Boolean,
+    onSaveAi: (String, String, String) -> String?,
+    onTestAi: () -> Unit,
     onExport: () -> Unit,
     onImport: () -> Unit,
     onImportStudy: () -> Unit,
@@ -42,6 +47,11 @@ fun SettingsScreenV2(
     var dailyValue by remember { mutableStateOf(daily) }
     var error by remember { mutableStateOf<String?>(null) }
     var saved by remember { mutableStateOf(false) }
+    var aiKey by remember { mutableStateOf("") }
+    var aiBase by remember { mutableStateOf(aiBaseUrl) }
+    var aiModelValue by remember { mutableStateOf(aiModel) }
+    var aiError by remember { mutableStateOf<String?>(null) }
+    var aiSaved by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
 
     Column(
@@ -142,8 +152,27 @@ fun SettingsScreenV2(
             ) { Text("Hedefleri kaydet") }
         }
 
+        DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+            Text("03  /  YAPAY ZEKÂ KOÇU", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("AI koç bağlantısı", color = colors.onSurface, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text("Kendi sağlayıcı anahtarını kullan. Anahtar Android Keystore ile şifrelenerek bu cihazda saklanır. Uygulama açılışında otomatik istek gönderilmez.", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(value = aiKey, onValueChange = { aiKey = it; aiError = null; aiSaved = false }, label = { Text(if (hasAiKey) "Yeni API anahtarı (boş bırak: mevcut kalsın)" else "NVIDIA API anahtarı") }, modifier = Modifier.fillMaxWidth(), singleLine = true, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(), shape = RoundedCornerShape(16.dp))
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(value = aiBase, onValueChange = { aiBase = it; aiError = null }, label = { Text("Base URL") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(16.dp))
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(value = aiModelValue, onValueChange = { aiModelValue = it; aiError = null }, label = { Text("Model adı") }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(16.dp))
+            Text(if (hasAiKey) "API anahtarı bu cihazda kayıtlı." else "Henüz API anahtarı eklenmedi.", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            if (aiError != null) Text(aiError.orEmpty(), color = colors.error, style = MaterialTheme.typography.bodySmall)
+            if (aiSaved) Text("AI ayarları kaydedildi.", color = colors.primary, style = MaterialTheme.typography.bodySmall)
+            Button(onClick = { aiError = onSaveAi(aiKey, aiBase, aiModelValue); if (aiError == null) { aiKey = ""; aiSaved = true } }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(16.dp)) { Text("AI ayarlarını kaydet") }
+            Spacer(Modifier.height(6.dp))
+            OutlinedButton(onClick = onTestAi, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(16.dp)) { Text("Bağlantıyı test et") }
+        }
+
         DashboardPanel(Modifier.fillMaxWidth()) {
-            Text("03  /  VERİ YÖNETİMİ", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
+            Text("04  /  VERİ YÖNETİMİ", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
             Text("Verilerin", color = colors.onSurface,
                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)

@@ -272,6 +272,11 @@ class SettingsFragment : Fragment() {
                         obp = AppSettings.getObp(context)?.toString().orEmpty(),
                         daily = AppSettings.getDailyGoal(context)?.toString().orEmpty(),
                         onSave = { tyt, ayt, obp, daily -> saveGoals(tyt, ayt, obp, daily) },
+                        aiBaseUrl = AppSettings.getAiBaseUrl(context),
+                        aiModel = AppSettings.getAiModel(context),
+                        hasAiKey = AiSecretStore.hasApiKey(context),
+                        onSaveAi = { key, baseUrl, model -> saveAiSettings(key, baseUrl, model) },
+                        onTestAi = { testAiConnection() },
                         onExport = { exportLauncher.launch("yks-takip-yedek.json") },
                         onImport = { importLauncher.launch(arrayOf("application/json")) },
                         onImportStudy = {
@@ -301,6 +306,32 @@ class SettingsFragment : Fragment() {
     override fun onDestroy() {
         cancelLearningZip()
         super.onDestroy()
+    }
+
+    private fun saveAiSettings(key: String, baseUrl: String, model: String): String? {
+        val normalized = baseUrl.trim().trimEnd('/')
+        if (!normalized.startsWith("https://")) return "Base URL https:// ile başlamalı."
+        if (model.isBlank()) return "Model adı boş olamaz."
+        if (key.isNotBlank() && key.trim().length < 12) return "API anahtarı çok kısa görünüyor."
+        return runCatching {
+            if (key.isNotBlank()) AiSecretStore.saveApiKey(requireContext(), key)
+            AppSettings.setAiBaseUrl(requireContext(), normalized)
+            AppSettings.setAiModel(requireContext(), model)
+        }.fold({ null }, { it.message ?: "AI ayarları kaydedilemedi." })
+    }
+
+    private fun testAiConnection() {
+        if (!AiSecretStore.hasApiKey(requireContext())) {
+            Toast.makeText(requireContext(), "Önce API anahtarını kaydet.", Toast.LENGTH_LONG).show()
+            return
+        }
+        lifecycleScope.launch {
+            Toast.makeText(requireContext(), "Bağlantı test ediliyor…", Toast.LENGTH_SHORT).show()
+            val result = runCatching { NvidiaAiService(requireContext().applicationContext).testConnection() }
+            if (!isAdded) return@launch
+            val message = result.fold({ "Bağlantı başarılı: " + it.take(80) }, { "Bağlantı başarısız: " + (it.message ?: "Hata") })
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun saveGoals(tytText: String, aytText: String, obpText: String, dailyText: String): String? {
