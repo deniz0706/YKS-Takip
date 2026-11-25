@@ -81,11 +81,20 @@ class AiCoachFragment : Fragment() {
                 answer = withTimeout(80_000) {
                     val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
                     val messages = mutableListOf(NvidiaAiService.Message("system",
-                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Aşağıdaki güncel özet yalnızca bu sohbet yanıtı için kullanılmalı.\\n\\nÖĞRENCİ ÖZETİ:\\n$contextText"))
+                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Aşağıdaki güncel özet yalnızca bu sohbet yanıtı için kullanılmalı.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
                     lines.asSequence()
-                        .filterNot { it.role == "assistant" && it.text.startsWith("Yanıt alınamadı:") }
+                        .filter { it.role == "user" || it.role == "assistant" }
+                        .toList()
                         .takeLast(12)
-                        .forEach { messages.add(NvidiaAiService.Message(it.role, it.text)) }
+                        .dropWhile { it.role != "user" }
+                        .forEach { line ->
+                            val last = messages.last()
+                            if (messages.size > 1 && last.role == line.role) {
+                                messages[messages.lastIndex] = last.copy(content = last.content + "\n\n" + line.text)
+                            } else {
+                                messages.add(NvidiaAiService.Message(line.role, line.text))
+                            }
+                        }
                     NvidiaAiService(appContext).chat(messages)
                 }
             } catch (e: TimeoutCancellationException) {
@@ -98,7 +107,7 @@ class AiCoachFragment : Fragment() {
                 sending.value = false
             }
             if (!isAdded) return@launch
-            lines.add(CoachLine("assistant", answer ?: "Yanıt alınamadı: " + (failure ?: "Bilinmeyen hata")))
+            lines.add(if (answer != null) CoachLine("assistant", answer) else CoachLine("error", "Yanıt alınamadı: " + (failure ?: "Bilinmeyen hata")))
         }
     }
 }
