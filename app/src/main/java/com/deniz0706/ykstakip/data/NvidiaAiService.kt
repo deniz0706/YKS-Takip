@@ -32,7 +32,7 @@ class NvidiaAiService(private val context: Context) {
             put("model", model)
             put("temperature", 0.4)
             put("max_tokens", maxTokens.coerceIn(1, 4096))
-            put("reasoning_effort", if (model == "mistralai/mistral-large-4-1t-a52b") "high" else "low")
+            put("reasoning_effort", if (model == "mistralai/mistral-large-4-1t-a52b") "none" else "low")
             put("stream", true)
             put("messages", JSONArray().apply {
                 messages.forEach { put(JSONObject().put("role", it.role).put("content", it.content)) }
