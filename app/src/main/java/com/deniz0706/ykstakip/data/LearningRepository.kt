@@ -25,6 +25,7 @@ class LearningRepository(context: Context) {
         migrateMebUnitNamesV2Once()
         migrateKitapsecOnce()
         archiveRemovedAytScienceOnce()
+        migrateSuppliedCurriculumOnce()
     }
 
     private fun archiveRemovedAytScienceOnce() {
@@ -149,6 +150,41 @@ class LearningRepository(context: Context) {
             .putString("questions", JSONArray(linked.map { it.toJson() }).toString())
             .putBoolean("learning_topics_v1", true)
             .commit()
+    }
+
+
+    /** Apply the user's curriculum once, preserving old progress and question links. */
+    private fun migrateSuppliedCurriculumOnce() {
+        if (prefs.getBoolean("learning_supplied_curriculum_v1", false)) return
+
+        val oldOutcomes = prefs.getString("outcomes", "[]") ?: "[]"
+        val oldQuestions = prefs.getString("questions", "[]") ?: "[]"
+        val recorded = try {
+            val array = JSONArray(oldOutcomes)
+            (0 until array.length()).map { LearningOutcome.fromJson(array.getJSONObject(it)) }
+        } catch (_: Exception) {
+            return
+        }
+        val linked = try {
+            val array = JSONArray(oldQuestions)
+            (0 until array.length()).map { QuestionCard.fromJson(array.getJSONObject(it)) }
+        } catch (_: Exception) {
+            return
+        }
+
+        val migrated = LearningCurriculumMigration.convert(recorded, linked)
+        val defaults = LearningSeed.starter.associateBy { it.id }
+        val changed = migrated.outcomes.filter { defaults[it.id] != it }
+
+        check(
+            prefs.edit()
+                .putString("before_supplied_curriculum_outcomes_v1", oldOutcomes)
+                .putString("before_supplied_curriculum_questions_v1", oldQuestions)
+                .putString("outcomes", JSONArray(changed.map { it.toJson() }).toString())
+                .putString("questions", JSONArray(migrated.questions.map { it.toJson() }).toString())
+                .putBoolean("learning_supplied_curriculum_v1", true)
+                .commit()
+        ) { "Müfredat geçişi kaydedilemedi." }
     }
 
     private fun isValidImage(file: File): Boolean {
