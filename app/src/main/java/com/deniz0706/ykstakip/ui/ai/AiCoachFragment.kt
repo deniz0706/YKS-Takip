@@ -78,15 +78,18 @@ class AiCoachFragment : Fragment() {
             var answer: String? = null
             var failure: String? = null
             try {
-                answer = withTimeout(100_000) {
+                answer = withTimeout(80_000) {
                     val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
                     val messages = mutableListOf(NvidiaAiService.Message("system",
                         "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Aşağıdaki güncel özet yalnızca bu sohbet yanıtı için kullanılmalı.\\n\\nÖĞRENCİ ÖZETİ:\\n$contextText"))
-                    lines.takeLast(12).forEach { messages.add(NvidiaAiService.Message(it.role, it.text)) }
+                    lines.asSequence()
+                        .filterNot { it.role == "assistant" && it.text.startsWith("Yanıt alınamadı:") }
+                        .takeLast(12)
+                        .forEach { messages.add(NvidiaAiService.Message(it.role, it.text)) }
                     NvidiaAiService(appContext).chat(messages)
                 }
             } catch (e: TimeoutCancellationException) {
-                failure = "Yanıt 100 saniyede gelmedi. NVIDIA modeli yoğun olabilir; tekrar deneyebilirsin."
+                failure = "Yanıt 80 saniyede tamamlanmadı. İstek güvenli biçimde sonlandırıldı; tekrar deneyebilirsin."
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
