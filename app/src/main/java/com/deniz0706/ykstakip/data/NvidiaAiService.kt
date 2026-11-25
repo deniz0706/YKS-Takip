@@ -55,7 +55,7 @@ class NvidiaAiService(private val context: Context) {
      * Unknown models receive no reasoning_effort parameter.
      */
     private fun reasoningEffort(model: String): String? = when {
-        model.startsWith("mistralai/mistral-large-4") -> "none"
+        model.startsWith("mistralai/mistral-large-4") -> "low"
         model.startsWith("nvidia/nemotron-3.5-super-vl-120b") -> "none"
         else -> null
     }
