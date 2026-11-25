@@ -9,6 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.StudyRepository
@@ -49,6 +54,7 @@ class HomeFragment : Fragment() {
         val learningTotalCount: Int = 0
     )
     private val dashboardSummary = mutableStateOf(Summary())
+    private var refreshJob: Job? = null
     private val refreshListener: () -> Unit = { refresh() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,32 +110,43 @@ class HomeFragment : Fragment() {
     }
 
     private fun refresh() {
-        exams.value = repository.getAllExams()
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        val session = focusRepository.snapshot()
-        val learningOutcomes = learningRepository.outcomes()
-        val alerts = ReviewAdvisor.recommendations(
-            learningOutcomes, learningRepository.questions(), exams.value
-        )
-        val mainAlert = alerts.firstOrNull { it.urgent || it.due }
-            ?: alerts.firstOrNull()
-        dashboardSummary.value = Summary(
-            daysTyt = daysUntilExam(19),
-            daysAyt = daysUntilExam(20),
-            goalTyt = AppSettings.getTargetNet(requireContext(), ExamType.TYT),
-            goalAyt = AppSettings.getTargetNet(requireContext(), ExamType.AYT),
-            todayQuestions = studyRepository.get(today)?.questionCount ?: 0,
-            dailyGoal = AppSettings.getDailyGoal(requireContext()),
-            hasFocusSession = session.running || session.elapsedMs > 0L,
-            learningAlertTitle = mainAlert?.outcome?.let {
-                it.subject + " · " + it.title
-            },
-            learningAlertType = mainAlert?.outcome?.examType ?: "TYT",
-            learningAlertSubject = mainAlert?.outcome?.subject.orEmpty(),
-            reviewAlertCount = alerts.size,
-            learningDoneCount = learningOutcomes.count { it.completed },
-            learningTotalCount = learningOutcomes.size
-        )
+        if (!isAdded) return
+        refreshJob?.cancel()
+        val appContext = requireContext().applicationContext
+        refreshJob = viewLifecycleOwner.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val savedExams = repository.getAllExams()
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val session = focusRepository.snapshot()
+                val learningOutcomes = learningRepository.outcomes()
+                val alerts = ReviewAdvisor.recommendations(
+                    learningOutcomes, learningRepository.questions(), savedExams
+                )
+                val mainAlert = alerts.firstOrNull { it.urgent || it.due }
+                    ?: alerts.firstOrNull()
+                savedExams to Summary(
+                    daysTyt = daysUntilExam(19),
+                    daysAyt = daysUntilExam(20),
+                    goalTyt = AppSettings.getTargetNet(appContext, ExamType.TYT),
+                    goalAyt = AppSettings.getTargetNet(appContext, ExamType.AYT),
+                    todayQuestions = studyRepository.get(today)?.questionCount ?: 0,
+                    dailyGoal = AppSettings.getDailyGoal(appContext),
+                    hasFocusSession = session.running || session.elapsedMs > 0L,
+                    learningAlertTitle = mainAlert?.outcome?.let {
+                        it.subject + " · " + it.title
+                    },
+                    learningAlertType = mainAlert?.outcome?.examType ?: "TYT",
+                    learningAlertSubject = mainAlert?.outcome?.subject.orEmpty(),
+                    reviewAlertCount = alerts.size,
+                    learningDoneCount = learningOutcomes.count { it.completed },
+                    learningTotalCount = learningOutcomes.size
+                )
+            }
+            if (isAdded) {
+                exams.value = result.first
+                dashboardSummary.value = result.second
+            }
+        }
     }
 
     private fun daysUntilExam(dayOfMonth: Int): Long {
