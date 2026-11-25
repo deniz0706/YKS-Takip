@@ -38,8 +38,19 @@ class NvidiaAiService(private val context: Context) {
             val stream = if (status in 200..299) connection.inputStream else connection.errorStream
             val response = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
             if (status !in 200..299) {
-                val detail = runCatching { JSONObject(response).optJSONObject("error")?.optString("message") }.getOrNull()
-                error("AI servisi HTTP $status: " + (detail?.takeIf { it.isNotBlank() }?.take(220) ?: "İstek başarısız."))
+                val detail = runCatching {
+                    val body = JSONObject(response)
+                    val nested = body.optJSONObject("error")
+                    sequenceOf(
+                        nested?.optString("message"),
+                        body.optString("detail"),
+                        body.optString("message"),
+                        body.optString("title"),
+                        response
+                    ).firstOrNull { !it.isNullOrBlank() && it != "null" }
+                }.getOrNull()
+                error("AI servisi HTTP $status: " +
+                    (detail?.takeIf { it.isNotBlank() }?.take(500) ?: "Yanıt gövdesi boş."))
             }
             JSONObject(response).optJSONArray("choices")?.optJSONObject(0)?.optJSONObject("message")?.optString("content")
                 ?.takeIf { it.isNotBlank() } ?: error("AI yanıtı boş veya beklenmeyen biçimde.")
