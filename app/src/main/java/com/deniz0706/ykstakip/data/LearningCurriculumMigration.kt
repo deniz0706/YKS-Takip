@@ -52,8 +52,8 @@ object LearningCurriculumMigration {
         val title: String
     )
 
-    private fun sourceOf(record: LearningOutcome): Source? {
-        val parts = record.id.split('|')
+    private fun sourceFromId(id: String): Source? {
+        val parts = id.split('|')
         val source = when {
             parts.size >= 4 && parts[0] == "unit" ->
                 Source(parts[1], parts[2], parts.drop(3).joinToString("|"))
@@ -61,13 +61,28 @@ object LearningCurriculumMigration {
                 Source(parts[1], parts[2], parts[3])
             parts.size >= 4 && parts[0] in setOf("TYT", "AYT") ->
                 Source(parts[0], parts[1], parts[2])
-            record.subject != "Eski Kayıtlar" ->
-                Source(record.examType, record.subject, record.title)
             else -> null
         } ?: return null
+        return source.copy(subject = subjectAliases[source.subject] ?: source.subject)
+    }
 
-        val subject = subjectAliases[source.subject] ?: source.subject
-        return source.copy(subject = subject)
+    private fun sourceOf(record: LearningOutcome): Source? =
+        sourceFromId(record.id) ?: if (record.subject != "Eski Kayıtlar") {
+            val subject = subjectAliases[record.subject] ?: record.subject
+            Source(record.examType, subject, record.title)
+        } else null
+
+    private fun targetFor(
+        source: Source,
+        defaults: Map<String, LearningOutcome>,
+        byCourseAndTitle: Map<String, LearningOutcome>
+    ): LearningOutcome? {
+        val directId = "unit|${source.exam}|${source.subject}|${source.title}"
+        val alias = titleAliases["${source.exam}|${source.subject}|${source.title}"]
+        val title = alias ?: source.title
+        return defaults[directId] ?: byCourseAndTitle[
+            "${source.exam}|${source.subject}|${normalize(title)}"
+        ]
     }
 
     fun convert(
@@ -94,13 +109,8 @@ object LearningCurriculumMigration {
             }
 
             val source = sourceOf(record)
-            val direct = defaults[record.id]
-            val aliasedTitle = source?.let {
-                titleAliases["${it.exam}|${it.subject}|${it.title}"]
-            }
-            val target = direct ?: source?.let {
-                val title = aliasedTitle ?: it.title
-                byCourseAndTitle["${it.exam}|${it.subject}|${normalize(title)}"]
+            val target = defaults[record.id] ?: source?.let {
+                targetFor(it, defaults, byCourseAndTitle)
             }
 
             if (target == null) {
@@ -137,7 +147,28 @@ object LearningCurriculumMigration {
         }
 
         val questions = linkedQuestions.map { card ->
-            card.copy(outcomeId = remappedIds[card.outcomeId] ?: card.outcomeId)
+            val mapped = remappedIds[card.outcomeId] ?: run {
+                val source = sourceFromId(card.outcomeId)
+                val target = source?.let { targetFor(it, defaults, byCourseAndTitle) }
+                if (target != null) {
+                    target.id
+                } else {
+                    // A question may be the only saved reference to a removed topic.
+                    // Create an archive row so its journal entry and photo links remain reachable.
+                    if (source != null && card.outcomeId !in saved) {
+                        saved[card.outcomeId] = LearningOutcome(
+                            id = card.outcomeId,
+                            examType = source.exam,
+                            subject = "Eski Kayıtlar",
+                            topic = "Önceki Müfredat",
+                            title = "${source.subject}: ${source.title}",
+                            custom = true
+                        )
+                    }
+                    card.outcomeId
+                }
+            }
+            card.copy(outcomeId = mapped)
         }
         return Result(saved.values.toList(), questions)
     }
