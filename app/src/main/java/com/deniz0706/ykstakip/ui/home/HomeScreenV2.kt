@@ -27,6 +27,7 @@ fun HomeScreenV2(
     exams: List<Exam>,
     onNewExam: (ExamType) -> Unit,
     onOpenStudy: () -> Unit,
+    onOpenAiCoach: () -> Unit,
     onOpenLearning: (String, String) -> Unit,
     learningAlertTitle: String? = null,
     learningAlertType: String = "TYT",
@@ -90,6 +91,16 @@ fun HomeScreenV2(
                     Text("${all.size} deneme", Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
                         color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                 }
+            }
+        }
+        item {
+            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                Text("YAPAY ZEKÂ KOÇU", color = c.secondary, style = MaterialTheme.typography.labelSmall, letterSpacing = 1.2.sp)
+                Spacer(Modifier.height(5.dp))
+                Text("Verilerini birlikte değerlendirelim.", color = c.onSurface, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                Text("Denemelerin, konu ilerlemen ve çalışma düzenin üzerinden kişisel öneriler al.", color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(9.dp))
+                OutlinedButton(onClick = onOpenAiCoach, modifier = Modifier.fillMaxWidth()) { Text("AI koçuyla konuş  ↗") }
             }
         }
         item { ExamTypeTabs(type.name, { type = ExamType.valueOf(it) }) }

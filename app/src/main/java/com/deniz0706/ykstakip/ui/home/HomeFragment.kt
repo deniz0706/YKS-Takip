@@ -76,6 +76,7 @@ class HomeFragment : Fragment() {
                         exams = exams.value,
                         onNewExam = { (activity as? MainActivity)?.openNewExam(it) },
                         onOpenStudy = { (activity as? MainActivity)?.openStudy() },
+                        onOpenAiCoach = { (activity as? MainActivity)?.openAiCoach() },
                         onOpenLearning = { type, subject ->
                             (activity as? MainActivity)?.openLearning(type, subject)
                         },

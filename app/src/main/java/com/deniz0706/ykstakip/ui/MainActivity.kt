@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import com.deniz0706.ykstakip.R
 import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.ui.ai.AiCoachFragment
 import com.deniz0706.ykstakip.ui.history.ExamHubFragment
 import com.deniz0706.ykstakip.ui.home.HomeFragment
 import com.deniz0706.ykstakip.ui.nav.FloatingBottomNavView
@@ -141,6 +142,14 @@ class MainActivity : AppCompatActivity() {
         // This tab transaction has no back-stack entry: execute it synchronously
         // to avoid queued swaps and a secondary fade on rapid taps.
         transaction.commitNow()
+    }
+
+    fun openAiCoach() {
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+            .replace(R.id.fragmentContainer, AiCoachFragment())
+            .addToBackStack("ai_coach")
+            .commit()
     }
 
     fun openStudy() {
