@@ -12,9 +12,9 @@ import java.net.URL
 class NvidiaAiService(private val context: Context) {
     data class Message(val role: String, val content: String)
 
-    suspend fun testConnection(): String = chat(listOf(Message("user", "Reply with exactly: bağlantı başarılı")), 24)
+    suspend fun testConnection(): String = chat(listOf(Message("user", "Reply briefly with exactly: bağlantı başarılı")), 1024)
 
-    suspend fun chat(messages: List<Message>, maxTokens: Int = 700): String = withContext(Dispatchers.IO) {
+    suspend fun chat(messages: List<Message>, maxTokens: Int = 2048): String = withContext(Dispatchers.IO) {
         val key = AiSecretStore.readApiKey(context) ?: error("Önce Ayarlar bölümünden API anahtarını kaydet.")
         val base = AppSettings.getAiBaseUrl(context).trim().trimEnd('/')
         val model = AppSettings.getAiModel(context).trim()
@@ -23,11 +23,12 @@ class NvidiaAiService(private val context: Context) {
         val payload = JSONObject().apply {
             put("model", model)
             put("temperature", 0.4)
-            put("max_tokens", maxTokens.coerceIn(1, 2048))
+            put("max_tokens", maxTokens.coerceIn(1, 4096))
+            put("reasoning_effort", "low")
             put("messages", JSONArray().apply { messages.forEach { put(JSONObject().put("role", it.role).put("content", it.content)) } })
         }
         val connection = (URL("$base/chat/completions").openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"; connectTimeout = 15000; readTimeout = 45000; doOutput = true
+            requestMethod = "POST"; connectTimeout = 20000; readTimeout = 90000; doOutput = true
             setRequestProperty("Authorization", "Bearer $key")
             setRequestProperty("Content-Type", "application/json")
             setRequestProperty("Accept", "application/json")
@@ -52,8 +53,12 @@ class NvidiaAiService(private val context: Context) {
                 error("AI servisi HTTP $status: " +
                     (detail?.takeIf { it.isNotBlank() }?.take(500) ?: "Yanıt gövdesi boş."))
             }
-            JSONObject(response).optJSONArray("choices")?.optJSONObject(0)?.optJSONObject("message")?.optString("content")
-                ?.takeIf { it.isNotBlank() } ?: error("AI yanıtı boş veya beklenmeyen biçimde.")
+            val choice = JSONObject(response).optJSONArray("choices")?.optJSONObject(0)
+            val answer = choice?.optJSONObject("message")?.optString("content")
+            answer?.takeIf { it.isNotBlank() } ?: error(
+                "Model cevap metni üretmedi (finish_reason=" +
+                    (choice?.optString("finish_reason") ?: "bilinmiyor") + ")."
+            )
         } finally { connection.disconnect() }
     }
 }
