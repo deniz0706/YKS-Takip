@@ -11,6 +11,8 @@ object AppSettings {
     private const val KEY_DAILY_GOAL = "daily_question_goal"
     private const val KEY_OBP = "obp"
     private const val KEY_LEARNING_FIELD = "learning_ayt_field"
+    private const val KEY_AI_BASE_URL = "ai_base_url"
+    private const val KEY_AI_MODEL = "ai_model"
 
     fun getLearningField(context: Context): AytField =
         runCatching {
@@ -20,6 +22,11 @@ object AppSettings {
     fun setLearningField(context: Context, field: AytField) {
         prefs(context).edit().putString(KEY_LEARNING_FIELD, field.name).apply()
     }
+
+    fun getAiBaseUrl(context: Context): String = prefs(context).getString(KEY_AI_BASE_URL, "https://integrate.api.nvidia.com/v1") ?: "https://integrate.api.nvidia.com/v1"
+    fun setAiBaseUrl(context: Context, value: String) { prefs(context).edit().putString(KEY_AI_BASE_URL, value.trim().trimEnd('/')).apply() }
+    fun getAiModel(context: Context): String = prefs(context).getString(KEY_AI_MODEL, "meta/llama-3.3-70b-instruct") ?: "meta/llama-3.3-70b-instruct"
+    fun setAiModel(context: Context, value: String) { prefs(context).edit().putString(KEY_AI_MODEL, value.trim()).apply() }
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
