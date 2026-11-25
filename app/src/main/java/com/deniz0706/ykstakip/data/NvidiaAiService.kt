@@ -102,7 +102,7 @@ class NvidiaAiService(private val context: Context) {
             if (cause != null) connection.disconnect()
         }
 
-        try {
+        return try {
             phase = "istek-gonderiliyor"
             connection.outputStream.use {
                 it.write(payload.toString().toByteArray(Charsets.UTF_8))
