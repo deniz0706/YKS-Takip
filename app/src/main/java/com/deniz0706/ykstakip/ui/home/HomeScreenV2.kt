@@ -28,6 +28,8 @@ fun HomeScreenV2(
     onNewExam: (ExamType) -> Unit,
     onOpenStudy: () -> Unit,
     onOpenAiCoach: () -> Unit,
+    aiCoachAdvice: String = "",
+    aiCoachDate: String = "",
     onOpenLearning: (String, String) -> Unit,
     learningAlertTitle: String? = null,
     learningAlertType: String = "TYT",
@@ -99,6 +101,11 @@ fun HomeScreenV2(
                 Spacer(Modifier.height(5.dp))
                 Text("Verilerini birlikte değerlendirelim.", color = c.onSurface, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                 Text("Denemelerin, konu ilerlemen ve çalışma düzenin üzerinden kişisel öneriler al.", color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                if (aiCoachAdvice.isNotBlank()) {
+                    Spacer(Modifier.height(9.dp))
+                    Text("SON KOÇ DEĞERLENDİRMESİ · $aiCoachDate", color = c.secondary, style = MaterialTheme.typography.labelSmall)
+                    Text(aiCoachAdvice, color = c.onSurface, style = MaterialTheme.typography.bodyMedium)
+                }
                 Spacer(Modifier.height(9.dp))
                 OutlinedButton(onClick = onOpenAiCoach, modifier = Modifier.fillMaxWidth()) { Text("AI koçuyla konuş  ↗") }
             }

@@ -269,6 +269,7 @@ class LearningRepository(context: Context) {
     fun setCompleted(id: String, checked: Boolean) {
         updateOutcome(id) { unit ->
             unit.copy(completed = checked,
+                completedDate = if (checked) LocalDate.now().toString() else "",
                 completedSubtopics = if (checked) LearningSubtopics.forOutcome(unit) else emptyList())
         }
     }
@@ -281,13 +282,15 @@ class LearningRepository(context: Context) {
                     all.toSet() else unit.completedSubtopics.toSet()
                 val selected = if (checked) previous + subtopic else previous - subtopic
                 val done = all.filter { it in selected }
-                unit.copy(completedSubtopics = done, completed = done.size == all.size)
+                val isCompleted = done.size == all.size
+                unit.copy(completedSubtopics = done, completed = isCompleted,
+                    completedDate = if (isCompleted) unit.completedDate.ifBlank { LocalDate.now().toString() } else "")
             }
         }
     }
     fun markWrong(id: String) {
         updateOutcome(id) { it.copy(
-            completed = false, wrongCount = it.wrongCount + 1,
+            completed = false, completedDate = "", wrongCount = it.wrongCount + 1,
             reviewRequested = false,
             nextReviewDate = LocalDate.now().plusDays(1).toString(), reviewLevel = 0
         ) }

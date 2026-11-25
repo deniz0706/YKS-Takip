@@ -14,7 +14,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import com.deniz0706.ykstakip.data.AppSettings
+import com.deniz0706.ykstakip.data.AiCoachCache
+import com.deniz0706.ykstakip.data.AiContextBuilder
+import com.deniz0706.ykstakip.data.AiSecretStore
+import com.deniz0706.ykstakip.data.NvidiaAiService
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.StudyRepository
 import com.deniz0706.ykstakip.data.FocusSessionRepository
@@ -51,10 +56,13 @@ class HomeFragment : Fragment() {
         val learningAlertSubject: String = "",
         val reviewAlertCount: Int = 0,
         val learningDoneCount: Int = 0,
-        val learningTotalCount: Int = 0
+        val learningTotalCount: Int = 0,
+        val aiCoachAdvice: String = "",
+        val aiCoachDate: String = ""
     )
     private val dashboardSummary = mutableStateOf(Summary())
     private var refreshJob: Job? = null
+    private var knownExamIds: Set<Long>? = null
     private val refreshListener: () -> Unit = { refresh() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +94,8 @@ class HomeFragment : Fragment() {
                         reviewAlertCount = summary.reviewAlertCount,
                         learningDoneCount = summary.learningDoneCount,
                         learningTotalCount = summary.learningTotalCount,
+                        aiCoachAdvice = summary.aiCoachAdvice,
+                        aiCoachDate = summary.aiCoachDate,
                         daysLeft = summary.daysTyt,
                         daysLeftAyt = summary.daysAyt,
                         targetTyt = summary.goalTyt,
@@ -117,6 +127,9 @@ class HomeFragment : Fragment() {
         refreshJob = viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 val savedExams = repository.getAllExams()
+                val newExamId = knownExamIds?.let { previous -> savedExams.firstOrNull { it.id !in previous }?.id }
+                knownExamIds = savedExams.map { it.id }.toSet()
+                val cachedAdvice = AiCoachCache.getAdvice(appContext)
                 val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                 val session = focusRepository.snapshot()
                 val learningOutcomes = learningRepository.outcomes()
@@ -125,7 +138,7 @@ class HomeFragment : Fragment() {
                 )
                 val mainAlert = alerts.firstOrNull { it.urgent || it.due }
                     ?: alerts.firstOrNull()
-                savedExams to Summary(
+                Triple(savedExams, Summary(
                     daysTyt = daysUntilExam(19),
                     daysAyt = daysUntilExam(20),
                     goalTyt = AppSettings.getTargetNet(appContext, ExamType.TYT),
@@ -140,16 +153,40 @@ class HomeFragment : Fragment() {
                     learningAlertSubject = mainAlert?.outcome?.subject.orEmpty(),
                     reviewAlertCount = alerts.size,
                     learningDoneCount = learningOutcomes.count { it.completed },
-                    learningTotalCount = learningOutcomes.size
-                )
+                    learningTotalCount = learningOutcomes.size,
+                    aiCoachAdvice = cachedAdvice?.first.orEmpty(),
+                    aiCoachDate = cachedAdvice?.second.orEmpty()
+                ), newExamId)
             }
             if (isAdded) {
                 exams.value = result.first
                 dashboardSummary.value = result.second
+                result.third?.let(::analyzeNewExam)
             }
         }
     }
 
+    private fun analyzeNewExam(examId: Long) {
+        val appContext = requireContext().applicationContext
+        if (!AiSecretStore.hasApiKey(appContext) || !AiCoachCache.claimDailySlot(appContext, examId)) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val advice = runCatching {
+                val snapshot = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
+                NvidiaAiService(appContext).chat(listOf(
+                    NvidiaAiService.Message("system",
+                        "Sen YKS-Takip uygulamasının gerçekçi ve veri odaklı YKS koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgi uydurma. Yeni denemesini, önceki sonuçlarını ve konu ilerlemesini birlikte değerlendir. En fazla 3 somut öneri ver. Öğrenci özeti:\n$snapshot"),
+                    NvidiaAiService.Message("user",
+                        "Yeni bir deneme kaydettim (kayıt kimliği: $examId). Sonuçlarıma göre kısa bir değerlendirme ve öncelikli çalışma önerisi hazırla.")
+                ), 520)
+            }.getOrNull()
+            if (!advice.isNullOrBlank()) {
+                AiCoachCache.save(appContext, advice)
+                if (isAdded) dashboardSummary.value = dashboardSummary.value.copy(
+                    aiCoachAdvice = advice, aiCoachDate = LocalDate.now().toString()
+                )
+            }
+        }
+    }
     private fun daysUntilExam(dayOfMonth: Int): Long {
         val exam = Calendar.getInstance().apply {
             set(2027, Calendar.JUNE, dayOfMonth, 0, 0, 0)

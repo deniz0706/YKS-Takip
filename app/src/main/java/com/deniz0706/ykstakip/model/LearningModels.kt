@@ -19,11 +19,13 @@ data class LearningOutcome(
     val lastReviewedDate: String = "",
     val custom: Boolean = false,
     /** PDF-derived subtopic titles checked within this unit. */
-    val completedSubtopics: List<String> = emptyList()
+    val completedSubtopics: List<String> = emptyList(),
+    val completedDate: String = ""
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("id", id); put("examType", examType); put("subject", subject)
         put("topic", topic); put("title", title); put("completed", completed)
+        put("completedDate", completedDate)
         put("reviewRequested", reviewRequested); put("wrongCount", wrongCount)
         put("acknowledgedWrongCount", acknowledgedWrongCount)
         put("nextReviewDate", nextReviewDate); put("reviewLevel", reviewLevel)
@@ -44,7 +46,8 @@ data class LearningOutcome(
             completedSubtopics = (j.optJSONArray("completedSubtopics") ?: JSONArray()).let { a ->
                 (0 until a.length()).map { a.optString(it) }
                     .filter { it.isNotBlank() }.distinct()
-            }
+            },
+            completedDate = j.optString("completedDate", "")
         )
     }
 }

@@ -115,6 +115,8 @@ fun LearningHubPanel(
                     "pending" -> !outcome.completed
                     "done" -> outcome.completed
                     "wrong" -> outcome.wrongCount > 0
+                    "review" -> outcome.reviewRequested ||
+                        (outcome.nextReviewDate.isNotBlank() && outcome.nextReviewDate <= LocalDate.now().toString())
                     else -> true
                 }
         }.groupBy { it.topic }.values.flatten()
@@ -315,8 +317,8 @@ fun LearningHubPanel(
                             singleLine = true, modifier = Modifier.fillMaxWidth())
                         Row(Modifier.horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            listOf("all" to "Tümü", "pending" to "Eksikler",
-                                "done" to "Tamamlanan", "wrong" to "Yanlışlar").forEach { (key,label) ->
+                            listOf("all" to "Tümü", "pending" to "Kalanlar",
+                                "review" to "Tekrar gereken", "done" to "Tamamlanan", "wrong" to "Yanlışlar").forEach { (key,label) ->
                                 FilterChip(selected = outcomeStatus == key,
                                     onClick = { outcomeStatus = key }, label = { Text(label) })
                             }
@@ -396,6 +398,11 @@ fun LearningHubPanel(
                                             finishedCount.toFloat() / subtopics.size,
                                             Modifier.fillMaxWidth()
                                         )
+                                    }
+                                    if (outcome.completed && outcome.completedDate.isNotBlank()) {
+                                        Text("Tamamlandı: " + outcome.completedDate,
+                                            color = c.primary,
+                                            style = MaterialTheme.typography.labelSmall)
                                     }
                                     if (outcome.wrongCount > 0) {
                                         Text("Yanlış işaretlemesi: ${outcome.wrongCount}",
