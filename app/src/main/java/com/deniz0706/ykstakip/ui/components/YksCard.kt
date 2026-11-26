@@ -14,6 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import com.deniz0706.ykstakip.ui.theme.YksSpacing
+import com.deniz0706.ykstakip.ui.theme.YksShape
 
 @Composable
 fun YksCard(
@@ -22,7 +24,7 @@ fun YksCard(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(24.dp)
+    val shape = RoundedCornerShape(YksShape.card)
     val background = if (highlighted) {
         Brush.linearGradient(listOf(colors.surfaceVariant, colors.surface, colors.surface))
     } else {
@@ -32,7 +34,7 @@ fun YksCard(
         modifier = modifier
             .background(background, shape)
             .border(BorderStroke(1.dp, colors.outline.copy(alpha = 0.75f)), shape)
-            .padding(20.dp),
+            .padding(YksSpacing.cardContent),
         content = { CompositionLocalProvider(LocalContentColor provides colors.onSurface) { content() } }
     )
 }
