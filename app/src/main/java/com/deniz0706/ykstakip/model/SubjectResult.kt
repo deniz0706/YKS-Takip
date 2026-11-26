@@ -1,6 +1,5 @@
 package com.deniz0706.ykstakip.model
 
-import com.deniz0706.ykstakip.domain.SubjectResult
 import org.json.JSONArray
 import org.json.JSONObject
 
