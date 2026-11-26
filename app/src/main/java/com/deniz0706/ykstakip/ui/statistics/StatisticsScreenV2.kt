@@ -31,6 +31,8 @@ import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
+import com.deniz0706.ykstakip.ui.components.DashboardSectionHeading
+import com.deniz0706.ykstakip.ui.components.DashboardEmptyState
 import com.deniz0706.ykstakip.ui.components.SubjectMomentumPanel
 import com.deniz0706.ykstakip.ui.components.ExamComparisonPanel
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
@@ -181,8 +183,8 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
         }
         if (section == "general") item {
             DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("Net ve performans trendi", color = colors.onSurface,
-                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                DashboardSectionHeading("Net ve performans trendi",
+                    detail = "Seçtiğin dönemdeki değişimi incele.")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(selected = !branchMode, onClick = { branchMode = false }, label = { Text("Toplam") })
                     FilterChip(selected = branchMode, onClick = { branchMode = true }, label = { Text("Branş") })
@@ -214,7 +216,8 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                     }
                 }
                 if (series.isEmpty()) {
-                    Text("Bu seçim için deneme kaydı bulunamadı.", color = colors.onSurfaceVariant)
+                    DashboardEmptyState("Henüz veri yok",
+                        "Bu seçim için deneme kaydı bulunamadı. Yeni bir deneme eklediğinde grafik burada oluşacak.")
                 } else {
                     val target = if (!branchMode && metric == "net")
                         if (type == ExamType.TYT) targetTyt else targetAyt else null
@@ -241,8 +244,8 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
         }
         if (section == "ranking") item {
             DashboardPanel(Modifier.fillMaxWidth()) {
-                Text("Sıralama tahmini", color = colors.onSurface,
-                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                DashboardSectionHeading("Sıralama tahmini",
+                    detail = "Denemelerine göre yaklaşık konumun.")
                 Text("Tahmini değerlerdir; gerçek YKS sıralaması farklı olabilir.",
                     color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 if (type == ExamType.AYT) {

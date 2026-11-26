@@ -40,6 +40,7 @@ import com.deniz0706.ykstakip.util.ReviewAdvisor
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.StudyPlanAnalytics
 import com.deniz0706.ykstakip.util.StudyPlanConflicts
+import com.deniz0706.ykstakip.util.StudyActivityAnalytics
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
@@ -170,19 +171,8 @@ fun StudyScreenV2(
     val estimatedDays = remember(sorted) { sorted.count { it.estimated } }
     val totalQuestions = remember(sorted) { sorted.sumOf { it.questionCount } }
     val totalMinutes = remember(sorted) { sorted.sumOf { it.studyMinutes } }
-    val weeklyComparison = remember(sorted, today) {
-        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val calendar = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -13) }
-        val previousStart = formatter.format(calendar.time)
-        calendar.add(Calendar.DAY_OF_YEAR, 7)
-        val currentStart = formatter.format(calendar.time)
-        val previous = sorted.filter { it.date >= previousStart && it.date < currentStart }
-        val currentWeek = sorted.filter { it.date >= currentStart && it.date <= today }
-        Triple(
-            currentWeek.sumOf { it.questionCount },
-            previous.sumOf { it.questionCount },
-            currentWeek.sumOf { it.studyMinutes }
-        )
+    val weeklySummary = remember(sorted, today, goal) {
+        StudyActivityAnalytics.summarize(sorted, today, goal)
     }
     val activeDates = remember(sorted) {
         sorted.filter { it.questionCount > 0 || it.studyMinutes > 0 }.map { it.date }.toSet()
@@ -401,42 +391,51 @@ fun StudyScreenV2(
         }
         if (section == "analysis") {
         item(key = "weekly-comparison") {
-            val currentTotal = weeklyComparison.first
-            val previousTotal = weeklyComparison.second
+            val currentTotal = weeklySummary.currentQuestions
+            val previousTotal = weeklySummary.previousQuestions
             val maximum = maxOf(currentTotal, previousTotal, 1).toFloat()
             val diff = currentTotal - previousTotal
             DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
-                Text("HAFTALIK KARŞILAŞTIRMA", color = colors.secondary,
+                Text("HAFTALIK RAPOR", color = colors.secondary,
                     letterSpacing = 1.sp, style = MaterialTheme.typography.labelSmall)
-                Spacer(Modifier.height(7.dp))
-                Text("Son 7 gün · Önceki 7 gün",
-                    color = colors.onSurface,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(13.dp))
+                Text("Son 7 günün özeti", color = colors.onSurface,
+                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
                         Text("BU HAFTA", color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
                         Text("%,d".format(Locale("tr", "TR"), currentTotal),
-                            color = colors.onSurface,
-                            fontWeight = FontWeight.Bold, fontSize = 25.sp)
+                            color = colors.onSurface, fontWeight = FontWeight.Bold, fontSize = 25.sp)
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text("ÖNCEKİ HAFTA", color = colors.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
                         Text("%,d".format(Locale("tr", "TR"), previousTotal),
-                            color = colors.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold, fontSize = 25.sp)
+                            color = colors.onSurfaceVariant, fontWeight = FontWeight.SemiBold, fontSize = 25.sp)
                     }
                 }
-                Spacer(Modifier.height(10.dp))
-                DashboardProgress(currentTotal / maximum, Modifier.fillMaxWidth(),
-                    foreground = colors.primary)
-                Spacer(Modifier.height(7.dp))
-                DashboardProgress(previousTotal / maximum, Modifier.fillMaxWidth(),
-                    foreground = colors.tertiary)
-                Spacer(Modifier.height(10.dp))
+                DashboardProgress(currentTotal / maximum, Modifier.fillMaxWidth(), foreground = colors.primary)
+                DashboardProgress(previousTotal / maximum, Modifier.fillMaxWidth(), foreground = colors.tertiary)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column {
+                        Text("AKTİF GÜN", color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                        Text("${weeklySummary.activeDays}/7", color = colors.onSurface,
+                            fontWeight = FontWeight.Bold, fontSize = 21.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("GÜNLÜK ORTALAMA", color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                        Text("%,d".format(Locale("tr", "TR"), weeklySummary.averageQuestionsPerActiveDay),
+                            color = colors.onSurface, fontWeight = FontWeight.Bold, fontSize = 21.sp)
+                    }
+                    if (goal != null && goal > 0) Column(horizontalAlignment = Alignment.End) {
+                        Text("HEDEF GÜNÜ", color = colors.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                        Text("${weeklySummary.goalDays}/7", color = colors.primary,
+                            fontWeight = FontWeight.Bold, fontSize = 21.sp)
+                    }
+                }
                 Text(when {
                     currentTotal == 0 && previousTotal == 0 ->
                         "İki haftada da soru kaydı bulunmuyor."
@@ -445,10 +444,12 @@ fun StudyScreenV2(
                     else -> "→ Her iki haftada da aynı sayıda soru çözdün."
                 }, color = if (diff < 0) colors.error else colors.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(4.dp))
-                Text("Son 7 gündeki çalışma: ${weeklyComparison.third / 60} sa ${weeklyComparison.third % 60} dk",
-                    color = colors.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelSmall)
+                Text("Son 7 gündeki çalışma: ${weeklySummary.currentMinutes / 60} sa ${weeklySummary.currentMinutes % 60} dk",
+                    color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                if (weeklySummary.estimatedDays > 0) {
+                    Text("${weeklySummary.estimatedDays} gün tahmini veriden oluşuyor.",
+                        color = colors.secondary, style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
         }
