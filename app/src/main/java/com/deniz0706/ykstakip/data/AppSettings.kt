@@ -2,6 +2,7 @@ package com.deniz0706.ykstakip.data
 
 import android.content.Context
 import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.widget.StudySummaryWidgetProvider
 
 object AppSettings {
     private const val PREFS = "yks_takip_prefs"
@@ -74,6 +75,7 @@ object AppSettings {
         prefs(context).edit().apply {
             if (value == null) remove(KEY_DAILY_GOAL) else putInt(KEY_DAILY_GOAL, value)
         }.apply()
+        StudySummaryWidgetProvider.updateAll(context)
     }
 
     fun getObp(context: Context): Float? {
