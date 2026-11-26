@@ -25,6 +25,9 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.deniz0706.ykstakip.ui.theme.YksSpacing
+import com.deniz0706.ykstakip.ui.theme.YksShape
+import com.deniz0706.ykstakip.ui.theme.YksMotion
 
 /** Shared visual primitives: no shadows, images or per-frame allocations required. */
 @Composable
@@ -34,7 +37,7 @@ fun DashboardPanel(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val c = MaterialTheme.colorScheme
-    val shape = remember { RoundedCornerShape(26.dp) }
+    val shape = remember { RoundedCornerShape(YksShape.panel) }
     val fill = androidx.compose.runtime.remember(c.surface, c.surfaceVariant, accent) {
         if (accent) Brush.linearGradient(listOf(c.surfaceVariant, c.surface, c.surface))
         else Brush.linearGradient(listOf(c.surface, c.surface))
@@ -42,7 +45,7 @@ fun DashboardPanel(
     Column(
         modifier.background(fill, shape)
             .border(1.dp, c.outline.copy(alpha = .38f), shape)
-            .padding(18.dp),
+            .padding(YksSpacing.cardContent),
         content = { CompositionLocalProvider(LocalContentColor provides c.onSurface) { content() } }
     )
 }
@@ -79,7 +82,7 @@ fun DashboardProgress(
     val c = MaterialTheme.colorScheme
     val progress = remember { Animatable(0f) }
     val target = fraction.coerceIn(0f, 1f)
-    LaunchedEffect(target) { progress.animateTo(target, tween(700)) }
+    LaunchedEffect(target) { progress.animateTo(target, tween(YksMotion.progressMs)) }
     Box(modifier.height(9.dp).drawWithCache {
         val radius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f)
         val track = c.surfaceVariant
@@ -105,7 +108,7 @@ fun DashboardRing(
     val c = MaterialTheme.colorScheme
     val progress = remember { Animatable(0f) }
     val target = fraction.coerceIn(0f, 1f)
-    LaunchedEffect(target) { progress.animateTo(target, tween(850)) }
+    LaunchedEffect(target) { progress.animateTo(target, tween(YksMotion.emphasisMs + YksMotion.progressMs)) }
     val track = c.outline.copy(alpha = .36f)
     Box(modifier.size(diameter), contentAlignment = Alignment.Center) {
         Box(Modifier.fillMaxSize().drawWithCache {
