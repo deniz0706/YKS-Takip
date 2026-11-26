@@ -37,18 +37,11 @@ SELECT * FROM SubjectResultRecord
 WHERE examId = ?
 ORDER BY subjectOrder ASC;
 
--- Upsert updates the parent row in place. Avoid INSERT OR REPLACE here:
--- SQLite REPLACE deletes the old row first and can cascade-delete child subjects.
-upsertExam:
+-- Separate insert/update statements keep the write path compatible with
+-- SQLDelight's SQLite parser and avoid REPLACE's delete-then-insert semantics.
+insertExam:
 INSERT INTO ExamRecord(id, title, examDate, examType, aytField, notes, publisher)
-VALUES (?, ?, ?, ?, ?, ?, ?)
-ON CONFLICT(id) DO UPDATE SET
-    title = excluded.title,
-    examDate = excluded.examDate,
-    examType = excluded.examType,
-    aytField = excluded.aytField,
-    notes = excluded.notes,
-    publisher = excluded.publisher;
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 updateExam:
 UPDATE ExamRecord
