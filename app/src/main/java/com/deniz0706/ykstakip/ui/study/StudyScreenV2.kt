@@ -221,6 +221,10 @@ fun StudyScreenV2(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+            TextButton(
+                onClick = onRequestReviewNotifications,
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Tekrar bildirimlerini aç / yönet") }
             LearningHubPanel(
                 outcomes = learningOutcomes,
                 questions = learningQuestions,
