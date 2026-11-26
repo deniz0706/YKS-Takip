@@ -113,7 +113,7 @@ class NewExamFragment : Fragment() {
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val outcomes = LearningRepository(appContext).outcomes()
+                    val outcomes = LearningRepository.getInstance(appContext).outcomes()
                     val existing = id?.let { examId -> repository.getAllExams().find { it.id == examId } }
                     outcomes to existing
                 }
