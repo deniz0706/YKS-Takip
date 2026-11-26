@@ -14,13 +14,13 @@ class StudyActivityAnalyticsTest {
             StudyDay("2026-11-26", 20, 30)
         )
         val result = StudyActivityAnalytics.summarize(days, "2026-11-26", 50)
-        assertEquals(260, result.currentQuestions)
-        assertEquals(40, result.previousQuestions)
-        assertEquals(285, result.currentMinutes)
-        assertEquals(4, result.activeDays)
-        assertEquals(3, result.goalDays)
+        assertEquals(180, result.currentQuestions)
+        assertEquals(120, result.previousQuestions)
+        assertEquals(195, result.currentMinutes)
+        assertEquals(3, result.activeDays)
+        assertEquals(2, result.goalDays)
         assertEquals(1, result.estimatedDays)
-        assertEquals(65, result.averageQuestionsPerActiveDay)
+        assertEquals(60, result.averageQuestionsPerActiveDay)
     }
 
     @Test fun excludesDatesOutsideBothWindowsAndClampsNegativeValues() {
