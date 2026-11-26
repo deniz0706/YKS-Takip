@@ -216,9 +216,18 @@ class AiCoachFragment : Fragment() {
         val forgetPattern = Regex("^(?:unut|hafızandan sil|hafızadan sil)\\s*[:：-]?\\s*(.+)$", RegexOption.IGNORE_CASE)
         val forgetText = forgetPattern.matchEntire(trimmed)?.groupValues?.getOrNull(1)
         if (!forgetText.isNullOrBlank()) {
+            if (forgetText.trim().length < 4) {
+                return "Güvenlik için en az 4 karakterlik bir ifade yazmalısın. Kayıtlarımı görmek için ‘Hafızamda ne var?’ diyebilirsin."
+            }
             val removed = repository.forgetMatching(forgetText)
-            return if (removed > 0) "${removed} hafıza kaydını sildim."
-                else "Bu ifadeyle eşleşen bir hafıza kaydı bulamadım."
+            if (removed > 0) return "Tam eşleşen ${removed} hafıza kaydını sildim."
+            val matches = repository.findMatching(forgetText)
+            return if (matches.isNotEmpty()) {
+                "Bu ifade ${matches.size} kayıtla eşleşiyor; yanlışlıkla toplu silme yapmamak için hiçbirini silmedim. Silmek istediğin kaydın tam metnini ‘Unut: [kaydın tamamı]’ şeklinde gönder.\n" +
+                    matches.take(10).joinToString("\n") { "• ${it.content}" }
+            } else {
+                "Bu ifadeyle eşleşen bir kayıt bulamadım. Silme işlemi için kaydın tam metnini yazmalısın."
+            }
         }
         return null
     }
@@ -251,7 +260,6 @@ class AiCoachFragment : Fragment() {
         draft.value = ""
         lines.add(CoachLine("user", question))
         val appContext = requireContext().applicationContext
-        AiMemoryRepository(appContext).captureFromUserMessage(question)
         persistConversation(appContext)
         val memoryReply = handleMemoryCommand(question)
         if (memoryReply != null) {
