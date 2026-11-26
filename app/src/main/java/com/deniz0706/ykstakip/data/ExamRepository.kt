@@ -3,6 +3,8 @@ package com.deniz0706.ykstakip.data
 import android.content.Context
 import android.content.SharedPreferences
 import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.model.fromJson
+import com.deniz0706.ykstakip.model.toJson
 import org.json.JSONArray
 
 class ExamRepository(context: Context) {

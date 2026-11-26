@@ -3,6 +3,8 @@ package com.deniz0706.ykstakip.data
 import android.content.ContentResolver
 import android.net.Uri
 import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.model.fromJson
+import com.deniz0706.ykstakip.model.toJson
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
