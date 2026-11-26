@@ -16,6 +16,8 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [x] **Deneme → konu → hata/tekrar defteri** (PR #33): Etiketleri benzersiz kazanımlara bağla, belirsiz eşleşmeleri engelle, deneme bağlamını tekrar kartına ekle ve aynı etiketi ikinci kez içe aktarma.
 - [x] **Aralıklı tekrar bildirimleri** (PR #35): 1–3–7–21 günlük tekrar aralığı, WorkManager ve kullanıcı kontrollü bildirim izni.
 - [x] **Ana ekran çalışma widget’ı** (PR #36): Bugünkü soru, süre ve hedefi mevcut kayıt depolarından gösterir.
+- [x] **Deneme detay ekranı Compose geçişi** (PR #38): Ortak tasarım sistemi ve zayıf konudan öğrenme merkezine doğrudan bağlantı.
+- [x] **Tek dosyalık tam yedek** (PR #42): Denemeler, çalışma geçmişi, öğrenme kazanımları, soru kayıtları ve fotoğraflar; doğrulamalı ZIP, birleştirerek geri yükleme ve API anahtarlarını dışarıda bırakma.
 
 ## Öncelikli geliştirme sırası
 
@@ -50,8 +52,8 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [ ] Gereksiz büyük kartları ve tekrarlanan aksiyonları azalt; ana akışları daha hızlı hale getir.
 
 ### 5. Veri güvenliği ve yedekleme
-- [ ] JSON/SharedPreferences verileri için doğrulanabilir dışa aktarma ve geri yükleme akışı.
-- [ ] Geri yükleme öncesi önizleme, sürüm kontrolü ve geri alınabilir snapshot.
+- [x] Tek dosyalık ZIP dışa aktarma ve geri yükleme; dosya/sürüm/içerik doğrulaması ve geri yükleme önizlemesi (PR #42).
+- [x] Birleştirme tabanlı geri yükleme; yerel kayıtlar korunur, fotoğraflar doğrulanır, hata halinde geri alma uygulanır (PR #42).
 - [ ] Room/DataStore geçişini ancak mevcut veriler için testli, çift yönlü olmayan ve geri dönüş planlı bir migrasyon hazırsa değerlendir.
 - [ ] Google Drive entegrasyonunu temel yerel yedekleme güvenilir olduktan sonra ele al.
 
