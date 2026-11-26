@@ -45,10 +45,10 @@ class MainActivity : AppCompatActivity() {
 
         nav.setItems(
             items = listOf(
-                FloatingBottomNavView.NavItem(NAV_HOME, "Ana Sayfa"),
-                FloatingBottomNavView.NavItem(NAV_HISTORY, "Denemeler"),
-                FloatingBottomNavView.NavItem(NAV_STUDY, "Çalışma"),
-                FloatingBottomNavView.NavItem(NAV_SETTINGS, "Ayarlar")
+                FloatingBottomNavView.NavItem(NAV_HOME, getString(R.string.nav_home)),
+                FloatingBottomNavView.NavItem(NAV_HISTORY, getString(R.string.nav_exams)),
+                FloatingBottomNavView.NavItem(NAV_STUDY, getString(R.string.nav_study)),
+                FloatingBottomNavView.NavItem(NAV_SETTINGS, getString(R.string.nav_settings))
             ),
             initialSelectedId = currentNavId,
             onSelected = { id -> showFragment(id) }

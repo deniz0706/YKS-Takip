@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
-
     <application
         android:name=".YksApp"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:usesCleartextTraffic="false"
+        android:localeConfig="@xml/locale_config"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.YksTakip">
-
         <activity
             android:name=".ui.MainActivity"
             android:configChanges="uiMode"
@@ -22,7 +21,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.reviewphotos"
