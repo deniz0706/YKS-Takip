@@ -21,6 +21,12 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 
 ## Öncelikli geliştirme sırası
 
+### 0. Kronometre ve sınav modu düzeltmeleri — tamamlandı (PR #44)
+- [x] Branş süresini 60 dakikaya sabitleme; 1–600 dakika arasında kullanıcı tanımlı süre.
+- [x] TYT'nin dört test grubu ve AYT Sayısal / Eşit Ağırlık / Sözel alanları.
+- [x] Ayrı sınav kartı yerine mevcut odak kronometresinde mod seçimi.
+- [x] Duraklatma, kaldığı yerden devam etme ve sıfırlama; mod değiştirirken diğer sayacı duraklatma.
+
 ### 1. Deneme hata defteri ve konu bağlantısı — tamamlandı (PR #33)
 - [x] Denemede etiketlenen zayıf konuları mevcut öğrenme kazanımlarıyla eşleştir.
 - [x] Eşleşmeyen etiketleri kullanıcıya göster; doğru ders/kazanım seçilmeden otomatik kayıt yapma.
