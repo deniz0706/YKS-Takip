@@ -66,19 +66,3 @@ WHERE examId = ?;
 
 deleteAllSubjectResults:
 DELETE FROM SubjectResultRecord;
-
-selectAllStudyDays:
-SELECT * FROM StudyDayRecord
-ORDER BY studyDate ASC;
-
-selectStudyDay:
-SELECT * FROM StudyDayRecord
-WHERE studyDate = ?;
-
-upsertStudyDay:
-INSERT OR REPLACE INTO StudyDayRecord(studyDate, questionCount, studyMinutes, estimated)
-VALUES (?, ?, ?, ?);
-
-deleteStudyDay:
-DELETE FROM StudyDayRecord
-WHERE studyDate = ?;
