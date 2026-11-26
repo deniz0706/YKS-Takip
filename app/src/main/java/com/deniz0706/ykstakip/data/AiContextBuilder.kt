@@ -4,7 +4,6 @@ import android.content.Context
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /** Builds a compact, read-only snapshot. It never triggers network requests. */
 object AiContextBuilder {
@@ -40,11 +39,11 @@ object AiContextBuilder {
         val currentSnapshot = lines.take(15).joinToString("\n").take(4200)
         return buildString {
             if (memorySnapshot.isNotBlank()) {
-                append("KALICI ÖĞRENCİ HAFIZASI (kullanıcının özellikle kaydettiği bilgiler):\\n")
+                append("KALICI ÖĞRENCİ HAFIZASI (kullanıcının özellikle kaydettiği bilgiler):\n")
                 append(memorySnapshot)
-                append("\\n\\n")
+                append("\n\n")
             }
-            append("GÜNCEL UYGULAMA VERİLERİ:\\n")
+            append("GÜNCEL UYGULAMA VERİLERİ:\n")
             append(currentSnapshot)
         }.take(6800)
     }
