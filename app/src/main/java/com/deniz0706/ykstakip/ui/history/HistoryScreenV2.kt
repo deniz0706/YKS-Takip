@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,14 +41,17 @@ fun HistoryScreenV2(
 ) {
     var type by remember { mutableStateOf(ExamType.TYT) }
     var query by remember { mutableStateOf("") }
-    val filtered = remember(exams, type, query, fromDate, toDate) {
-        exams.filter { exam ->
+    var newestFirst by remember { mutableStateOf(true) }
+    val filtered = remember(exams, type, query, fromDate, toDate, newestFirst) {
+        val matches = exams.filter { exam ->
             exam.type == type &&
                 (query.isBlank() || exam.title.contains(query.trim(), ignoreCase = true) ||
                     exam.publisher.contains(query.trim(), ignoreCase = true)) &&
                 (fromDate == null || exam.date >= fromDate) &&
                 (toDate == null || exam.date <= toDate)
-        }.sortedByDescending { it.date }
+        }
+        if (newestFirst) matches.sortedByDescending { it.date }
+        else matches.sortedBy { it.date }
     }
     val average = remember(filtered) { filtered.takeIf { it.isNotEmpty() }?.map { it.totalNet }?.average() }
     val best = remember(filtered) { filtered.maxOfOrNull { it.totalNet } }
@@ -137,10 +141,19 @@ fun HistoryScreenV2(
             }
         }
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Kayıtlar", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleMedium)
-                Text("${filtered.size} deneme", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text("Kayıtlar", fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleMedium)
+                    Text("${filtered.size} deneme · ${if (newestFirst) "yeniden eskiye" else "eskiden yeniye"}",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall)
+                }
+                TextButton(onClick = { newestFirst = !newestFirst }) {
+                    Text(if (newestFirst) "En eski önce ↑" else "En yeni önce ↓")
+                }
             }
         }
         if (filtered.isEmpty()) {
@@ -154,8 +167,11 @@ fun HistoryScreenV2(
                 }
             }
         }
-        items(filtered, key = { it.id }) { exam ->
+        itemsIndexed(filtered, key = { _, exam -> exam.id }) { index, exam ->
             val c = MaterialTheme.colorScheme
+            val comparisonIndex = if (newestFirst) index + 1 else index - 1
+            val previousExam = filtered.getOrNull(comparisonIndex)
+            val netChange = previousExam?.let { exam.totalNet - it.totalNet }
             val shape = RoundedCornerShape(22.dp)
             Column(
                 Modifier.fillMaxWidth()
@@ -189,9 +205,32 @@ fun HistoryScreenV2(
                     HistoryPill("${exam.totalBlank} boş", c.surfaceVariant, c.onSurfaceVariant, Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(10.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("${exam.totalTimeMinutes} dakika", style = MaterialTheme.typography.labelSmall,
-                        color = c.onSurfaceVariant)
+                LinearProgressIndicator(
+                    progress = { (exam.totalNet / if (exam.type == ExamType.TYT) 120.0 else 80.0)
+                        .toFloat().coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth().height(5.dp),
+                    color = c.primary, trackColor = c.surfaceVariant
+                )
+                Spacer(Modifier.height(9.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Column {
+                        Text("${exam.totalTimeMinutes} dakika", style = MaterialTheme.typography.labelSmall,
+                            color = c.onSurfaceVariant)
+                        if (netChange != null) {
+                            val changeColor = when {
+                                netChange > 0.0001 -> c.primary
+                                netChange < -0.0001 -> c.error
+                                else -> c.onSurfaceVariant
+                            }
+                            Text(when {
+                                netChange > 0.0001 -> "Önceki denemeye göre +${Fmt.net(netChange)} net"
+                                netChange < -0.0001 -> "Önceki denemeye göre ${Fmt.net(netChange)} net"
+                                else -> "Önceki denemeyle aynı net"
+                            }, color = changeColor, style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold)
+                        }
+                    }
                     Text("Detayları gör  ↗", style = MaterialTheme.typography.labelSmall,
                         color = c.secondary, fontWeight = FontWeight.SemiBold)
                 }
