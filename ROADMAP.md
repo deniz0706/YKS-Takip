@@ -49,9 +49,9 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [ ] Google Drive entegrasyonunu temel yerel yedekleme güvenilir olduktan sonra ele al.
 
 ### 6. AI ve ileri yetenekler
-- [ ] NVIDIA model/endpoint desteğini doğrulamadan görsel soru analizi vaat etme.
-- [ ] Görsel soru analizi mümkünse izinli fotoğraf gönderimi, boyut sınırı, hata yönetimi ve kullanıcı onayı.
-- [ ] AI önerileri yalnızca doğrulanmış, dar kapsamlı eylemlere dönüşsün; model doğrudan veri silemesin veya değiştiremesin.
+- [x] NVIDIA model/endpoint desteğini doğrula: Mistral Large 4 görsel girdisini destekliyor (PR #40).
+- [x] Görsel soru analizi: kullanıcı seçimi, boyut sınırı, hata yönetimi, açık veri aktarım bildirimi ve yerel geçmişte dosya saklamama (PR #40).
+- [x] AI önerileri yalnızca doğrulanmış, dar kapsamlı eylemlere dönüşsün; model doğrudan veri silemesin veya değiştiremesin (PR #31).
 
 ## Değişmez güvenlik kuralları
 
