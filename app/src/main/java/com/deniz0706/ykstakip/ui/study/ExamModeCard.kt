@@ -43,8 +43,8 @@ fun ExamModeCard(modifier: Modifier = Modifier) {
         "AYT" -> listOf("Matematik", "Fizik", "Kimya", "Biyoloji")
         else -> listOf("1. Ders", "2. Ders", "3. Ders")
     }
-    val elapsedSeconds = (state.elapsedMs / 1000L).toInt()
-    val remainingSeconds = ((state.remainingMs + 999L) / 1000L).toInt()
+    val elapsedSeconds = state.elapsedMs / 1000L
+    val remainingSeconds = ExamSessionMath.displaySeconds(state.remainingMs)
     val clock = ExamSessionMath.formatClock(remainingSeconds)
     val progress = (state.elapsedMs.toFloat() / (state.durationMinutes * 60_000L))
         .coerceIn(0f, 1f)
