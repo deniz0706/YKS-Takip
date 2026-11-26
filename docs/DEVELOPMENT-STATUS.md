@@ -13,8 +13,8 @@ Updated: 2026-11-26
 - `integration/complete-mainline` is 36 commits behind main and has zero commits ahead; it is stale.
 - `feature/osym-ranking-engine` is 17 ahead / 115 behind and contains an older estimator/lookup rewrite. Current main already has a later implementation and high-net regression fixture; do not merge it wholesale.
 - `feature/nvidia-ai-coach` and `v3.0/ui-foundation` have no unique commits ahead of main.
-- `feat/full-app-backup` is 6 ahead / 6 behind, but main already contains a full backup implementation; preserve main and compare behavior before considering any port.
-- `feat/ai-coach-image-input` is 9 ahead / 7 behind and has a potentially unmerged image-input capability; inspect its exact diff and provider payload behavior before selective integration.
+- `feat/full-app-backup` is 6 ahead / 6 behind; all five inspected implementation/UI/test files have identical blob SHAs on main, so no port is needed.
+- `feat/ai-coach-image-input` is 9 ahead / 7 behind; all five inspected image-input/service/UI/test files have identical blob SHAs on main, so the feature is already present.
 - `design/aurora-restoration-dashboard-v4` is 1 ahead / 32 behind with small theme/dashboard changes; review selectively, never use as a merge base.
 - Additional findings are recorded in `docs/BRANCH-AUDIT.md`.
 
@@ -53,6 +53,7 @@ Updated: 2026-11-26
 - Recorded KMP/Compose Multiplatform direction in `docs/adr/0001-kotlin-multiplatform-compose.md`.
 - Added `docs/DATA-MIGRATION-INVENTORY.md` with observed stores, schemas, hazards, and a safe migration protocol.
 - Added `docs/BRANCH-AUDIT.md` with selected branch ancestry and integration decisions.
+- Compared the full-backup and AI image-input branch files against main; their inspected implementation, UI, and test files are byte-identical to main, avoiding duplicate integration.
 - No application runtime code has been changed in this session.
 - No build or test has been run from the GitHub connector; do not infer a green build from this audit.
 
