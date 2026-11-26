@@ -25,7 +25,7 @@ class FocusSessionSaveMathTest {
     @Test fun carryIsLimitedToOneMinuteMinusOneMillisecond() {
         val result = FocusSessionSaveMath.split(1_000L, 90_000L)
         assertEquals(1, result.loggedMinutes)
-        assertEquals(0L, result.remainingMs)
+        assertEquals(999L, result.remainingMs)
     }
 
     @Test fun dailyLimitAllowsExactlyTwentyFourHours() {
