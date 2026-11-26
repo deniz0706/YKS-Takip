@@ -12,16 +12,17 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 
 ## Aktif geliştirme
 
-- [ ] **AI Koç → çalışma planı eylemi** (PR #31): Yapılandırılmış öneriyi doğrula, çakışmaları kontrol et ve yalnızca kullanıcı onayından sonra haftalık plana kaydet.
+- [x] **AI Koç → çalışma planı eylemi** (PR #31): Yapılandırılmış öneriyi doğrula, çakışmaları kontrol et ve yalnızca kullanıcı onayından sonra haftalık plana kaydet.
+- [x] **Deneme → konu → hata/tekrar defteri** (PR #33): Etiketleri benzersiz kazanımlara bağla, belirsiz eşleşmeleri engelle, deneme bağlamını tekrar kartına ekle ve aynı etiketi ikinci kez içe aktarma.
 
 ## Öncelikli geliştirme sırası
 
-### 1. Deneme hata defteri ve konu bağlantısı
-- [ ] Denemede etiketlenen zayıf konuları mevcut öğrenme kazanımlarıyla eşleştir.
-- [ ] Eşleşmeyen etiketleri kullanıcıya göster; doğru ders/kazanım seçilmeden otomatik kayıt yapma.
-- [ ] Deneme adı, tarihi, ders ve yanlış/boş bağlamını soru/tekrar kartına ekle.
-- [ ] Aynı deneme etiketi ikinci kez içe aktarılmasın; mevcut fotoğraflı soru kayıtları korunmalı.
-- [ ] Ders toplamındaki yanlış/boş sayısını konuya aitmiş gibi gösterme.
+### 1. Deneme hata defteri ve konu bağlantısı — tamamlandı (PR #33)
+- [x] Denemede etiketlenen zayıf konuları mevcut öğrenme kazanımlarıyla eşleştir.
+- [x] Eşleşmeyen etiketleri kullanıcıya göster; doğru ders/kazanım seçilmeden otomatik kayıt yapma.
+- [x] Deneme adı, tarihi, ders ve yanlış/boş bağlamını soru/tekrar kartına ekle.
+- [x] Aynı deneme etiketi ikinci kez içe aktarılmasın; mevcut fotoğraflı soru kayıtları korunmalı.
+- [x] Ders toplamındaki yanlış/boş sayısını konuya aitmiş gibi gösterme.
 
 ### 2. Aralıklı tekrar ve bildirimler
 - [ ] Mevcut tekrar tarihlerini temel alarak 1–3–7–21 günlük tekrar akışını tamamla.
