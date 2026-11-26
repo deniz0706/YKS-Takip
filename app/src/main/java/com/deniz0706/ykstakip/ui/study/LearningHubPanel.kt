@@ -47,6 +47,7 @@ fun LearningHubPanel(
     startingPane: String = "outcomes",
     startingExamType: String = "TYT",
     startingSubject: String = "",
+    startingTopic: String = "",
     learningField: AytField,
     onLearningFieldChange: (AytField) -> Unit,
     modifier: Modifier = Modifier,
@@ -70,7 +71,7 @@ fun LearningHubPanel(
     var pane by remember(startingPane) { mutableStateOf(startingPane) }
     var examType by remember(startingExamType) { mutableStateOf(startingExamType) }
     var subjectFilter by remember(startingExamType, startingSubject) { mutableStateOf(startingSubject) }
-    var topicFilter by remember { mutableStateOf("") }
+    var topicFilter by remember(startingExamType, startingSubject, startingTopic) { mutableStateOf(startingTopic) }
     var subjectMenu by remember { mutableStateOf(false) }
     var createOutcome by remember { mutableStateOf(false) }
     var createQuestion by remember { mutableStateOf(false) }
