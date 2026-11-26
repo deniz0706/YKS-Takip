@@ -36,6 +36,9 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
+      - name: Enforce commonMain platform boundaries
+        run: bash .github/scripts/check-common-main-boundaries.sh
+
       - name: Run shared JVM tests and compile iOS targets
         run: >-
           gradle --no-daemon
