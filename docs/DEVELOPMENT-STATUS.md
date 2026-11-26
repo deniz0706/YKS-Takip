@@ -94,6 +94,16 @@ Updated: 2026-11-26
 - The SQLDelight module is deliberately not connected to production repositories. No legacy SharedPreferences or photo data has been touched; no migration has been run.
 - Latest schema/CI/docs commits: `ad6f1e91e664981f3e4e04cfbcfadafc32351f2e`. GitHub connector cannot execute Gradle; no green build is claimed.
 
+## Latest continuation work — platform database drivers
+- Converted `:core:database` from a generic JVM/iOS module into an Android library + iOS multiplatform module. The Android app now consumes the Android variant; the generic JVM target is no longer used as a stand-in for Android.
+- Added Android SQLDelight driver factory using app-private `yks_takip_v4.db` and iOS NativeSqliteDriver factory with the same database filename in the platform sandbox.
+- Added the SQLDelight Android and native driver dependencies and kept the runtime in commonMain.
+- Wired the database module into the Android app dependency graph. It is compiled as part of the app but is not yet used by the production repositories.
+- Added durable migration checkpoint schema with source fingerprint, schema version, state, start/completion timestamps, and error details. This is bookkeeping only; it does not mark any migration complete.
+- Updated Android and macOS CI tasks to compile Android/iOS database targets.
+- No legacy preferences, backup files, photos, or signing material were read or modified by these changes. No importer has run.
+- No Gradle execution is available through the GitHub connector; build status remains unverified.
+
 ## Immediate next steps
 1. Add SQLDelight platform driver factories and database tests, then implement a staged, lossless importer behind existing repository interfaces.
 2. Introduce Compose Multiplatform UI only after shared domain and persistence boundaries are stable; do not rewrite screens in one pass.
