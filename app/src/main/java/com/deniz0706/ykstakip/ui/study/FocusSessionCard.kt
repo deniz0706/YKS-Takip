@@ -232,7 +232,7 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
         }
         }
         if (showExamTimer) {
-            ExamModeCard(embedded = true)
+            ExamModeCard(embedded = true, onSaved = onSaved)
         }
     }
 
