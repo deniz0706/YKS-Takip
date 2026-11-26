@@ -13,7 +13,7 @@ data class StudyPlanSummary(
 object StudyPlanAnalytics {
     fun summarize(items: List<StudyPlanItem>): StudyPlanSummary {
         fun duration(item: StudyPlanItem): Int? {
-            val pattern = Regex("""^(?:[01]\\d|2[0-3]):[0-5]\\d$""")
+            val pattern = Regex("""^(?:[01][0-9]|2[0-3]):[0-5][0-9]$""")
             if (!pattern.matches(item.startTime) || !pattern.matches(item.endTime)) return null
             val start = item.startTime.substring(0, 2).toInt() * 60 + item.startTime.substring(3, 5).toInt()
             val end = item.endTime.substring(0, 2).toInt() * 60 + item.endTime.substring(3, 5).toInt()
