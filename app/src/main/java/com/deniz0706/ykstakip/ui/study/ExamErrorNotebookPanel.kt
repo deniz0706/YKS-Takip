@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.ExamErrorNotebook
 
@@ -27,7 +28,7 @@ fun ExamErrorNotebookPanel(
     val colors = MaterialTheme.colorScheme
     DashboardPanel(modifier, accent = true) {
         Text("DENEMEDEN HATA DEFTERİNE", color = colors.secondary,
-            style = MaterialTheme.typography.labelSmall, letterSpacing = .8.dp.value.dp)
+            style = MaterialTheme.typography.labelSmall, letterSpacing = .8.sp)
         Spacer(Modifier.height(5.dp))
         Text("Etiketlediğin zayıf konular", color = colors.onSurface,
             style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
