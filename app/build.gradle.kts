@@ -1,12 +1,12 @@
-val ciRunNumber = providers.environmentVariable("GITHUB_RUN_NUMBER").orNull?.toIntOrNull()
-val appVersionCode = 1000 + (ciRunNumber ?: 0)
-val appVersionName = ciRunNumber?.let { "4.0.$it" } ?: "4.0-dev"
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val ciRunNumber = providers.environmentVariable("GITHUB_RUN_NUMBER").orNull?.toIntOrNull()
+val appVersionCode = 1000 + (ciRunNumber ?: 0)
+val appVersionName = ciRunNumber?.let { "4.0.$it" } ?: "4.0-dev"
 
 android {
     namespace = "com.deniz0706.ykstakip"
