@@ -20,8 +20,9 @@ class SubjectResultTest {
     }
 
     @Test
-    fun calculatesMinutesPerQuestionAndKeepsMissingValueNull() {
+    fun calculatesMinutesPerQuestionAndKeepsMissingOrZeroQuestionValuesNull() {
         assertEquals(0.75, SubjectResult("Türkçe", 40, 35, 3, 30).minutesPerQuestion)
         assertNull(SubjectResult("Türkçe", 40, 35, 3, 0).minutesPerQuestion)
+        assertNull(SubjectResult("Eski kayıt", 0, 0, 0, 10).minutesPerQuestion)
     }
 }
