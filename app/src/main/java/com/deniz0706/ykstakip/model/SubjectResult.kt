@@ -13,7 +13,7 @@ data class SubjectResult(
     val weakTopics: List<String> = emptyList()
 ) {
     val blank: Int get() = (questionCount - correct - wrong).coerceAtLeast(0)
-    val net: Double get() = round2(correct - wrong / 4.0)
+    val net: Double get() = com.deniz0706.ykstakip.domain.NetScore.calculate(correct, wrong)
     val minutesPerQuestion: Double?
         get() = if (timeMinutes > 0) round2(timeMinutes.toDouble() / questionCount) else null
 

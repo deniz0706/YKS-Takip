@@ -54,15 +54,17 @@ Updated: 2026-11-26
 - Added `docs/DATA-MIGRATION-INVENTORY.md` with observed stores, schemas, hazards, and a safe migration protocol.
 - Added `docs/BRANCH-AUDIT.md` with selected branch ancestry and integration decisions.
 - Compared the full-backup and AI image-input branch files against main; their inspected implementation, UI, and test files are byte-identical to main, avoiding duplicate integration.
-- No application runtime code has been changed in this session.
+- Added the first real Kotlin Multiplatform domain module (`:core:domain`) with JVM + iOS targets; Android app consumes its JVM variant.
+- Extracted the canonical correct-minus-wrong/4 net calculation into `commonMain` and added shared common tests for quarter-net and rounding behavior.
+- Ranking estimator, lookup tables, ranking fixtures, persistence formats, signing configuration, and application ID remain untouched.
 - No build or test has been run from the GitHub connector; do not infer a green build from this audit.
 
 ## Immediate next steps
-1. Inspect the unmerged AI image-input branch for capabilities absent from main and provider payload safety.
-2. Inspect the Aurora dashboard branch for UI improvements compatible with the current design direction.
+1. Add the next pure shared-domain slice (exam validation and time/net primitives) with characterization tests before moving repositories.
+2. Introduce Compose Multiplatform UI only after shared domain and persistence boundaries are stable; do not rewrite screens in one pass.
 3. Complete the preference/key and model/backup schema census, including settings, timers, AI cache, and photo ownership.
-4. Establish a small, buildable shared-domain extraction slice before introducing a large dependency or moving screens.
-5. Add CI checks for common tests and Android build; add iOS compile validation when a macOS runner is available.
+4. Add CI execution for `:core:domain:allTests` and Android build; add iOS compile validation on a macOS runner.
+5. Build a lossless legacy importer behind existing repository interfaces before changing storage.
 6. Keep each vertical slice independently testable and preserve Android update/signing safety.
 
 ## Risks / limitations
