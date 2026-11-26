@@ -210,3 +210,11 @@ Updated: 2026-11-26
 - Added validation for impossible dashboard state (negative counts/goals/days and invalid net trend values) with common tests. Platform repositories must supply persisted values; iOS is not claimed to be connected to Android storage.
 - KMP verification run `45873501403` passed for the preceding shell commit. Android APK run `45873501372` was still running at the time of this update; this new commit will trigger fresh verification.
 - Active branch remains `4.0/compose-multiplatform-shell`; no merge to foundation or main has been performed.
+
+
+## Latest continuation — shared exam-entry domain rules
+- Added common Kotlin `ExamEntryRules` to validate and construct an exam consistently for Android and iOS without coupling domain logic to platform storage or UI.
+- Validation now checks required TYT/selected AYT subject sets, duplicate/missing subjects, AYT field requirements, correct/wrong limits, negative time, and total duration (TYT 165 min / AYT 180 min). Creation trims metadata and refuses invalid drafts.
+- Extended the shared validation result model and added common tests for valid TYT construction, blanks/net calculation, incomplete/duplicate subjects, AYT field requirements, duration limits, and invalid metadata/answer counts.
+- Existing Android `ExamRepository` and legacy JSON format were not changed; this is a shared domain layer step, not yet a production repository migration.
+- Branch: `4.0/compose-multiplatform-shell`; pending verification on commit `18c710850ad3bdbcef90273b59107096cb94bfe3` remains separate from this new change.
