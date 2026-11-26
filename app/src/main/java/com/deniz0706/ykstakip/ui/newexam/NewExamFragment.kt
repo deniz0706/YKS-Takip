@@ -110,7 +110,7 @@ class NewExamFragment : Fragment() {
             }
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     val outcomes = LearningRepository(appContext).outcomes()
