@@ -149,3 +149,12 @@ Updated: 2026-11-26
 3. Add characterization tests around the current ranking estimator/lookup/calculator using existing regression vectors; do not change the calculation implementation.
 4. Design repository interfaces and a migration coordinator without switching production storage.
 5. Start the first Compose Multiplatform vertical slice only when it can use real domain/repository/ranking code rather than static demo data.
+
+## Continuation update — architecture decision and CI verification
+- Rechecked repository state after documentation-only PR #52 merged. main now points to 2205ada64597c955ab1e546d2dc9b859a07f3927; 4.0/foundation remains the integration branch and is 109 commits ahead / 1 commit behind main. The one-behind commit is the documentation-only main merge; no branch was reset or force-pushed.
+- PR #51 (4.0/architecture-audit to main) remains open and draft. It is not merged automatically; its 15-commit branch overlaps the foundation ancestry and must be closed or retargeted only after an explicit integration decision.
+- Added docs/adr/ADR-001-platform-architecture.md as the requested platform architecture decision. It formalizes KMP + Compose Multiplatform, Android/iOS adapter boundaries, SQLDelight/Kotlin Serialization, offline-first local authority, future modular-monolith service boundaries, replaceable design tokens, XML exit policy, and explicit validation gates.
+- Verified the latest completed foundation CI runs at commit 8728e8616fe0e5959ed33ea4fee172496360708d: Android APK workflow run 45869883822 succeeded, including APK build, in-place update identity/version check, signing fingerprint report, and artifact upload; KMP workflow run 45869883815 succeeded, including shared JVM tests and iOS device/simulator target compilation on macOS.
+- These CI results validate the foundation commit only. They do not establish a signed iOS app, Apple distribution readiness, or a working Compose Multiplatform UI; no Compose vertical slice or production SQLDelight migration is complete yet.
+- Main's post-merge APK run 45870601053 was still in progress at the last status check; do not report its result until rechecked.
+- Ranking estimator/lookup/calculator, user persistence, backup formats, application ID, and signing configuration were not changed by this continuation.
