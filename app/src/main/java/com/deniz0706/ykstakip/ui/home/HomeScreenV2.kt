@@ -83,18 +83,61 @@ fun HomeScreenV2(
         verticalArrangement = Arrangement.spacedBy(YksSpacing.section)
     ) {
         item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("YKS / KONTROL MERKEZİ", style = MaterialTheme.typography.labelSmall,
-                        color = c.secondary, letterSpacing = 1.8.sp)
-                    Spacer(Modifier.height(4.dp))
-                    Text("Genel Bakış", fontSize = 31.sp, fontWeight = FontWeight.Bold,
-                        color = c.onBackground)
-                }
-                Surface(shape = RoundedCornerShape(YksShape.input), color = c.surfaceVariant) {
-                    Text("${all.size} deneme", Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                        color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(YksShape.panel),
+                color = c.primaryContainer
+            ) {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 19.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            "YKS 2027  /  KONTROL MERKEZİ",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = c.onPrimaryContainer.copy(alpha = .76f),
+                            letterSpacing = 1.35.sp
+                        )
+                        Spacer(Modifier.height(7.dp))
+                        Text(
+                            "Genel Bakış",
+                            fontSize = 30.sp,
+                            lineHeight = 35.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = c.onPrimaryContainer
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Hazırlığını verilerle takip et.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = c.onPrimaryContainer.copy(alpha = .78f)
+                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Surface(
+                        shape = RoundedCornerShape(YksShape.input),
+                        color = c.onPrimaryContainer.copy(alpha = .12f)
+                    ) {
+                        Column(
+                            Modifier.padding(horizontal = 13.dp, vertical = 10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                all.size.toString(),
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = c.onPrimaryContainer
+                            )
+                            Text(
+                                "DENEME",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = c.onPrimaryContainer.copy(alpha = .76f),
+                                letterSpacing = .8.sp
+                            )
+                        }
+                    }
                 }
             }
         }
