@@ -10,8 +10,7 @@ derleme yaptığı için Android Gradle debug keystore'u kalıcı tutulmuyordu.
 - İlk geliştirme anahtarı **2a4df20** commit'inde oluşturuldu ve
   `yks-takip-2-0-debug-signing-linux-v1` cache anahtarına kaydedildi.
 - Sonraki derlemelerde cache veya repository secret içindeki **aynı**
-  keystore kullanılır; ikisi de yoksa CI farklı imzalı APK üretmek yerine
-  **durur ve açık hata verir**.
+  keystore kullanılır. İkisi de yoksa testler ve derleme devam eder ancak imzalı debug APK yayımlanmaz.
 - `app/build.gradle.kts` içindeki debug yapılandırmasına keystore'un
   **tam yolu** bildirilir; başarılı job sonunda aynı dosya cache'de korunur.
 - Böylece Gradle'ın hangi anahtarla APK'yı imzaladığı ile cache'e
@@ -38,8 +37,7 @@ Değer, standart Android **debug** keystore dosyasının tek satırlık Base64'�
 Anahtarın `androiddebugkey` alias'ı ve `android` parola düzeniyle oluşturulması
 gereklidir; böylece Gradle'ın varsayılan debug imza yapılandırması ve
 `keytool` doğrulaması çalışır. Workflow secret varsa **her zaman** onu
-kullanır, cache'i ikincil seçenek olarak bırakır. Secret mevcut değilse
-geçici cache stratejisine döner.
+kullanır, cache'i ikincil seçenek olarak bırakır. Secret mevcut değilse geçici cache stratejisine döner. Cache de yoksa workflow imzalı APK yayımlamaz.
 
 Bu anahtarı **herkese açık repoya, commitlere veya issue'lara yüklemeyin.**
 İmza anahtarı GitHub Secrets içinde saklanmalıdır. Gerçek dağıtım/Play Store
