@@ -13,6 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.model.Exam
@@ -27,6 +32,7 @@ class HistoryFragment : Fragment() {
     private val fromDate = mutableStateOf<String?>(null)
     private val toDate = mutableStateOf<String?>(null)
     private val listener: () -> Unit = { refresh() }
+    private var refreshJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,5 +77,12 @@ class HistoryFragment : Fragment() {
         super.onPause()
     }
 
-    private fun refresh() { exams.value = repository.getAllExams() }
+    private fun refresh() {
+        if (!isAdded || view == null) return
+        refreshJob?.cancel()
+        refreshJob = viewLifecycleOwner.lifecycleScope.launch {
+            val loaded = withContext(Dispatchers.IO) { repository.getAllExams() }
+            if (isAdded) exams.value = loaded
+        }
+    }
 }

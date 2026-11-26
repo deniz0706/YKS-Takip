@@ -16,15 +16,16 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [x] **Deneme → konu → hata/tekrar defteri** (PR #33): Etiketleri benzersiz kazanımlara bağla, belirsiz eşleşmeleri engelle, deneme bağlamını tekrar kartına ekle ve aynı etiketi ikinci kez içe aktarma.
 - [x] **Aralıklı tekrar bildirimleri** (PR #35): 1–3–7–21 günlük tekrar aralığı, WorkManager ve kullanıcı kontrollü bildirim izni.
 - [x] **Ana ekran çalışma widget’ı** (PR #36): Bugünkü soru, süre ve hedefi mevcut kayıt depolarından gösterir.
+- [x] **Deneme detay ekranı Compose geçişi** (PR #38): Ortak tasarım sistemi ve zayıf konudan öğrenme merkezine doğrudan bağlantı.
+- [x] **Tek dosyalık tam yedek** (PR #42): Denemeler, çalışma geçmişi, öğrenme kazanımları, soru kayıtları ve fotoğraflar; doğrulamalı ZIP ve birleştirerek geri yükleme.
 
 ## Öncelikli geliştirme sırası
 
-### 0. Kronometre ve sınav modu düzeltmeleri — geliştirme dalında
+### 0. Kronometre ve sınav modu düzeltmeleri — tamamlandı (PR #44)
 - [x] Branş süresini 60 dakikaya sabitleme; 1–600 dakika arasında kullanıcı tanımlı süre.
-- [x] TYT ve AYT için sayısal dışındaki dersleri de ders geçişi listesine ekle.
-- [x] Ayrı sınav modu kartını kaldırıp sınav/branş zamanlayıcısını mevcut odak kronometresi paneline yerleştir.
-- [x] Duraklatma/devam etme akışını koru; sıfırlama yalnızca duraklatılmış oturumda kullanılabilsin.
-- [ ] CI ve cihaz arayüz kontrolü sonrası birleştir.
+- [x] TYT'nin dört test grubu ve AYT Sayısal / Eşit Ağırlık / Sözel alanları.
+- [x] Ayrı sınav kartı yerine mevcut odak kronometresinde mod seçimi.
+- [x] Duraklatma, kaldığı yerden devam etme ve sıfırlama; mod değiştirirken diğer sayacı duraklatma.
 
 
 ### 1. Deneme hata defteri ve konu bağlantısı — tamamlandı (PR #33)
@@ -45,18 +46,26 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [x] Widget verisini mevcut repository’lerden oku; ikinci bir veri kaynağı oluşturma.
 - [x] Widget güncellemesini çalışma kayıtları ve günlük hedef değişiklikleriyle eşleştir.
 
-### 4. Arayüz ve kullanılabilirlik
+### 4. Performans ve akıcılık — geliştirme dalında
+- [x] İstatistik ve geçmiş ekranlarında deneme JSON yüklemesini ana iş parçacığından çıkar.
+- [x] Yeni deneme formunda öğrenme müfredatı migrasyonunu ve kayıt yüklemesini arka planda yap.
+- [x] Öğrenme deposunu süreç içinde paylaş; aynı ağır ilk migrasyonları ekran geçişlerinde tekrar çalıştırma.
+- [x] Ana ekran ve çalışma ekranında öğrenme deposunu arka planda başlat.
+- [x] Tekrar önerileri ve deneme-konu eşleştirmelerini arka planda hesapla; deneme kayıtlarını önbelleğe al.
+- [ ] CI ve gerçek cihaz akıcılık kontrolü.
+
+### 5. Arayüz ve kullanılabilirlik
 - [ ] Compose ekranlarını ortak tasarım sistemine taşı; eski ekranları yalnızca tüm navigasyon ve derin bağlantılar doğrulandıktan sonra kaldır.
 - [ ] Erişilebilirlik, küçük ekran, büyük yazı, koyu/açık tema ve performans kontrolleri.
 - [ ] Gereksiz büyük kartları ve tekrarlanan aksiyonları azalt; ana akışları daha hızlı hale getir.
 
-### 5. Veri güvenliği ve yedekleme
-- [ ] JSON/SharedPreferences verileri için doğrulanabilir dışa aktarma ve geri yükleme akışı.
-- [ ] Geri yükleme öncesi önizleme, sürüm kontrolü ve geri alınabilir snapshot.
+### 6. Veri güvenliği ve yedekleme
+- [x] Tek dosyalık ZIP dışa aktarma ve geri yükleme; dosya/sürüm/içerik doğrulaması ve geri yükleme önizlemesi (PR #42).
+- [x] Birleştirme tabanlı geri yükleme; yerel kayıtlar korunur, fotoğraflar doğrulanır, hata halinde geri alma uygulanır (PR #42).
 - [ ] Room/DataStore geçişini ancak mevcut veriler için testli, çift yönlü olmayan ve geri dönüş planlı bir migrasyon hazırsa değerlendir.
 - [ ] Google Drive entegrasyonunu temel yerel yedekleme güvenilir olduktan sonra ele al.
 
-### 6. AI ve ileri yetenekler
+### 7. AI ve ileri yetenekler
 - [x] NVIDIA model/endpoint desteğini doğrula: Mistral Large 4 görsel girdisini destekliyor (PR #40).
 - [x] Görsel soru analizi: kullanıcı seçimi, boyut sınırı, hata yönetimi, açık veri aktarım bildirimi ve yerel geçmişte dosya saklamama (PR #40).
 - [x] AI önerileri yalnızca doğrulanmış, dar kapsamlı eylemlere dönüşsün; model doğrudan veri silemesin veya değiştiremesin (PR #31).

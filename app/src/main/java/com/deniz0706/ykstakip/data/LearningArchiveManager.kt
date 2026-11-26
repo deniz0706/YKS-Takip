@@ -21,7 +21,7 @@ import java.util.zip.ZipOutputStream
 /** Learning records and their private photos. Independent of the existing exam JSON backup. */
 class LearningArchiveManager(context: Context) {
     private val app = context.applicationContext
-    private val repo = LearningRepository(app)
+    private val repo = LearningRepository.getInstance(app)
     private val photoDir = File(app.filesDir, "review_photos").apply { mkdirs() }
     private val maxPhoto = 20_000_000L
     private val maxAll = 250_000_000L

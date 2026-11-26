@@ -13,7 +13,7 @@ object AiContextBuilder {
         val app = context.applicationContext
         val exams = ExamRepository.getInstance(app).getAllExams().sortedBy { it.date }
         val studyDays = StudyRepository(app).getAll().sortedBy { it.date }
-        val outcomes = LearningRepository(app).outcomes()
+        val outcomes = LearningRepository.getInstance(app).outcomes()
         val plan = StudyPlanRepository(app).getAll()
         val memorySnapshot = AiMemoryRepository(app).promptSnapshot()
         val today = LocalDate.now()

@@ -70,7 +70,6 @@ class HomeFragment : Fragment() {
         repository = ExamRepository.getInstance(requireContext())
         studyRepository = StudyRepository(requireContext())
         focusRepository = FocusSessionRepository(requireContext())
-        learningRepository = LearningRepository(requireContext())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -126,6 +125,9 @@ class HomeFragment : Fragment() {
         val appContext = requireContext().applicationContext
         refreshJob = viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
+                if (!::learningRepository.isInitialized) {
+                    learningRepository = LearningRepository.getInstance(appContext)
+                }
                 val savedExams = repository.getAllExams()
                 val newExamId = knownExamIds?.let { previous -> savedExams.firstOrNull { it.id !in previous }?.id }
                 knownExamIds = savedExams.map { it.id }.toSet()
