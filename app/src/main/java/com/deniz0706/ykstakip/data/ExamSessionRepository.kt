@@ -30,22 +30,29 @@ class ExamSessionRepository(context: Context) {
     init { migrateLegacyTimerOnce() }
 
     private fun migrateLegacyTimerOnce() {
-        if (prefs.getBoolean("shared_timer_migrated", false)) return
-        val oldElapsed = prefs.getLong("elapsed", 0L).coerceAtLeast(0L)
+        val alreadyMigrated = prefs.getBoolean("shared_timer_migrated", false)
+        val oldElapsed = prefs.getLong("elapsed", 0L)
         val oldStarted = prefs.getLong("started_at", 0L)
         val oldDuration = prefs.getInt("duration", ExamSessionMath.TYT_MINUTES)
-            .coerceIn(ExamSessionMath.MIN_DURATION_MINUTES, ExamSessionMath.MAX_DURATION_MINUTES)
-        val elapsed = oldElapsed + if (oldStarted > 0L)
-            (System.currentTimeMillis() - oldStarted).coerceAtLeast(0L) else 0L
-        if (elapsed == 0L) {
-            prefs.edit().putBoolean("shared_timer_migrated", true).commit()
-            return
-        }
         val focus = timer.snapshot()
-        // Keep migration pending while a focus session exists; never discard either session.
-        if (focus.elapsedMs > 0L || focus.running) return
-        timer.restoreSession(oldDuration, elapsed, oldStarted > 0L)
-        prefs.edit().putBoolean("shared_timer_migrated", true).commit()
+        when (val decision = LegacyExamTimerMigration.decide(
+            alreadyMigrated = alreadyMigrated,
+            oldElapsedMs = oldElapsed,
+            oldStartedAtMs = oldStarted,
+            oldDurationMinutes = oldDuration,
+            nowMs = System.currentTimeMillis(),
+            focusElapsedMs = focus.elapsedMs,
+            focusRunning = focus.running
+        )) {
+            LegacyExamTimerMigration.Decision.AlreadyMigrated,
+            LegacyExamTimerMigration.Decision.WaitForFocusSession -> return
+            LegacyExamTimerMigration.Decision.NoLegacySession ->
+                prefs.edit().putBoolean("shared_timer_migrated", true).commit()
+            is LegacyExamTimerMigration.Decision.Restore -> {
+                timer.restoreSession(decision.durationMinutes, decision.elapsedMs, decision.running)
+                prefs.edit().putBoolean("shared_timer_migrated", true).commit()
+            }
+        }
     }
 
     private fun examType() = prefs.getString("exam_type", "TYT") ?: "TYT"
