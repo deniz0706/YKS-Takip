@@ -158,3 +158,8 @@ Updated: 2026-11-26
 - These CI results validate the foundation commit only. They do not establish a signed iOS app, Apple distribution readiness, or a working Compose Multiplatform UI; no Compose vertical slice or production SQLDelight migration is complete yet.
 - Main's post-merge APK run 45870601053 was still in progress at the last status check; do not report its result until rechecked.
 - Ranking estimator/lookup/calculator, user persistence, backup formats, application ID, and signing configuration were not changed by this continuation.
+
+## Master prompt preservation
+- The complete YKS Takip 4.0 master development specification is preserved in `docs/MASTER-DEVELOPMENT-PROMPT.md`.
+- Commit: `2e1609eaa0ad9c9d49b1858446a60eb3e9620d0c` on `4.0/foundation`.
+- This file is the durable project-level source of truth. At the start of every continuation, read it together with this status file and verify the live Git/CI state. It is not a new scope change; it records the previously agreed master instructions.
