@@ -1,8 +1,11 @@
 package com.deniz0706.ykstakip.domain
 
+import kotlinx.serialization.Serializable
+
 import kotlin.math.roundToInt
 
 /** Shared, platform-independent result for one YKS subject/test. */
+@Serializable
 data class SubjectResult(
     val subject: String,
     val questionCount: Int,
