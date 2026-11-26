@@ -9,10 +9,10 @@ class PlanActionParserTest {
 
     @Test fun parsesValidProposal() {
         val draft = PlanActionParser.parse(response(
-            """{"type":"add_plan","dayOfWeek":1,"startTime":"09:30","endTime":"11:00","subject":"Matematik","topic":"Fonksiyonlar"}"""
+            """{"type":"add_plan","dayOfWeek":2,"startTime":"09:30","endTime":"11:00","subject":"Matematik","topic":"Fonksiyonlar"}"""
         ))
         assertNotNull(draft)
-        assertEquals(1, draft!!.dayOfWeek)
+        assertEquals(2, draft!!.dayOfWeek)
         assertEquals("09:30", draft.startTime)
         assertEquals("Fonksiyonlar", draft.topic)
     }
@@ -22,13 +22,13 @@ class PlanActionParserTest {
             """{"type":"add_plan","dayOfWeek":8,"startTime":"09:00","endTime":"10:00","subject":"Matematik","topic":""}"""
         )))
         assertNull(PlanActionParser.parse(response(
-            """{"type":"add_plan","dayOfWeek":1,"startTime":"11:00","endTime":"10:00","subject":"Matematik","topic":""}"""
+            """{"type":"add_plan","dayOfWeek":2,"startTime":"11:00","endTime":"10:00","subject":"Matematik","topic":""}"""
         )))
     }
 
     @Test fun rejectsUnknownActionsAndMalformedPayloads() {
         assertNull(PlanActionParser.parse(response(
-            """{"type":"delete_all","dayOfWeek":1,"startTime":"09:00","endTime":"10:00","subject":"Matematik","topic":""}"""
+            """{"type":"delete_all","dayOfWeek":2,"startTime":"09:00","endTime":"10:00","subject":"Matematik","topic":""}"""
         )))
         assertNull(PlanActionParser.parse(response("""{"type":"add_plan"}""")))
         assertNull(PlanActionParser.parse("No action here"))
@@ -36,7 +36,7 @@ class PlanActionParserTest {
 
     @Test fun removesActionMetadataFromVisibleText() {
         val raw = response(
-            """{"type":"add_plan","dayOfWeek":1,"startTime":"09:00","endTime":"10:00","subject":"Matematik","topic":""}"""
+            """{"type":"add_plan","dayOfWeek":2,"startTime":"09:00","endTime":"10:00","subject":"Matematik","topic":""}"""
         )
         assertEquals("Bu haftalık plana eklenebilir.", PlanActionParser.visibleText(raw))
     }
