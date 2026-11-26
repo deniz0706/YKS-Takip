@@ -61,6 +61,7 @@ Updated: 2026-11-26
 - Moved the `StudyDay` value model and daily study-time addition rules into `commonMain`, retaining the original Android package through a Kotlin typealias and adapter. Shared tests cover data preservation, invalid input, date mismatch, and the 24-hour limit.
 - Moved the `SubjectResult` exam value model and derived blank/net/time calculations into `commonMain`; Android JSON encoding/decoding remains in a compatibility adapter so the persisted exam JSON contract is unchanged. Added shared model tests.
 - Moved the `Exam` aggregate, exam types, AYT fields, and TYT/AYT subject configurations into `commonMain`. Existing Android model package names remain source-compatible aliases; the existing JSON field names and parsing defaults remain in the Android adapter.
+- Reviewed the Aurora branch against the current UI implementation; rejected its stale AI coach snapshot because it predates current image support and richer conversation behavior. Only cosmetic dashboard typography changes remained.
 - Updated the 4.0 APK workflow to execute the shared domain JVM test task before Android unit tests and APK builds.
 - Added Android adapter regression tests to ensure Turkish validation messages and TYT/AYT time boundaries remain unchanged.
 - Recorded the incremental migration strategy and explicit iOS validation limits in ADR 0002.

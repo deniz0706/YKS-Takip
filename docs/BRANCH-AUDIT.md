@@ -16,7 +16,7 @@ This is a targeted audit of branches with likely product value. Ahead/behind cou
 | `integration/complete-mainline` | 0 ahead / 36 behind | No unique commits | Stale; do not integrate |
 | `feature/osym-ranking-engine` | 17 ahead / 115 behind | Historical ranking lookup/estimator rewrite and regression tests | Do not cherry-pick wholesale; current main has a later ranking implementation and live regression fixtures |
 | `feature/nvidia-ai-coach` | 0 ahead / 63 behind | No unique commits | Already superseded by main |
-| `design/aurora-restoration-dashboard-v4` | 1 ahead / 32 behind | Small theme/dashboard/AI-coach refinements across 6 files | Candidate for selective review only; not a merge base |
+| `design/aurora-restoration-dashboard-v4` | 1 ahead / 32 behind | Small theme/dashboard/AI-coach refinements across 6 files; reviewed against current foundation | Do not merge: AI coach variant is stale and would discard current image-attachment and richer conversation behavior; remaining dashboard typography edits are cosmetic and too small to justify importing the old branch |
 | `v3.0/ui-foundation` | 0 ahead / 47 behind | No unique commits | Superseded by main |
 | `feat/full-app-backup` | 6 ahead / 6 behind | Full backup ZIP implementation, study backup, settings UI, tests | Main already contains a full backup implementation; compare exact behavior before considering any patch |
 | `feat/ai-coach-image-input` | 9 ahead / 7 behind | AI image encoder, capability checks, service and UI changes, tests | Unmerged feature candidate; inspect exact diff and provider/model support before selective port |
@@ -30,6 +30,10 @@ This is a targeted audit of branches with likely product value. Ahead/behind cou
 - Preserve the existing full-backup implementation already present in main; do not replace it with an older branch snapshot.
 - Review AI image input as a product feature separately from the external coding-agent provider. The NVIDIA coding key must not be embedded in the Android app.
 
+## Completed candidate reviews
+- Aurora was inspected file-by-file against `4.0/foundation`. Its AI coach version predates the current image-attachment/conversation implementation and must not be copied over it. Remaining dashboard changes are limited to typography/spacing and are not worth importing from a branch 62 commits behind this foundation.
+- Full-backup and AI image-input candidate files previously inspected are already present byte-for-byte in main; no duplicate port is needed.
+
 ## Next candidate reviews
-1. Inspect the three differing files in the Aurora dashboard branch against current main and determine whether any visual improvements remain valuable.
-2. Complete the full branch inventory and exact PR/commit mapping before merging or deleting anything.
+1. Complete the remaining preference/key and model/backup schema census before introducing shared persistence.
+2. Review current UI components directly and design the Compose Multiplatform screen migration around the existing product behavior; do not revive stale screen snapshots.
