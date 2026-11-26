@@ -91,6 +91,14 @@ Scope: source inspection of the current `main` baseline (commit `93f7f044717d10b
 7. Make migration idempotent. A second launch must not duplicate records or re-run curriculum transformations.
 8. On any error, keep the old stores authoritative and expose a retry/recovery path. Never silently replace malformed source data with empty collections.
 
+## 4.0 SQLDelight schema foundation (not yet production-wired)
+
+- An isolated `:core:database` Kotlin Multiplatform module now defines `ExamRecord`, `SubjectResultRecord`, and `StudyDayRecord`.
+- Exam IDs and metadata are preserved; subject order is explicit and weak topics remain a JSON boundary field; study dates remain primary keys with question/minute/estimated values.
+- The module is intentionally not connected to Android repositories. No legacy data is being imported or mutated.
+- Learning journal entities/photos, weekly plans, timers, AI cache/memory, and credentials are deliberately excluded pending their own mapping and platform storage decisions.
+- See ADR 0004 for the schema mapping and production migration gate.
+
 ## Still to inventory
 
 - Exact `LearningOutcome` and `QuestionCard` JSON schema and every migration snapshot key.
