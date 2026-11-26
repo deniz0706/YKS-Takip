@@ -16,7 +16,7 @@ data class SubjectResult(
     val minutesPerQuestion: Double?
         get() = if (timeMinutes > 0) round2(timeMinutes.toDouble() / questionCount) else null
 
-    companion object
+    companion object {}
 
     private fun round2(value: Double): Double = (value * 100).roundToInt() / 100.0
 }
