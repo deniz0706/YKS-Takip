@@ -2,45 +2,30 @@ package com.deniz0706.ykstakip.model
 
 import org.json.JSONArray
 import org.json.JSONObject
-import kotlin.math.roundToInt
 
-data class SubjectResult(
-    val subject: String,
-    val questionCount: Int,
-    val correct: Int,
-    val wrong: Int,
-    val timeMinutes: Int,
-    val weakTopics: List<String> = emptyList()
-) {
-    val blank: Int get() = (questionCount - correct - wrong).coerceAtLeast(0)
-    val net: Double get() = com.deniz0706.ykstakip.domain.NetScore.calculate(correct, wrong)
-    val minutesPerQuestion: Double?
-        get() = if (timeMinutes > 0) round2(timeMinutes.toDouble() / questionCount) else null
+/** Android JSON compatibility adapter around the shared exam-result value model. */
+typealias SubjectResult = com.deniz0706.ykstakip.domain.SubjectResult
 
-    fun toJson(): JSONObject = JSONObject().apply {
-        put("subject", subject)
-        put("questionCount", questionCount)
-        put("correct", correct)
-        put("wrong", wrong)
-        put("timeMinutes", timeMinutes)
-        put("weakTopics", JSONArray(weakTopics))
+fun SubjectResult.toJson(): JSONObject = JSONObject().apply {
+    put("subject", subject)
+    put("questionCount", questionCount)
+    put("correct", correct)
+    put("wrong", wrong)
+    put("timeMinutes", timeMinutes)
+    put("weakTopics", JSONArray(weakTopics))
+}
+
+fun SubjectResult.Companion.fromJson(json: JSONObject): SubjectResult {
+    val topics = mutableListOf<String>()
+    json.optJSONArray("weakTopics")?.let { arr ->
+        for (i in 0 until arr.length()) topics.add(arr.getString(i))
     }
-
-    companion object {
-        fun fromJson(json: JSONObject): SubjectResult {
-            val topics = mutableListOf<String>()
-            json.optJSONArray("weakTopics")?.let { arr ->
-                for (i in 0 until arr.length()) topics.add(arr.getString(i))
-            }
-            return SubjectResult(
-                subject = json.getString("subject"),
-                questionCount = json.getInt("questionCount"),
-                correct = json.getInt("correct"),
-                wrong = json.getInt("wrong"),
-                timeMinutes = json.optInt("timeMinutes", 0),
-                weakTopics = topics
-            )
-        }
-        private fun round2(value: Double): Double = (value * 100).roundToInt() / 100.0
-    }
+    return SubjectResult(
+        subject = json.getString("subject"),
+        questionCount = json.getInt("questionCount"),
+        correct = json.getInt("correct"),
+        wrong = json.getInt("wrong"),
+        timeMinutes = json.optInt("timeMinutes", 0),
+        weakTopics = topics
+    )
 }
