@@ -9,17 +9,24 @@ class ExamRepository(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("yks_takip_prefs", Context.MODE_PRIVATE)
     private val listeners = mutableListOf<() -> Unit>()
+    @Volatile private var cachedExams: List<Exam>? = null
 
     fun addChangeListener(listener: () -> Unit) { listeners.add(listener) }
     fun removeChangeListener(listener: () -> Unit) { listeners.remove(listener) }
     private fun notifyChanged() { listeners.forEach { it() } }
 
     fun getAllExams(): List<Exam> {
-        val raw = prefs.getString(KEY_EXAMS, null) ?: return emptyList()
-        return try {
-            val array = JSONArray(raw)
-            (0 until array.length()).map { Exam.fromJson(array.getJSONObject(it)) }.sortedBy { it.date }
-        } catch (e: Exception) { emptyList() }
+        cachedExams?.let { return it }
+        return synchronized(this) {
+            cachedExams?.let { return@synchronized it }
+            val raw = prefs.getString(KEY_EXAMS, null)
+            val loaded = if (raw.isNullOrBlank()) emptyList() else try {
+                val array = JSONArray(raw)
+                (0 until array.length()).map { Exam.fromJson(array.getJSONObject(it)) }.sortedBy { it.date }
+            } catch (_: Exception) { emptyList() }
+            cachedExams = loaded
+            loaded
+        }
     }
 
     fun saveExam(exam: Exam) {
@@ -33,7 +40,9 @@ class ExamRepository(context: Context) {
     fun replaceAll(exams: List<Exam>) { persist(exams) }
 
     private fun persist(exams: List<Exam>) {
-        val array = JSONArray(exams.sortedBy { it.date }.map { it.toJson() })
+        val sorted = exams.sortedBy { it.date }
+        cachedExams = sorted
+        val array = JSONArray(sorted.map { it.toJson() })
         prefs.edit().putString(KEY_EXAMS, array.toString()).apply()
         notifyChanged()
     }
