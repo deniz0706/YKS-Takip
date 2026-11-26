@@ -255,7 +255,7 @@ class StudyFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        refresh()
+        refresh(rescheduleReminders = true)
     }
 
     private fun requestReviewNotifications() {
@@ -324,7 +324,7 @@ class StudyFragment : Fragment() {
 
     private var refreshJob: Job? = null
 
-    private fun refresh() {
+    private fun refresh(rescheduleReminders: Boolean = false) {
         if (!isAdded) return
         refreshJob?.cancel()
         val appContext = requireContext().applicationContext
@@ -332,6 +332,8 @@ class StudyFragment : Fragment() {
             val snapshot = withContext(Dispatchers.IO) {
                 if (!::learningRepository.isInitialized) {
                     learningRepository = LearningRepository.getInstance(appContext)
+                }
+                if (rescheduleReminders) {
                     ReviewReminderScheduler.rescheduleAll(appContext, learningRepository.outcomes())
                 }
                 StudySnapshot(
