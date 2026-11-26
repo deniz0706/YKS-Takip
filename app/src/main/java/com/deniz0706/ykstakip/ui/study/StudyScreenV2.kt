@@ -38,6 +38,7 @@ import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
 import com.deniz0706.ykstakip.util.ReviewAdvisor
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
+import com.deniz0706.ykstakip.util.StudyPlanAnalytics
 import com.deniz0706.ykstakip.util.StudyPlanConflicts
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
@@ -156,6 +157,7 @@ fun StudyScreenV2(
     val selectedPlans = remember(plan, selectedDay) {
         plan.filter { it.dayOfWeek == selectedDay }.sortedBy { it.startTime }
     }
+    val planSummary = remember(plan) { StudyPlanAnalytics.summarize(plan) }
     val conflictingPlanIds = remember(selectedPlans) {
         StudyPlanConflicts.findConflictingIds(selectedPlans)
     }
@@ -556,6 +558,41 @@ fun StudyScreenV2(
                 Spacer(Modifier.height(14.dp))
                 DashboardProgress(if (total == 0) 0f else completed.toFloat() / total,
                     Modifier.fillMaxWidth())
+                Spacer(Modifier.height(14.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text("PLANLANAN SÜRE", color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                        Text("${planSummary.plannedMinutes / 60} sa ${planSummary.plannedMinutes % 60} dk",
+                            color = colors.onSurface, fontWeight = FontWeight.Bold)
+                    }
+                    Column(Modifier.weight(1f)) {
+                        Text("TAMAMLANAN SÜRE", color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                        Text("${planSummary.completedMinutes / 60} sa ${planSummary.completedMinutes % 60} dk",
+                            color = colors.primary, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.height(7.dp))
+                DashboardProgress(
+                    if (planSummary.plannedMinutes == 0) 0f
+                    else planSummary.completedMinutes.toFloat() / planSummary.plannedMinutes,
+                    Modifier.fillMaxWidth()
+                )
+                if (planSummary.subjects.isNotEmpty()) {
+                    Spacer(Modifier.height(10.dp))
+                    Text("DERSLERE GÖRE ZAMAN", color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall, letterSpacing = .7.sp)
+                    planSummary.subjects.take(4).forEach { load ->
+                        Spacer(Modifier.height(7.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(load.subject, color = colors.onSurface,
+                                style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                            Text("${load.completedMinutes / 60} sa ${load.completedMinutes % 60} dk / ${load.plannedMinutes / 60} sa ${load.plannedMinutes % 60} dk",
+                                color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                        }
+                        DashboardProgress(load.completedMinutes.toFloat() / load.plannedMinutes.coerceAtLeast(1),
+                            Modifier.fillMaxWidth())
+                    }
+                }
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     weekdays.forEach { (day, label) ->
