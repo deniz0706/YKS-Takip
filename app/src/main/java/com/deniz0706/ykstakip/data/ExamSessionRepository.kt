@@ -35,7 +35,7 @@ class ExamSessionRepository(context: Context) {
 
     fun configure(type: String, customMinutes: Int? = null): State {
         require(type in setOf("TYT", "AYT", "BRANŞ"))
-        val minutes = customMinutes ?: ExamSessionMath.defaultDurationMinutes(type)
+        val minutes = customMinutes ?: if (type == "BRANŞ") 60 else ExamSessionMath.defaultDurationMinutes(type)
         require(minutes in ExamSessionMath.MIN_DURATION_MINUTES..ExamSessionMath.MAX_DURATION_MINUTES)
         val current = snapshot()
         require(!current.running && current.elapsedMs == 0L) { "Önce açık oturumu sıfırla." }
