@@ -31,6 +31,5 @@ This is a targeted audit of branches with likely product value. Ahead/behind cou
 - Review AI image input as a product feature separately from the external coding-agent provider. The NVIDIA coding key must not be embedded in the Android app.
 
 ## Next candidate reviews
-1. Inspect the unmerged AI image-input branch for capabilities absent from main and provider payload safety.
-2. Inspect the Aurora dashboard branch for UI improvements compatible with the current design direction.
-3. Complete the full branch inventory and exact PR/commit mapping before merging or deleting anything.
+1. Inspect the three differing files in the Aurora dashboard branch against current main and determine whether any visual improvements remain valuable.
+2. Complete the full branch inventory and exact PR/commit mapping before merging or deleting anything.
