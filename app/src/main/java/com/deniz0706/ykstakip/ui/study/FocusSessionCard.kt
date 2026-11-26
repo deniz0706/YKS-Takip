@@ -166,7 +166,7 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
                     else if (state.elapsedMs > 0L) "▶ Devam et" else "▶ Başlat", maxLines = 1)
             }
             OutlinedButton(onClick = {
-                val result = if (showExamTimer) examStore.saveToToday() else store.saveToToday()
+                val result = examStore.saveToToday()
                 state = store.snapshot()
                 examState = examStore.snapshot()
                 when (result) {
@@ -193,7 +193,7 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
         }
         if (state.elapsedMs > 0L) {
             TextButton(onClick = {
-                if (showExamTimer) examStore.reset() else store.discard()
+                examStore.reset()
                 state = store.snapshot()
                 examState = examStore.snapshot()
                 message = null; savedSuccessfully = false
