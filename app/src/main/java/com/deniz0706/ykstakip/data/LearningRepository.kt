@@ -438,4 +438,13 @@ class LearningRepository(context: Context) {
         LearningPhotoOwnership.unreferenced(listOf(filename), remaining)
             .forEach { photo(it).delete() }
     }
+    companion object {
+        @Volatile private var instance: LearningRepository? = null
+
+        /** Reuse the migrated repository across screens; create it on Dispatchers.IO. */
+        fun getInstance(context: Context): LearningRepository =
+            instance ?: synchronized(this) {
+                instance ?: LearningRepository(context.applicationContext).also { instance = it }
+            }
+    }
 }
