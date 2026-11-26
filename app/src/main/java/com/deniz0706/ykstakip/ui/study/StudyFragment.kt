@@ -36,6 +36,11 @@ import androidx.core.content.ContextCompat
 import com.deniz0706.ykstakip.R
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
@@ -133,7 +138,6 @@ class StudyFragment : Fragment() {
         super.onCreate(savedInstanceState)
         repository = StudyRepository(requireContext())
         planRepository = StudyPlanRepository(requireContext())
-        learningRepository = LearningRepository(requireContext())
         examRepository = ExamRepository.getInstance(requireContext())
         cameraQuestionId = savedInstanceState?.getString("camera_question")
         cameraFilename = savedInstanceState?.getString("camera_name")
@@ -147,6 +151,7 @@ class StudyFragment : Fragment() {
             setContent {
                 val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
+                    if (::learningRepository.isInitialized) {
                     StudyScreenV2(
                         days = days.value,
                         plan = plan.value,
@@ -238,15 +243,17 @@ class StudyFragment : Fragment() {
                         },
                         onDeletePlan = { deletePlan(it) }
                     )
+                    } else {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
                 }
             }
         }
 
     override fun onResume() {
         super.onResume()
-        if (::learningRepository.isInitialized) {
-            ReviewReminderScheduler.rescheduleAll(requireContext(), learningRepository.outcomes())
-        }
         refresh()
     }
 
