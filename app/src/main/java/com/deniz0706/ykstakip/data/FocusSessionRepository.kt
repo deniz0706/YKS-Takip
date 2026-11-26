@@ -84,6 +84,21 @@ class FocusSessionRepository(context: Context) {
         return snapshot()
     }
 
+    /** Restore a legacy exam session into the single shared study timer. */
+    fun restoreSession(durationMinutes: Int, elapsedMs: Long, running: Boolean, stopwatch: Boolean = false): Snapshot {
+        require(durationMinutes in 1..MAX_MINUTES)
+        val safeElapsed = elapsedMs.coerceIn(0L, MAX_STOPWATCH_MS)
+        prefs.edit().putInt("duration", durationMinutes)
+            .putBoolean("stopwatch_mode", stopwatch)
+            .putLong("accumulated", safeElapsed)
+            .apply {
+                if (running && (stopwatch || safeElapsed < durationMinutes * 60_000L)) {
+                    putLong("started_at", System.currentTimeMillis())
+                } else remove("started_at")
+            }.commit()
+        return snapshot()
+    }
+
     fun addManualMinutes(minutes: Int): SaveResult {
         if (minutes <= 0) return SaveResult.NoTime
         if (minutes > MAX_MINUTES) return SaveResult.DailyLimit
