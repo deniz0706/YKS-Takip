@@ -316,6 +316,9 @@ fun StudyScreenV2(
             }
         }
         }
+        if (section == "today") item(key = "exam-mode") {
+            ExamModeCard(modifier = Modifier.fillMaxWidth())
+        }
         if (section == "today") item(key = "focus-session") {
             FocusSessionCard(onSaved = onFocusSaved, modifier = Modifier.fillMaxWidth())
         }
