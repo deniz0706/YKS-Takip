@@ -49,7 +49,6 @@ fun DashboardPanel(modifier: Modifier = Modifier, accent: Boolean = false, conte
         listOf(c.primary.copy(alpha = 0.14f), c.secondary.copy(alpha = 0.045f), c.surfaceContainerHigh)
     ) else Brush.linearGradient(listOf(c.surfaceContainerLow, c.surfaceContainerLow))
     Column(modifier.clip(shape).background(fill).padding(YksSpacing.cardContent),
-        verticalArrangement = Arrangement.spacedBy(YksSpacing.xxs),
         content = { CompositionLocalProvider(LocalContentColor provides c.onSurface) { content() } })
 }
 

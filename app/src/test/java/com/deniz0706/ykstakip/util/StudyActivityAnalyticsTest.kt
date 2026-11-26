@@ -38,6 +38,23 @@ class StudyActivityAnalyticsTest {
         assertEquals(10, result.averageQuestionsPerActiveDay)
     }
 
+    @Test fun duplicateImportedDatesAreCombinedIntoOneActiveDay() {
+        val result = StudyActivityAnalytics.summarize(
+            listOf(
+                StudyDay("2026-11-26", 20, 30),
+                StudyDay("2026-11-26", 30, 15, estimated = true)
+            ),
+            "2026-11-26",
+            40
+        )
+        assertEquals(50, result.currentQuestions)
+        assertEquals(45, result.currentMinutes)
+        assertEquals(1, result.activeDays)
+        assertEquals(1, result.goalDays)
+        assertEquals(1, result.estimatedDays)
+        assertEquals(50, result.averageQuestionsPerActiveDay)
+    }
+
     @Test fun invalidTodayReturnsAnEmptySummary() {
         val result = StudyActivityAnalytics.summarize(
             listOf(StudyDay("2026-11-26", 10, 20)), "invalid", 10

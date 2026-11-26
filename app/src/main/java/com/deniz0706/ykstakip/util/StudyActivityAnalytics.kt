@@ -23,6 +23,13 @@ object StudyActivityAnalytics {
         val previousEnd = currentStart.minusDays(1)
         val parsed = days.mapNotNull { day ->
             runCatching { LocalDate.parse(day.date) }.getOrNull()?.let { it to day }
+        }.groupBy { it.first }.map { (date, entries) ->
+            date to StudyDay(
+                date = date.toString(),
+                questionCount = entries.sumOf { it.second.questionCount.coerceAtLeast(0) },
+                studyMinutes = entries.sumOf { it.second.studyMinutes.coerceAtLeast(0) },
+                estimated = entries.any { it.second.estimated }
+            )
         }
         val current = parsed.filter { (date, _) -> !date.isBefore(currentStart) && !date.isAfter(end) }
             .map { it.second }
