@@ -36,6 +36,11 @@ import androidx.core.content.ContextCompat
 import com.deniz0706.ykstakip.R
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
@@ -128,12 +133,12 @@ class StudyFragment : Fragment() {
     private val days = mutableStateOf<List<StudyDay>>(emptyList())
     private val plan = mutableStateOf<List<StudyPlanItem>>(emptyList())
     private val goal = mutableStateOf<Int?>(null)
+    private val dataReady = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         repository = StudyRepository(requireContext())
         planRepository = StudyPlanRepository(requireContext())
-        learningRepository = LearningRepository(requireContext())
         examRepository = ExamRepository.getInstance(requireContext())
         cameraQuestionId = savedInstanceState?.getString("camera_question")
         cameraFilename = savedInstanceState?.getString("camera_name")
@@ -147,6 +152,7 @@ class StudyFragment : Fragment() {
             setContent {
                 val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
+                    if (dataReady.value) {
                     StudyScreenV2(
                         days = days.value,
                         plan = plan.value,
@@ -238,16 +244,18 @@ class StudyFragment : Fragment() {
                         },
                         onDeletePlan = { deletePlan(it) }
                     )
+                    } else {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
                 }
             }
         }
 
     override fun onResume() {
         super.onResume()
-        if (::learningRepository.isInitialized) {
-            ReviewReminderScheduler.rescheduleAll(requireContext(), learningRepository.outcomes())
-        }
-        refresh()
+        refresh(rescheduleReminders = true)
     }
 
     private fun requestReviewNotifications() {
@@ -316,12 +324,18 @@ class StudyFragment : Fragment() {
 
     private var refreshJob: Job? = null
 
-    private fun refresh() {
+    private fun refresh(rescheduleReminders: Boolean = false) {
         if (!isAdded) return
         refreshJob?.cancel()
         val appContext = requireContext().applicationContext
         refreshJob = viewLifecycleOwner.lifecycleScope.launch {
             val snapshot = withContext(Dispatchers.IO) {
+                if (!::learningRepository.isInitialized) {
+                    learningRepository = LearningRepository.getInstance(appContext)
+                }
+                if (rescheduleReminders) {
+                    ReviewReminderScheduler.rescheduleAll(appContext, learningRepository.outcomes())
+                }
                 StudySnapshot(
                     outcomes = learningRepository.outcomes(),
                     cards = learningRepository.questions(),
@@ -338,6 +352,7 @@ class StudyFragment : Fragment() {
                 days.value = snapshot.days
                 plan.value = snapshot.plan
                 goal.value = snapshot.goal
+                dataReady.value = true
             }
         }
     }
