@@ -60,6 +60,8 @@ Updated: 2026-11-26
 - Extracted focus countdown/stopwatch elapsed-time arithmetic into `commonMain`; the existing Android API delegates to the shared implementation. Added shared tests for pause/clock rollback, configured countdowns, 24-hour cap, and target clamping.
 - Moved the `StudyDay` value model and daily study-time addition rules into `commonMain`, retaining the original Android package through a Kotlin typealias and adapter. Shared tests cover data preservation, invalid input, date mismatch, and the 24-hour limit.
 - Updated the 4.0 APK workflow to execute the shared domain JVM test task before Android unit tests and APK builds.
+- Added Android adapter regression tests to ensure Turkish validation messages and TYT/AYT time boundaries remain unchanged.
+- Recorded the incremental migration strategy and explicit iOS validation limits in ADR 0002.
 - Ranking estimator, lookup tables, ranking fixtures, persistence formats, signing configuration, and application ID remain untouched.
 - No build or test has been run from the GitHub connector; do not infer a green build from this audit.
 
