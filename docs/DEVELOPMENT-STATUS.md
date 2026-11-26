@@ -69,6 +69,13 @@ Updated: 2026-11-26
 - Ranking estimator, lookup tables, ranking fixtures, persistence formats, signing configuration, and application ID remain untouched.
 - No build or test has been run from the GitHub connector. The latest commit has no reported CI status checks yet; do not infer a green build from the source-level review.
 
+## Latest continuation work
+- Added a macOS CI workflow at `.github/workflows/verify-kotlin-multiplatform.yml` to run shared JVM tests and compile the iOS device and simulator targets on pushes to `4.0/**` and pull requests to main.
+- Hardened `SubjectResult.minutesPerQuestion`: malformed/legacy records with zero questions now return null rather than attempting division by zero. Added a common test for this edge case.
+- Expanded the data inventory after inspecting theme, settings, AI cache/secret/memory, weekly plan, focus timer, and exam timer stores. Recorded write-on-read migration side effects and Android Keystore portability limits.
+- Latest documentation/code commit in this continuation: `a5390dea6243e1f9497972c36f1aef698e73c51e`.
+- CI status for that exact commit: no workflow runs were returned. No build/test success is claimed.
+
 ## Immediate next steps
 1. Add the next pure shared-domain slice (exam validation and time/net primitives) with characterization tests before moving repositories.
 2. Introduce Compose Multiplatform UI only after shared domain and persistence boundaries are stable; do not rewrite screens in one pass.
