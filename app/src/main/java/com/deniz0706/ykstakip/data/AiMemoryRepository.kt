@@ -49,36 +49,23 @@ class AiMemoryRepository(context: Context) {
         return memory
     }
 
-    /** Capture only explicit self-descriptions; ordinary chat is never mined for guesses. */
-    fun captureFromUserMessage(message: String): List<Memory> {
-        val patterns = listOf(
-            Regex("""(?:benim\s+)?(?:adım|ismim)\s+([^,.!?\n]{2,60})""", RegexOption.IGNORE_CASE) to "Kullanıcının adı: ",
-            Regex("""(?:öğretmenimin adı|hocamın adı|öğretmeninin adı)\s*[:：-]?\s*([^,.!?\n]{2,80})""", RegexOption.IGNORE_CASE) to "Öğretmeninin adı: ",
-            Regex("""(?:kaynak olarak|kullandığım kaynak(?:lardan biri)?|çözdüğüm kaynak)\s+([^,.!?\n]{2,100})""", RegexOption.IGNORE_CASE) to "Kullandığı kaynak: ",
-            Regex("""(?:tercihim|tercih ediyorum|bundan sonra)\s+([^.!?\n]{2,200})""", RegexOption.IGNORE_CASE) to "Çalışma tercihi: ",
-            Regex("""(?:hedefim|amacım)\s+([^.!?\n]{2,160})""", RegexOption.IGNORE_CASE) to "Hedefi: "
-        )
-        val captured = mutableListOf<Memory>()
-        patterns.forEach { (pattern, prefix) ->
-            pattern.findAll(message).forEach matchLoop@ { match ->
-                val detail = match.groupValues.getOrNull(1)?.trim()?.trimEnd(' ', '.') ?: return@matchLoop
-                if (detail.isNotBlank()) remember(prefix + detail, source = "explicit_self_description")?.let(captured::add)
-            }
-        }
-        return captured.distinctBy { it.id }
+    /** Return conservative candidates; partial matches are never deleted automatically. */
+    fun findMatching(query: String): List<Memory> {
+        val needle = normalize(query)
+        if (needle.length < MIN_DELETE_QUERY_LENGTH) return emptyList()
+        return all().filter { normalize(it.content).contains(needle) }
     }
+
+    /** Delete only an exact full-record match, never a broad substring match. */
     fun forgetMatching(query: String): Int {
         val needle = normalize(query)
-        if (needle.isBlank()) return 0
+        if (needle.length < MIN_DELETE_QUERY_LENGTH) return 0
         val current = readAll()
-        val remaining = current.filterNot {
-            normalize(it.content).contains(needle) || needle.contains(normalize(it.content))
-        }
+        val remaining = current.filterNot { normalize(it.content) == needle }
         val removed = current.size - remaining.size
         if (removed > 0) persist(remaining)
         return removed
     }
-
     /** A compact, stable snapshot for the model; most recently updated memories come first. */
     fun promptSnapshot(maxItems: Int = 24, maxChars: Int = 2400): String {
         val selected = all().take(maxItems)
@@ -153,5 +140,6 @@ class AiMemoryRepository(context: Context) {
         private const val KEY_MEMORIES = "memories_v1"
         private const val MAX_MEMORIES = 100
         private const val MAX_CONTENT_LENGTH = 500
+        private const val MIN_DELETE_QUERY_LENGTH = 4
     }
 }
