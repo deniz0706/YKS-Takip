@@ -14,6 +14,8 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 
 - [x] **AI Koç → çalışma planı eylemi** (PR #31): Yapılandırılmış öneriyi doğrula, çakışmaları kontrol et ve yalnızca kullanıcı onayından sonra haftalık plana kaydet.
 - [x] **Deneme → konu → hata/tekrar defteri** (PR #33): Etiketleri benzersiz kazanımlara bağla, belirsiz eşleşmeleri engelle, deneme bağlamını tekrar kartına ekle ve aynı etiketi ikinci kez içe aktarma.
+- [x] **Aralıklı tekrar bildirimleri** (PR #35): 1–3–7–21 günlük tekrar aralığı, WorkManager ve kullanıcı kontrollü bildirim izni.
+- [x] **Ana ekran çalışma widget’ı** (PR #36): Bugünkü soru, süre ve hedefi mevcut kayıt depolarından gösterir.
 
 ## Öncelikli geliştirme sırası
 
@@ -24,16 +26,16 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [x] Aynı deneme etiketi ikinci kez içe aktarılmasın; mevcut fotoğraflı soru kayıtları korunmalı.
 - [x] Ders toplamındaki yanlış/boş sayısını konuya aitmiş gibi gösterme.
 
-### 2. Aralıklı tekrar ve bildirimler
-- [ ] Mevcut tekrar tarihlerini temel alarak 1–3–7–21 günlük tekrar akışını tamamla.
-- [ ] Android bildirim iznini açıklayıp kullanıcıdan iste; izin yoksa uygulama içi tekrar kutusu çalışmaya devam etsin.
-- [ ] WorkManager ile yeniden başlatma ve cihaz yeniden açılmasına dayanıklı hatırlatmalar kur.
-- [ ] Tamamlanan, ertelenen veya silinen tekrarların eski bildirimlerini iptal et.
+### 2. Aralıklı tekrar ve bildirimler — tamamlandı (PR #35)
+- [x] Mevcut tekrar tarihlerini temel alarak 1–3–7–21 günlük tekrar akışını tamamla.
+- [x] Android bildirim iznini açıklayıp kullanıcıdan iste; izin yoksa uygulama içi tekrar kutusu çalışmaya devam etsin.
+- [x] WorkManager ile yeniden başlatma ve cihaz yeniden açılmasına dayanıklı hatırlatmalar kur.
+- [x] Tamamlanan, ertelenen veya silinen tekrarların eski bildirimlerini iptal et.
 
-### 3. Ana ekran widget'ı
-- [ ] Bugünkü soru, çalışma süresi, günlük hedef ve yaklaşan tekrarları gösteren küçük widget.
-- [ ] Widget verisini mevcut repository'lerden oku; ikinci bir veri kaynağı oluşturma.
-- [ ] Widget güncellemesini çalışma/deneme kaydı değişiklikleriyle eşleştir.
+### 3. Ana ekran widget’ı — tamamlandı (PR #36)
+- [x] Bugünkü soru, çalışma süresi ve günlük hedefi gösteren küçük widget.
+- [x] Widget verisini mevcut repository’lerden oku; ikinci bir veri kaynağı oluşturma.
+- [x] Widget güncellemesini çalışma kayıtları ve günlük hedef değişiklikleriyle eşleştir.
 
 ### 4. Arayüz ve kullanılabilirlik
 - [ ] Compose ekranlarını ortak tasarım sistemine taşı; eski ekranları yalnızca tüm navigasyon ve derin bağlantılar doğrulandıktan sonra kaldır.
