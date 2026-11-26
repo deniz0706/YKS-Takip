@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
 
@@ -59,10 +60,11 @@ fun SettingsScreenV2(
             .padding(horizontal = 20.dp).padding(top = 26.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        Text("KİŞİSELLEŞTİRME", color = colors.secondary, style = MaterialTheme.typography.labelLarge)
-        Text("Ayarlar", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = colors.onBackground)
-        Text("Hedeflerini, görünümü ve verilerini tek yerden yönet.",
-            color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+        DashboardPageHeader(
+            "KİŞİSELLEŞTİRME",
+            "Ayarlar",
+            "Hedeflerini, görünümü ve verilerini tek yerden yönet."
+        )
 
         DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
             Text("HEDEF PANOSU", color = colors.secondary,

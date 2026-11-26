@@ -13,6 +13,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +31,57 @@ import com.deniz0706.ykstakip.ui.theme.YksShape
 import com.deniz0706.ykstakip.ui.theme.YksMotion
 
 /** Shared visual primitives: no shadows, images or per-frame allocations required. */
+
+@Composable
+fun DashboardPageHeader(
+    eyebrow: String,
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier
+) {
+    val c = MaterialTheme.colorScheme
+    val shape = remember { RoundedCornerShape(YksShape.panel) }
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = shape,
+        color = c.primaryContainer
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 17.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier.width(4.dp).height(54.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(c.onPrimaryContainer.copy(alpha = .68f))
+            )
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    eyebrow.uppercase(),
+                    color = c.onPrimaryContainer.copy(alpha = .76f),
+                    style = MaterialTheme.typography.labelSmall,
+                    letterSpacing = 1.25.sp
+                )
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    title,
+                    color = c.onPrimaryContainer,
+                    fontSize = 27.sp,
+                    lineHeight = 32.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    subtitle,
+                    color = c.onPrimaryContainer.copy(alpha = .78f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun DashboardPanel(
     modifier: Modifier = Modifier,

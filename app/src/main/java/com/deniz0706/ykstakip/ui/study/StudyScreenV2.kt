@@ -39,6 +39,7 @@ import com.deniz0706.ykstakip.model.QuestionStatus
 import com.deniz0706.ykstakip.util.ReviewAdvisor
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
@@ -691,14 +692,11 @@ fun StudyScreenV2(
 
 @Composable
 private fun StudyScreenHeader(colors: androidx.compose.material3.ColorScheme) {
-    Column {
-        Text("ÇALIŞMA GÜNLÜĞÜ", color = colors.secondary,
-            style = MaterialTheme.typography.labelLarge)
-        Text("Çalışma", color = colors.onBackground,
-            fontSize = 32.sp, fontWeight = FontWeight.Bold)
-        Text("Günün, haftalık planın ve gelişimin artık ayrı bölümlerde.",
-            color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-    }
+    DashboardPageHeader(
+        "ÇALIŞMA GÜNLÜĞÜ",
+        "Çalışma",
+        "Günün, haftalık planın ve gelişimin artık ayrı bölümlerde."
+    )
 }
 
 @Composable

@@ -22,6 +22,7 @@ import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.components.ExamTypeTabs
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
@@ -57,8 +58,11 @@ fun HistoryScreenV2(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            Text("DENEME ARŞİVİ", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.labelLarge)
-            Text("Geçmiş", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+            DashboardPageHeader(
+                "DENEME ARŞİVİ",
+                "Geçmiş",
+                "Denemelerini filtrele, karşılaştır ve ayrıntılarına dön."
+            )
         }
         item { ExamTypeTabs(type.name, { type = ExamType.valueOf(it) }) }
         item {

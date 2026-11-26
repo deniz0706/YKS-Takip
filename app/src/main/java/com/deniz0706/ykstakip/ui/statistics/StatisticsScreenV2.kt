@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.*
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
@@ -101,11 +102,11 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text("PERFORMANS ANALİZİ", color = colors.secondary, style = MaterialTheme.typography.labelLarge)
-            Text("Deneme Analizi", color = colors.onBackground,
-                fontSize = 30.sp, fontWeight = FontWeight.Bold)
-            Text("Grafik, branş gelişimi ve sıralamanı ayrı ayrı keşfet.",
-                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            DashboardPageHeader(
+                "PERFORMANS ANALİZİ",
+                "Deneme Analizi",
+                "Grafik, branş gelişimi ve sıralamanı ayrı ayrı keşfet."
+            )
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

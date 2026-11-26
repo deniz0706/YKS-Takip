@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.*
 import com.deniz0706.ykstakip.data.ExamValidator
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.util.Fmt
 import com.deniz0706.ykstakip.util.LearningCourseMatcher
@@ -92,12 +93,12 @@ fun NewExamScreenV2(
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("DENEME / EDİTÖR", color = colors.secondary,
-                        style = MaterialTheme.typography.labelSmall, letterSpacing = 1.4.sp)
-                    Text(if (existing == null) "Yeni Deneme" else "Denemeyi Düzenle",
-                        fontSize = 29.sp, fontWeight = FontWeight.Bold, color = colors.onBackground)
-                }
+                DashboardPageHeader(
+                    "DENEME / EDİTÖR",
+                    if (existing == null) "Yeni Deneme" else "Denemeyi Düzenle",
+                    "Sonuçlarını gir; netlerini ve sürelerini anında gör.",
+                    Modifier.weight(1f)
+                )
                 TextButton(onClick = onBack) { Text("Vazgeç") }
             }
         }
