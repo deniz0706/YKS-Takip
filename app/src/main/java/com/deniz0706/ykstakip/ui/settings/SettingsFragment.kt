@@ -29,7 +29,9 @@ class SettingsFragment : Fragment() {
     private lateinit var studyRepository: StudyRepository
     private val theme = mutableStateOf("system")
     private val learningZipBusy = mutableStateOf(false)
+    private val fullBackupBusy = mutableStateOf(false)
     private var stagedLearningZip: LearningArchiveManager.PreparedImport? = null
+    private var stagedFullBackup: FullBackupManager.PreparedImport? = null
 
     private val exportStudy = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -209,6 +211,96 @@ class SettingsFragment : Fragment() {
         stagedLearningZip = null
     }
 
+    private fun cancelFullBackup() {
+        stagedFullBackup?.discard()
+        stagedFullBackup = null
+    }
+
+    private val exportFullBackup = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri != null && isAdded) {
+            val app = requireContext().applicationContext
+            fullBackupBusy.value = true
+            lifecycleScope.launch {
+                try {
+                    val result = withContext(Dispatchers.IO) {
+                        FullBackupManager.exportTo(app, uri)
+                    }
+                    if (isAdded) Toast.makeText(requireContext(),
+                        "Tam yedek hazır: ${result.exams} deneme, ${result.studyDays} gün, " +
+                            "${result.learningOutcomes} kazanım, ${result.learningQuestions} soru, " +
+                            "${result.photos} fotoğraf.",
+                        Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    if (isAdded) Toast.makeText(requireContext(),
+                        "Tam yedek oluşturulamadı: ${e.message ?: "Dosya hatası"}",
+                        Toast.LENGTH_LONG).show()
+                } finally { fullBackupBusy.value = false }
+            }
+        }
+    }
+
+    private val importFullBackup = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null && isAdded) {
+            val app = requireContext().applicationContext
+            fullBackupBusy.value = true
+            lifecycleScope.launch {
+                try {
+                    val pending = withContext(Dispatchers.IO) {
+                        FullBackupManager.prepareImport(app, uri)
+                    }
+                    if (!isAdded) { pending.discard(); return@launch }
+                    stagedFullBackup?.discard()
+                    stagedFullBackup = pending
+                    fullBackupBusy.value = false
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("Tam yedeği güvenli biçimde birleştir")
+                        .setMessage(
+                            "${pending.examCount} deneme, ${pending.studyDayCount} çalışma günü, " +
+                                "${pending.learningOutcomeCount} kazanım, ${pending.learningQuestionCount} soru ve " +
+                                "${pending.photoCount} fotoğraf doğrulandı.\n\n" +
+                                "Mevcut kayıtların üzerine yazılmaz; yalnızca eksik kayıtlar eklenir. " +
+                                "API anahtarı yedekte bulunmaz. Devam edilsin mi?"
+                        )
+                        .setNegativeButton("Vazgeç") { _, _ -> cancelFullBackup() }
+                        .setOnCancelListener { cancelFullBackup() }
+                        .setPositiveButton("Güvenli birleştir") { _, _ ->
+                            val selection = stagedFullBackup ?: return@setPositiveButton
+                            stagedFullBackup = null
+                            fullBackupBusy.value = true
+                            lifecycleScope.launch {
+                                try {
+                                    val result = withContext(Dispatchers.IO) {
+                                        FullBackupManager.merge(app, selection)
+                                    }
+                                    if (isAdded) Toast.makeText(requireContext(),
+                                        "${result.examsAdded} deneme, ${result.studyDaysAdded} gün, " +
+                                            "${result.learning.outcomesAdded} kazanım, " +
+                                            "${result.learning.questionsAdded} soru, " +
+                                            "${result.learning.photosAdded} fotoğraf eklendi.",
+                                        Toast.LENGTH_LONG).show()
+                                } catch (e: Exception) {
+                                    if (isAdded) Toast.makeText(requireContext(),
+                                        "Birleştirme başarısız: ${e.message ?: "Veri hatası"}",
+                                        Toast.LENGTH_LONG).show()
+                                } finally {
+                                    selection.discard()
+                                    fullBackupBusy.value = false
+                                }
+                            }
+                        }.show()
+                } catch (e: Exception) {
+                    if (isAdded) Toast.makeText(requireContext(),
+                        "Tam yedek doğrulanamadı: ${e.message ?: "Arşiv hatası"}",
+                        Toast.LENGTH_LONG).show()
+                } finally { fullBackupBusy.value = false }
+            }
+        }
+    }
+
     private val exportLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
@@ -297,6 +389,18 @@ class SettingsFragment : Fragment() {
                                     "application/zip", "application/x-zip-compressed",
                                     "application/octet-stream"
                                 ))
+                        },
+                        fullBackupBusy = fullBackupBusy.value,
+                        onExportFullBackup = {
+                            if (!fullBackupBusy.value)
+                                exportFullBackup.launch("yks-takip-tam-yedek-${LocalDate.now()}.zip")
+                        },
+                        onImportFullBackup = {
+                            if (!fullBackupBusy.value)
+                                importFullBackup.launch(arrayOf(
+                                    "application/zip", "application/x-zip-compressed",
+                                    "application/octet-stream"
+                                ))
                         }
                     )
                 }
@@ -305,6 +409,7 @@ class SettingsFragment : Fragment() {
 
     override fun onDestroy() {
         cancelLearningZip()
+        cancelFullBackup()
         super.onDestroy()
     }
 
