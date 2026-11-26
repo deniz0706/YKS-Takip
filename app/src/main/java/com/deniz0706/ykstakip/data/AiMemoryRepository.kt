@@ -49,6 +49,24 @@ class AiMemoryRepository(context: Context) {
         return memory
     }
 
+    /** Capture only explicit self-descriptions; ordinary chat is never mined for guesses. */
+    fun captureFromUserMessage(message: String): List<Memory> {
+        val patterns = listOf(
+            Regex("""(?:benim\\s+)?(?:adım|ismim)\\s+([^,.!?\\n]{2,60})""", RegexOption.IGNORE_CASE) to "Kullanıcının adı: ",
+            Regex("""(?:öğretmenimin adı|hocamın adı|öğretmeninin adı)\\s*[:：-]?\\s*([^,.!?\\n]{2,80})""", RegexOption.IGNORE_CASE) to "Öğretmeninin adı: ",
+            Regex("""(?:kaynak olarak|kullandığım kaynak(?:lardan biri)?|çözdüğüm kaynak)\\s+([^,.!?\\n]{2,100})""", RegexOption.IGNORE_CASE) to "Kullandığı kaynak: ",
+            Regex("""(?:tercihim|tercih ediyorum|bundan sonra)\\s+([^.!?\\n]{2,200})""", RegexOption.IGNORE_CASE) to "Çalışma tercihi: ",
+            Regex("""(?:hedefim|amacım)\\s+([^.!?\\n]{2,160})""", RegexOption.IGNORE_CASE) to "Hedefi: "
+        )
+        val captured = mutableListOf<Memory>()
+        patterns.forEach { (pattern, prefix) ->
+            pattern.findAll(message).forEach matchLoop@ { match ->
+                val detail = match.groupValues.getOrNull(1)?.trim()?.trimEnd(' ', '.') ?: return@matchLoop
+                if (detail.isNotBlank()) remember(prefix + detail, source = "explicit_self_description")?.let(captured::add)
+            }
+        }
+        return captured.distinctBy { it.id }
+    }
     fun forgetMatching(query: String): Int {
         val needle = normalize(query)
         if (needle.isBlank()) return 0
