@@ -245,10 +245,12 @@ class LearningRepository(context: Context) {
     fun persistRestoredSnapshot(outcomes: List<LearningOutcome>, cards: List<QuestionCard>): Boolean {
         val defaults = LearningSeed.starter.associateBy { it.id }
         val changed = outcomes.filter { defaults[it.id] != it }
-        return prefs.edit()
+        val saved = prefs.edit()
             .putString("outcomes", JSONArray(changed.map { it.toJson() }).toString())
             .putString("questions", JSONArray(cards.map { it.toJson() }).toString())
             .commit()
+        if (saved) ReviewReminderScheduler.rescheduleAll(app, outcomes)
+        return saved
     }
 
     fun addOutcome(examType: String, subject: String, topic: String, title: String): LearningOutcome {
@@ -263,13 +265,18 @@ class LearningRepository(context: Context) {
     }
 
     fun updateOutcome(id: String, transform: (LearningOutcome) -> LearningOutcome) {
-        saveOutcomes(outcomes().map { if (it.id == id) transform(it) else it })
+        val updated = outcomes().map { if (it.id == id) transform(it) else it }
+        saveOutcomes(updated)
+        updated.firstOrNull { it.id == id }?.let { ReviewReminderScheduler.schedule(app, it) }
+            ?: ReviewReminderScheduler.cancel(app, id)
     }
 
     fun setCompleted(id: String, checked: Boolean) {
         updateOutcome(id) { unit ->
             unit.copy(completed = checked,
                 completedDate = if (checked) LocalDate.now().toString() else "",
+                reviewRequested = if (checked) false else unit.reviewRequested,
+                nextReviewDate = if (checked) "" else unit.nextReviewDate,
                 completedSubtopics = if (checked) LearningSubtopics.forOutcome(unit) else emptyList())
         }
     }
@@ -307,12 +314,10 @@ class LearningRepository(context: Context) {
     }
 
     fun reviewOutcome(id: String) {
-        val intervals = listOf(1L, 3L, 7L, 14L, 30L)
         updateOutcome(id) {
-            // level 0 means the NEXT successful review is due tomorrow.
-            // Preserve the existing saved level as the next index after each success.
-            val days = intervals[it.reviewLevel.coerceIn(0, intervals.lastIndex)]
-            val nextLevel = (it.reviewLevel + 1).coerceAtMost(intervals.lastIndex)
+            // A successful review advances the 1–3–7–21 day schedule.
+            val days = com.deniz0706.ykstakip.util.SpacedRepetitionSchedule.intervalDays(it.reviewLevel)
+            val nextLevel = com.deniz0706.ykstakip.util.SpacedRepetitionSchedule.nextLevel(it.reviewLevel)
             it.copy(completed = true,
                 completedSubtopics = LearningSubtopics.forOutcome(it),
                 reviewRequested = false,
@@ -325,6 +330,7 @@ class LearningRepository(context: Context) {
         val item = outcomes().find { it.id == id } ?: return
         if (!item.custom || questions().any { it.outcomeId == id }) return
         saveOutcomes(outcomes().filterNot { it.id == id })
+        ReviewReminderScheduler.cancel(app, id)
     }
 
     fun addQuestion(outcomeId: String, title: String, notes: String,
