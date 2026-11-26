@@ -47,6 +47,7 @@ import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
+import com.deniz0706.ykstakip.ui.components.DashboardSectionHeading
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -398,8 +399,8 @@ fun StudyScreenV2(
             DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
                 Text("HAFTALIK RAPOR", color = colors.secondary,
                     letterSpacing = 1.sp, style = MaterialTheme.typography.labelSmall)
-                Text("Son 7 günün özeti", color = colors.onSurface,
-                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                DashboardSectionHeading("Son 7 günün özeti",
+                    detail = "Soru, devamlılık ve hedef gerçekleşmesi.")
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
                         Text("BU HAFTA", color = colors.onSurfaceVariant,

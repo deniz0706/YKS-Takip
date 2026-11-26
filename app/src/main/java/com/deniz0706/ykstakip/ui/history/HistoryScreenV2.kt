@@ -148,7 +148,7 @@ fun HistoryScreenV2(
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
-                Column {
+                Column(Modifier.weight(1f)) {
                     DashboardSectionHeading("Kayıtlar",
                         detail = "${filtered.size} deneme · ${if (newestFirst) "yeniden eskiye" else "eskiden yeniye"}")
                 }
