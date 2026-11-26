@@ -53,6 +53,7 @@ class ExamSessionRepository(context: Context) {
         .coerceIn(ExamSessionMath.MIN_DURATION_MINUTES, ExamSessionMath.MAX_DURATION_MINUTES)
 
     fun snapshot(): State {
+        migrateLegacyTimerOnce()
         val shared = timer.snapshot()
         return State(examType(), duration(), shared.elapsedMs, shared.running, readSplits())
     }
@@ -77,7 +78,13 @@ class ExamSessionRepository(context: Context) {
         return snapshot()
     }
 
-    fun saveToToday(): FocusSessionRepository.SaveResult = timer.saveToToday()
+    fun saveToToday(): FocusSessionRepository.SaveResult {
+        val result = timer.saveToToday()
+        if (result is FocusSessionRepository.SaveResult.Saved) {
+            prefs.edit().putString("splits", "[]").apply()
+        }
+        return result
+    }
 
     fun recordSplit(label: String): State {
         require(label.isNotBlank())
