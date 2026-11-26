@@ -179,6 +179,9 @@ class StudyFragment : Fragment() {
                         onEditDay = { editDay(it) },
                         onPickDay = { pickDay() },
                         onAddPlan = { addPlan(it) },
+                        onAddSuggestedPlan = { day, subject, topic ->
+                            addSuggestedPlan(day, subject, topic)
+                        },
                         onEditPlan = { editPlan(it) },
                         onTogglePlan = { planRepository.toggleCompleted(it); refresh() },
                         onDeletePlan = { deletePlan(it) }
@@ -339,13 +342,43 @@ class StudyFragment : Fragment() {
 
     private fun addPlan(day: Int) = showPlanEditor(day, null)
 
+    private fun addSuggestedPlan(day: Int, subject: String, topic: String) {
+        val slot = nextAvailableSlot(day)
+        if (slot == null) {
+            Toast.makeText(requireContext(),
+                "Bu gün için uygun 90 dakikalık boşluk bulunamadı. Önce mevcut derslerden birini düzenle.",
+                Toast.LENGTH_LONG).show()
+            return
+        }
+        showPlanEditor(day, null, subject, topic, slot.first, slot.second)
+    }
+
+    private fun nextAvailableSlot(day: Int): Pair<String, String>? {
+        val existing = planRepository.getForDay(day)
+        for (startMinutes in 9 * 60..20 * 60 step 30) {
+            val endMinutes = startMinutes + 90
+            if (endMinutes > 22 * 60) break
+            val start = "%02d:%02d".format(Locale.US, startMinutes / 60, startMinutes % 60)
+            val end = "%02d:%02d".format(Locale.US, endMinutes / 60, endMinutes % 60)
+            if (existing.none { start < it.endTime && end > it.startTime }) return start to end
+        }
+        return null
+    }
+
     private fun editPlan(item: StudyPlanItem) = showPlanEditor(item.dayOfWeek, item)
 
-    private fun showPlanEditor(day: Int, existing: StudyPlanItem?) {
-        val subject = input("Ders (örn. AYT Matematik)", existing?.subject.orEmpty())
-        val topic = input("Konu", existing?.topic.orEmpty())
-        val start = input("Başlangıç (09:00)", existing?.startTime ?: "09:00")
-        val end = input("Bitiş (10:30)", existing?.endTime ?: "10:30")
+    private fun showPlanEditor(
+        day: Int,
+        existing: StudyPlanItem?,
+        suggestedSubject: String = "",
+        suggestedTopic: String = "",
+        suggestedStart: String = "09:00",
+        suggestedEnd: String = "10:30"
+    ) {
+        val subject = input("Ders (örn. AYT Matematik)", existing?.subject ?: suggestedSubject)
+        val topic = input("Konu", existing?.topic ?: suggestedTopic)
+        val start = input("Başlangıç (09:00)", existing?.startTime ?: suggestedStart)
+        val end = input("Bitiş (10:30)", existing?.endTime ?: suggestedEnd)
         val editing = existing != null
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle(if (editing) "Dersi düzenle" else "Yeni ders")

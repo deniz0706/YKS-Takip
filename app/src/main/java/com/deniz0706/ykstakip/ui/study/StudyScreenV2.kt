@@ -37,6 +37,7 @@ import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
 import com.deniz0706.ykstakip.util.ReviewAdvisor
+import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.StudyPlanConflicts
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
@@ -81,6 +82,7 @@ fun StudyScreenV2(
     onEditDay: (String) -> Unit,
     onPickDay: () -> Unit,
     onAddPlan: (Int) -> Unit,
+    onAddSuggestedPlan: (Int, String, String) -> Unit,
     onEditPlan: (StudyPlanItem) -> Unit,
     onTogglePlan: (Long) -> Unit,
     onDeletePlan: (StudyPlanItem) -> Unit
@@ -92,6 +94,18 @@ fun StudyScreenV2(
     // Daily repeat reminders cover every course, including other AYT tracks.
     val urgentReviews = reviewSignals.count { it.urgent }
     val reviewSuggestions = reviewSignals.size
+    val smartPriorities = remember(reviewSignals, exams) {
+        val fromLearning = reviewSignals.map { signal ->
+            Triple(signal.outcome.subject,
+                signal.outcome.topic.ifBlank { signal.outcome.title },
+                signal.explanation)
+        }.distinctBy { it.first.lowercase(Locale("tr", "TR")) + "|" + it.second.lowercase(Locale("tr", "TR")) }
+        if (fromLearning.isNotEmpty()) fromLearning.take(3)
+        else WeakTopicAnalyzer.findWeakSpots(exams, sampleSize = 5, top = 3).map { spot ->
+            Triple(spot.subject, spot.topic,
+                "Son ${spot.outOf} ders kaydında ${spot.count} kez zayıf konu olarak işaretlendi")
+        }
+    }
     val manuallyMarked = learningOutcomes.count { it.reviewRequested }
     val pendingQuestions = learningQuestions.count {
         it.status != QuestionStatus.COZULDU
@@ -572,6 +586,45 @@ fun StudyScreenV2(
                 Text("Bir güne dokunarak o günün derslerini aç.",
                     color = colors.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall)
+            }
+        }
+        }
+        if (section == "plan" && smartPriorities.isNotEmpty()) {
+        item(key = "smart-study-priorities") {
+            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
+                Text("VERİLERİNDEN GELEN ÇALIŞMA ÖNCELİKLERİ",
+                    color = colors.secondary, style = MaterialTheme.typography.labelSmall,
+                    letterSpacing = .8.sp)
+                Spacer(Modifier.height(5.dp))
+                Text("Bir sonraki çalışma oturumunu seç",
+                    color = colors.onSurface, style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(10.dp))
+                smartPriorities.forEachIndexed { index, priority ->
+                    if (index > 0) HorizontalDivider(
+                        color = colors.outlineVariant.copy(alpha = .45f),
+                        modifier = Modifier.padding(vertical = 9.dp))
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Box(Modifier.size(28.dp).background(
+                            colors.primaryContainer, RoundedCornerShape(9.dp)),
+                            contentAlignment = Alignment.Center) {
+                            Text("${index + 1}", color = colors.onPrimaryContainer,
+                                fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                        }
+                        Column(Modifier.weight(1f)) {
+                            Text("${priority.first} · ${priority.second}",
+                                color = colors.onSurface, fontWeight = FontWeight.SemiBold)
+                            Text(priority.third, color = colors.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                        TextButton(onClick = {
+                            onAddSuggestedPlan(selectedDay, priority.first, priority.second)
+                        }) { Text("Plana ekle") }
+                    }
+                }
+                Text("Öneriler, kendi konu işaretlerin ve tekrar kayıtlarından oluşturulur.",
+                    color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
             }
         }
         }
