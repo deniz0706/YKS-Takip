@@ -5,6 +5,7 @@ on:
     branches:
       - '2.0'
       - 'feature/nvidia-ai-coach'
+      - 'v3.0-test/product-foundation'
   pull_request:
     branches:
       - '2.0'
