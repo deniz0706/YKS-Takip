@@ -7,7 +7,7 @@ This is a targeted audit of branches with likely product value. Ahead/behind cou
 
 ## Current 4.0 branches
 - `4.0/architecture-audit`: 15 commits ahead of main; current PR #51. Changes are limited to build/version/signing workflow and architecture audit documentation.
-- `4.0/foundation`: created from `4.0/architecture-audit`; contains engineering guardrails, KMP ADR, and data migration inventory.
+- `4.0/foundation`: created from `4.0/architecture-audit`; now contains the first Kotlin Multiplatform shared-domain module, migrated exam/study value models and pure rules, Android compatibility adapters, and common/Android regression tests in addition to the engineering guardrails and migration inventory.
 
 ## Findings
 
