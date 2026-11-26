@@ -64,7 +64,7 @@ class ExamSessionRepository(context: Context) {
 
     fun recordSplit(label: String): State {
         require(label.isNotBlank())
-        val state = pause()
+        val state = snapshot()
         val entries = state.splits.toMutableList()
         entries.add(Split(label.trim().take(40), state.elapsedMs))
         val array = JSONArray()
