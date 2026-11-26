@@ -177,7 +177,7 @@ class AiCoachFragment : Fragment() {
                                 )
                                 FilledIconButton(
                                     onClick = { sendMessage() },
-                                    enabled = !sending.value && draft.value.isNotBlank() && AiSecretStore.hasApiKey(context),
+                                    enabled = !sending.value && draft.value.isNotBlank(),
                                     modifier = Modifier.size(50.dp)
                                 ) {
                                     Text("➤", style = MaterialTheme.typography.titleLarge)
@@ -247,7 +247,7 @@ class AiCoachFragment : Fragment() {
 
     private fun sendMessage() {
         val question = draft.value.trim()
-        if (question.isEmpty() || sending.value || !AiSecretStore.hasApiKey(requireContext())) return
+        if (question.isEmpty() || sending.value) return
         draft.value = ""
         lines.add(CoachLine("user", question))
         val appContext = requireContext().applicationContext
@@ -259,8 +259,12 @@ class AiCoachFragment : Fragment() {
             persistConversation(requireContext().applicationContext)
             return
         }
+        if (!AiSecretStore.hasApiKey(appContext)) {
+            lines.add(CoachLine("error", "Normal sohbet için Ayarlar bölümüne NVIDIA API anahtarı eklemelisin. Hafıza komutları çevrimdışı da çalışır."))
+            persistConversation(appContext)
+            return
+        }
         sending.value = true
-        val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             var answer: String? = null
             var failure: String? = null
