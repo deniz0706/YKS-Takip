@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.deniz0706.ykstakip.data.AiContextBuilder
+import com.deniz0706.ykstakip.data.AiMemoryRepository
 import com.deniz0706.ykstakip.data.AiSecretStore
 import com.deniz0706.ykstakip.data.NvidiaAiService
 import com.deniz0706.ykstakip.ui.theme.YksTheme
@@ -188,6 +189,39 @@ class AiCoachFragment : Fragment() {
             }
         }
 
+    /**
+     * Memory commands are handled locally: they do not spend an NVIDIA request
+     * and the saved facts survive model changes and conversation pruning.
+     */
+    private fun handleMemoryCommand(message: String): String? {
+        val repository = AiMemoryRepository(requireContext().applicationContext)
+        val trimmed = message.trim()
+
+        val showPattern = Regex("^(hafızamda ne var|neleri hatırlıyorsun|hafızanı göster)\\??$", RegexOption.IGNORE_CASE)
+        if (showPattern.matches(trimmed)) {
+            val memories = repository.all()
+            if (memories.isEmpty()) return "Henüz kalıcı hafızama kaydedilmiş bir bilgi yok. Hatırla: ... yazarak bir bilgi ekleyebilirsin."
+            return "Kalıcı hafızamda şunlar var:\\n" + memories.take(30).joinToString("\\n") {
+                "• [${it.category}] ${it.content}"
+            } + if (memories.size > 30) "\\n… ve ${memories.size - 30} kayıt daha." else ""
+        }
+
+        val rememberPattern = Regex("^(?:(?:lütfen )?(?:bunu )?)?(?:hatırla|hafızana kaydet|aklında tut)\\s*[:：-]?\\s*(.+)$", RegexOption.IGNORE_CASE)
+        val rememberText = rememberPattern.matchEntire(trimmed)?.groupValues?.getOrNull(1)
+        if (!rememberText.isNullOrBlank()) {
+            val saved = repository.remember(rememberText) ?: return "Bu bilgiyi kaydedemedim; biraz daha açık yazar mısın?"
+            return "Tamam, bunu kalıcı hafızama **${saved.category}** olarak kaydettim. Sonraki konuşmalarda da kullanacağım."
+        }
+
+        val forgetPattern = Regex("^(?:unut|hafızandan sil|hafızadan sil)\\s*[:：-]?\\s*(.+)$", RegexOption.IGNORE_CASE)
+        val forgetText = forgetPattern.matchEntire(trimmed)?.groupValues?.getOrNull(1)
+        if (!forgetText.isNullOrBlank()) {
+            val removed = repository.forgetMatching(forgetText)
+            return if (removed > 0) "${removed} hafıza kaydını sildim."
+                else "Bu ifadeyle eşleşen bir hafıza kaydı bulamadım."
+        }
+        return null
+    }
     private fun loadConversation(context: Context): List<CoachLine> {
         val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LINES, null)
             ?: return emptyList()
@@ -217,6 +251,12 @@ class AiCoachFragment : Fragment() {
         draft.value = ""
         lines.add(CoachLine("user", question))
         persistConversation(requireContext().applicationContext)
+        val memoryReply = handleMemoryCommand(question)
+        if (memoryReply != null) {
+            lines.add(CoachLine("assistant", memoryReply))
+            persistConversation(requireContext().applicationContext)
+            return
+        }
         sending.value = true
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
@@ -226,7 +266,7 @@ class AiCoachFragment : Fragment() {
                 answer = withTimeout(80_000) {
                     val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
                     val messages = mutableListOf(NvidiaAiService.Message("system",
-                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Markdown biçimlendirmesi kullanabilirsin. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
+                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Markdown biçimlendirmesi kullanabilirsin. Kalıcı öğrenci hafızasındaki isimleri, tercihleri, kaynakları ve kararları sonraki konuşmalarda hatırla; bunları güncel uygulama verileriyle karıştırma. Hafızadaki bilgi ile yeni söylenen bilgi çelişirse bunu belirt ve netleştir. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
                     lines.asSequence()
                         .filter { it.role == "user" || it.role == "assistant" }
                         .toList()
