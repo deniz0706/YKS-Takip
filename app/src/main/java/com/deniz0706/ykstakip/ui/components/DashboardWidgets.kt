@@ -44,7 +44,7 @@ fun DashboardPageHeader(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = shape,
-        color = c.primaryContainer
+        color = c.surfaceContainerHigh
     ) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 17.dp),
@@ -53,20 +53,20 @@ fun DashboardPageHeader(
             Box(
                 Modifier.width(4.dp).height(54.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(c.onPrimaryContainer.copy(alpha = .68f))
+                    .background(c.primary.copy(alpha = .78f))
             )
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
                     eyebrow.uppercase(),
-                    color = c.onPrimaryContainer.copy(alpha = .76f),
+                    color = c.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall,
                     letterSpacing = 1.25.sp
                 )
                 Spacer(Modifier.height(5.dp))
                 Text(
                     title,
-                    color = c.onPrimaryContainer,
+                    color = c.onSurface,
                     fontSize = 27.sp,
                     lineHeight = 32.sp,
                     fontWeight = FontWeight.Bold
@@ -74,7 +74,7 @@ fun DashboardPageHeader(
                 Spacer(Modifier.height(3.dp))
                 Text(
                     subtitle,
-                    color = c.onPrimaryContainer.copy(alpha = .78f),
+                    color = c.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -91,17 +91,14 @@ fun DashboardPanel(
     val c = MaterialTheme.colorScheme
     val shape = remember { RoundedCornerShape(YksShape.panel) }
     val fill = androidx.compose.runtime.remember(
-        c.surface, c.surfaceVariant, c.primary, accent
+        c.surfaceContainerLow, c.surfaceContainer, accent
     ) {
         if (accent) Brush.linearGradient(
-            listOf(c.primary.copy(alpha = .11f), c.surfaceVariant.copy(alpha = .72f), c.surface)
-        ) else Brush.linearGradient(listOf(c.surface, c.surface))
+            listOf(c.surfaceContainer, c.surfaceContainer)
+        ) else Brush.linearGradient(listOf(c.surfaceContainerLow, c.surfaceContainerLow))
     }
-    val borderColor = if (accent) c.primary.copy(alpha = .30f)
-        else c.outline.copy(alpha = .38f)
     Column(
         modifier.background(fill, shape)
-            .border(1.dp, borderColor, shape)
             .padding(YksSpacing.cardContent),
         content = { CompositionLocalProvider(LocalContentColor provides c.onSurface) { content() } }
     )

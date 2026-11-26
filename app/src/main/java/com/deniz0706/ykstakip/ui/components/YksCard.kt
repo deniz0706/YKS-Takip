@@ -1,8 +1,6 @@
 package com.deniz0706.ykstakip.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
@@ -26,14 +24,13 @@ fun YksCard(
     val colors = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(YksShape.card)
     val background = if (highlighted) {
-        Brush.linearGradient(listOf(colors.surfaceVariant, colors.surface, colors.surface))
+        Brush.linearGradient(listOf(colors.surfaceContainer, colors.surfaceContainer))
     } else {
-        Brush.linearGradient(listOf(colors.surface, colors.surface))
+        Brush.linearGradient(listOf(colors.surfaceContainerLow, colors.surfaceContainerLow))
     }
     Column(
         modifier = modifier
             .background(background, shape)
-            .border(BorderStroke(1.dp, colors.outline.copy(alpha = 0.42f)), shape)
             .padding(YksSpacing.cardContent),
         content = { CompositionLocalProvider(LocalContentColor provides colors.onSurface) { content() } }
     )
