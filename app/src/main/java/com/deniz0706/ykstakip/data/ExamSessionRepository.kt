@@ -46,7 +46,7 @@ class ExamSessionRepository(context: Context) {
     }
 
     private fun examType() = prefs.getString("exam_type", "TYT") ?: "TYT"
-    private fun duration() = prefs.getInt("duration", ExamSessionMath.defaultDurationMinutes(examType()))
+    private fun duration() = prefs.getInt("duration", if (examType() == "BRANŞ") 60 else ExamSessionMath.defaultDurationMinutes(examType()))
         .coerceIn(ExamSessionMath.MIN_DURATION_MINUTES, ExamSessionMath.MAX_DURATION_MINUTES)
 
     fun snapshot(): State {
