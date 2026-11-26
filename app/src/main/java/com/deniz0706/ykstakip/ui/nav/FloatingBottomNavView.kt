@@ -184,7 +184,7 @@ class FloatingBottomNavView @JvmOverloads constructor(
                 backgroundColors[item.id] = targetBackground
             }
             title.setTextColor(end)
-            icon.setTextColor(end)
+            icon.setColorFilter(end)
         }
     }
 }
