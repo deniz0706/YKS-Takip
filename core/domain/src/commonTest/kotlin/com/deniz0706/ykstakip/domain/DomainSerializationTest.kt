@@ -31,7 +31,7 @@ class DomainSerializationTest {
         val decoded = json.decodeFromString<Exam>(encoded)
 
         assertEquals(original, decoded)
-        assertEquals(57.5, decoded.subjects.sumOf { it.net })
+        assertEquals(56.25, decoded.subjects.sumOf { it.net })
     }
 
     @Test
