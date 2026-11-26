@@ -25,7 +25,7 @@ data class Exam(
 
     fun subject(name: String): SubjectResult? = subjects.find { it.subject == name }
 
-    companion object
+    companion object {}
 
     private fun round2(value: Double): Double = (value * 100).roundToInt() / 100.0
 }
