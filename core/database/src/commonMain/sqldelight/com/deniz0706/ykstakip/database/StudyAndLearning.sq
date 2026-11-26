@@ -38,11 +38,18 @@ selectAllLearningOutcomes:
 SELECT * FROM LearningOutcomeRecord ORDER BY examType, subject, topic, id;
 
 upsertLearningOutcome:
-INSERT OR REPLACE INTO LearningOutcomeRecord(
+INSERT INTO LearningOutcomeRecord(
     id, examType, subject, topic, title, completed, reviewRequested,
     wrongCount, acknowledgedWrongCount, nextReviewDate, reviewLevel,
     lastReviewedDate, custom, completedSubtopicsJson, completedDate
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    examType = excluded.examType, subject = excluded.subject, topic = excluded.topic,
+    title = excluded.title, completed = excluded.completed, reviewRequested = excluded.reviewRequested,
+    wrongCount = excluded.wrongCount, acknowledgedWrongCount = excluded.acknowledgedWrongCount,
+    nextReviewDate = excluded.nextReviewDate, reviewLevel = excluded.reviewLevel,
+    lastReviewedDate = excluded.lastReviewedDate, custom = excluded.custom,
+    completedSubtopicsJson = excluded.completedSubtopicsJson, completedDate = excluded.completedDate;
 
 deleteLearningOutcome:
 DELETE FROM LearningOutcomeRecord WHERE id = ?;
@@ -54,9 +61,13 @@ selectQuestionsForOutcome:
 SELECT * FROM QuestionCardRecord WHERE outcomeId = ? ORDER BY createdAt, id;
 
 upsertQuestionCard:
-INSERT OR REPLACE INTO QuestionCardRecord(
+INSERT INTO QuestionCardRecord(
     id, outcomeId, title, notes, status, createdAt, dueDate, reviewCount, photoPathsJson
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    outcomeId = excluded.outcomeId, title = excluded.title, notes = excluded.notes,
+    status = excluded.status, createdAt = excluded.createdAt, dueDate = excluded.dueDate,
+    reviewCount = excluded.reviewCount, photoPathsJson = excluded.photoPathsJson;
 
 deleteQuestionCard:
 DELETE FROM QuestionCardRecord WHERE id = ?;
@@ -80,9 +91,13 @@ selectAllStudyPlanItems:
 SELECT * FROM StudyPlanRecord ORDER BY dayOfWeek, startTime, id;
 
 upsertStudyPlanItem:
-INSERT OR REPLACE INTO StudyPlanRecord(
+INSERT INTO StudyPlanRecord(
     id, dayOfWeek, startTime, endTime, subject, topic, completed, completedWeek
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    dayOfWeek = excluded.dayOfWeek, startTime = excluded.startTime, endTime = excluded.endTime,
+    subject = excluded.subject, topic = excluded.topic, completed = excluded.completed,
+    completedWeek = excluded.completedWeek;
 
 deleteStudyPlanItem:
 DELETE FROM StudyPlanRecord WHERE id = ?;
@@ -103,10 +118,14 @@ selectFocusTimerState:
 SELECT * FROM FocusTimerState WHERE singletonId = 1;
 
 upsertFocusTimerState:
-INSERT OR REPLACE INTO FocusTimerState(
+INSERT INTO FocusTimerState(
     singletonId, durationMinutes, accumulatedMs, startedAtEpochMillis,
     stopwatchMode, carryDate, carryMs
-) VALUES (1, ?, ?, ?, ?, ?, ?);
+) VALUES (1, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(singletonId) DO UPDATE SET
+    durationMinutes = excluded.durationMinutes, accumulatedMs = excluded.accumulatedMs,
+    startedAtEpochMillis = excluded.startedAtEpochMillis, stopwatchMode = excluded.stopwatchMode,
+    carryDate = excluded.carryDate, carryMs = excluded.carryMs;
 
 -- Exam-mode metadata and lap splits are separate from the single shared timer.
 CREATE TABLE ExamSessionState (
@@ -120,5 +139,8 @@ selectExamSessionState:
 SELECT * FROM ExamSessionState WHERE singletonId = 1;
 
 upsertExamSessionState:
-INSERT OR REPLACE INTO ExamSessionState(singletonId, examType, durationMinutes, splitsJson)
-VALUES (1, ?, ?, ?);
+INSERT INTO ExamSessionState(singletonId, examType, durationMinutes, splitsJson)
+VALUES (1, ?, ?, ?)
+ON CONFLICT(singletonId) DO UPDATE SET
+    examType = excluded.examType, durationMinutes = excluded.durationMinutes,
+    splitsJson = excluded.splitsJson;
