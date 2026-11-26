@@ -1,0 +1,73 @@
+CREATE TABLE ExamRecord (
+    id INTEGER NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    examDate TEXT NOT NULL,
+    examType TEXT NOT NULL,
+    aytField TEXT,
+    notes TEXT NOT NULL DEFAULT '',
+    publisher TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE SubjectResultRecord (
+    examId INTEGER NOT NULL,
+    subjectOrder INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    questionCount INTEGER NOT NULL,
+    correct INTEGER NOT NULL,
+    wrong INTEGER NOT NULL,
+    timeMinutes INTEGER NOT NULL,
+    weakTopicsJson TEXT NOT NULL DEFAULT '[]',
+    PRIMARY KEY (examId, subjectOrder),
+    FOREIGN KEY (examId) REFERENCES ExamRecord(id) ON DELETE CASCADE
+);
+
+selectAllExams:
+SELECT * FROM ExamRecord
+ORDER BY examDate DESC, id DESC;
+
+selectExamById:
+SELECT * FROM ExamRecord
+WHERE id = ?;
+
+selectSubjectsForExam:
+SELECT * FROM SubjectResultRecord
+WHERE examId = ?
+ORDER BY subjectOrder ASC;
+
+insertExam:
+INSERT INTO ExamRecord(id, title, examDate, examType, aytField, notes, publisher)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+updateExam:
+UPDATE ExamRecord
+SET title = ?, examDate = ?, examType = ?, aytField = ?, notes = ?, publisher = ?
+WHERE id = ?;
+
+deleteExamById:
+DELETE FROM ExamRecord
+WHERE id = ?;
+
+insertSubjectResult:
+INSERT INTO SubjectResultRecord(
+    examId, subjectOrder, subject, questionCount, correct, wrong, timeMinutes, weakTopicsJson
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteSubjectsForExam:
+DELETE FROM SubjectResultRecord
+WHERE examId = ?;
+
+selectAllStudyDays:
+SELECT * FROM StudyDayRecord
+ORDER BY studyDate DESC;
+
+selectStudyDay:
+SELECT * FROM StudyDayRecord
+WHERE studyDate = ?;
+
+upsertStudyDay:
+INSERT OR REPLACE INTO StudyDayRecord(studyDate, questionCount, studyMinutes, estimated)
+VALUES (?, ?, ?, ?);
+
+deleteStudyDay:
+DELETE FROM StudyDayRecord
+WHERE studyDate = ?;
