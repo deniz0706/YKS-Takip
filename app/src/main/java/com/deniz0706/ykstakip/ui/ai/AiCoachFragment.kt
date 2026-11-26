@@ -30,12 +30,14 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.AiContextBuilder
 import com.deniz0706.ykstakip.data.AiImageEncoder
+import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.AiMemoryRepository
 import com.deniz0706.ykstakip.data.AiSecretStore
 import com.deniz0706.ykstakip.data.NvidiaAiService
 import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.util.PlanActionParser
+import com.deniz0706.ykstakip.util.AiVisionCapabilities
 import com.deniz0706.ykstakip.util.StudyPlanConflicts
 import com.deniz0706.ykstakip.ui.theme.YksTheme
 import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
@@ -56,6 +58,7 @@ class AiCoachFragment : Fragment() {
     private val sending = mutableStateOf(false)
     private val pendingImageData = mutableStateOf<String?>(null)
     private val imageLoading = mutableStateOf(false)
+    private val currentAiModel = mutableStateOf("")
 
     private val pickAiImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null && isAdded) {
@@ -82,6 +85,12 @@ class AiCoachFragment : Fragment() {
         super.onCreate(savedInstanceState)
         lines.clear()
         lines.addAll(loadConversation(requireContext()))
+        currentAiModel.value = AppSettings.getAiModel(requireContext())
+    }
+
+    override fun onResume() {
+        super.onResume()
+        currentAiModel.value = AppSettings.getAiModel(requireContext())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
@@ -92,6 +101,7 @@ class AiCoachFragment : Fragment() {
                     val listState = rememberLazyListState()
                     val appContext = LocalContext.current.applicationContext
                     val studyPlanRepository = remember(appContext) { StudyPlanRepository(appContext) }
+                    val visionSupported = AiVisionCapabilities.supportsImages(currentAiModel.value)
                     var pendingPlanDraft by remember { mutableStateOf<PlanActionParser.Draft?>(null) }
                     LaunchedEffect(lines.size, sending.value) {
                         val count = lines.size + if (sending.value) 1 else 0
@@ -289,7 +299,7 @@ class AiCoachFragment : Fragment() {
                         ) {
                             TextButton(
                                 onClick = { pickAiImage.launch("image/*") },
-                                enabled = !sending.value && !imageLoading.value
+                                enabled = !sending.value && !imageLoading.value && visionSupported
                             ) { Text(if (imageLoading.value) "Görsel hazırlanıyor…" else "＋ Görsel ekle") }
                             if (pendingImageData.value != null) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -302,7 +312,9 @@ class AiCoachFragment : Fragment() {
                             }
                         }
                         Text(
-                            "Görsel, mesajı gönderdiğinde NVIDIA AI’ye iletilir; sohbet geçmişine dosya olarak kaydedilmez.",
+                            if (visionSupported) "Görsel, mesajı gönderdiğinde NVIDIA AI’ye iletilir; sohbet geçmişine dosya olarak kaydedilmez."
+                            else "Görsel analizi için Ayarlar’dan Mistral Large 4 modelini seç.",
+
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall
                         )
@@ -413,6 +425,11 @@ class AiCoachFragment : Fragment() {
             if (imageData != null) "Bu görseldeki YKS sorusunu çöz ve çözümünü adım adım açıkla." else return
         }
         val appContext = requireContext().applicationContext
+        if (imageData != null && !AiVisionCapabilities.supportsImages(AppSettings.getAiModel(appContext))) {
+            lines.add(CoachLine("error", "Görsel analizi için Mistral Large 4 modelini seçmelisin."))
+            persistConversation(appContext)
+            return
+        }
         val memoryReply = if (imageData == null) handleMemoryCommand(question) else null
         if (memoryReply == null && !AiSecretStore.hasApiKey(appContext)) {
             lines.add(CoachLine("error", "Görsel analizi ve normal sohbet için Ayarlar bölümünden NVIDIA API anahtarını eklemelisin."))
