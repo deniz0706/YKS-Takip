@@ -86,6 +86,7 @@ fun StudyScreenV2(
     onQuestionGallery: (String) -> Unit,
     onQuestionPhotoRemove: (String, String) -> Unit,
     onImportExamTopic: (ExamErrorNotebook.Suggestion) -> Unit,
+    onRequestReviewNotifications: () -> Unit,
     onEditToday: () -> Unit,
     onFocusSaved: () -> Unit,
     onEditDay: (String) -> Unit,
