@@ -67,10 +67,9 @@ jobs:
         run: gradle --no-daemon testDebugUnitTest assembleDebug assembleRelease
 
       - name: Verify in-place update identity and version
-        env:
-          EXPECTED_VERSION_CODE: ${{ 1000 + github.run_number }}
-          EXPECTED_VERSION_NAME: 4.0.${{ github.run_number }}
         run: |
+          EXPECTED_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))
+          EXPECTED_VERSION_NAME="4.0.${GITHUB_RUN_NUMBER}"
           AAPT="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -n 1)"
           if [ -z "$AAPT" ]; then
             echo "::error::Android SDK aapt was not installed."
