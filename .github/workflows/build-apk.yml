@@ -20,7 +20,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     # Only trusted branch pushes/maintainer dispatches trigger this workflow.
-    cache-mode: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
