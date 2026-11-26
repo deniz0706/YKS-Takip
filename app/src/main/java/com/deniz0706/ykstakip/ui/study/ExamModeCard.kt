@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.data.ExamSessionRepository
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.ExamSessionMath
+import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.model.SubjectConfigs
 import kotlinx.coroutines.delay
 
 /** Exam and branch timing controls embedded in the existing focus timer panel. */
@@ -41,6 +43,7 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false) {
     var hours by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes / 60).toString()) }
     var minutes by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes % 60).toString()) }
     var durationError by remember { mutableStateOf<String?>(null) }
+    var aytField by remember { mutableStateOf(AytField.SAYISAL) }
 
     LaunchedEffect(state.running) {
         while (state.running) {
@@ -50,13 +53,11 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false) {
     }
 
     val subjects = when (state.examType) {
-        "TYT" -> listOf("Türkçe", "Tarih", "Coğrafya", "Felsefe", "Din Kültürü",
-            "Matematik", "Fizik", "Kimya", "Biyoloji")
-        "AYT" -> listOf("Matematik", "Fizik", "Kimya", "Biyoloji",
+        "TYT" -> listOf("Türkçe", "Sosyal Bilimler", "Matematik", "Fen Bilimleri")
+        "AYT" -> SubjectConfigs.subjectsFor(aytField).map { it.name }
+        else -> listOf("Türkçe", "Sosyal Bilimler", "Matematik", "Fen Bilimleri",
             "Edebiyat", "Tarih-1", "Coğrafya-1", "Tarih-2", "Coğrafya-2",
-            "Felsefe Grubu", "Din Kültürü")
-        else -> listOf("Türkçe", "Matematik", "Fizik", "Kimya", "Biyoloji",
-            "Edebiyat", "Tarih", "Coğrafya", "Felsefe", "Din Kültürü", "Diğer")
+            "Felsefe Grubu", "Din Kültürü / Ek Felsefe")
     }
     val elapsedSeconds = state.elapsedMs / 1000L
     val clock = ExamSessionMath.formatClock(ExamSessionMath.displaySeconds(state.remainingMs))
@@ -79,6 +80,27 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false) {
                     label = { Text(type) },
                     modifier = Modifier.weight(1f)
                 )
+            }
+        }
+        if (state.examType == "AYT") {
+            Text("AYT ALANI", color = colors.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf(
+                    AytField.SAYISAL to "Sayısal",
+                    AytField.ESIT_AGIRLIK to "Eşit Ağırlık",
+                    AytField.SOZEL to "Sözel"
+                ).forEach { (field, label) ->
+                    FilterChip(
+                        selected = aytField == field,
+                        onClick = { aytField = field },
+                        enabled = !state.running,
+                        label = { Text(label) }
+                    )
+                }
             }
         }
         if (state.examType == "BRANŞ") {
