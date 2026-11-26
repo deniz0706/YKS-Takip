@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.deniz0706.ykstakip.data.ExamSessionRepository
+import com.deniz0706.ykstakip.data.ExamSessionRepository\nimport com.deniz0706.ykstakip.data.FocusSessionRepository
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.ExamSessionMath
 import com.deniz0706.ykstakip.model.AytField
@@ -35,14 +35,14 @@ import kotlinx.coroutines.delay
 /** Exam and branch timing controls embedded in the existing focus timer panel. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false) {
+fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSaved: () -> Unit = {}) {
     val context = LocalContext.current
     val repository = remember(context) { ExamSessionRepository(context) }
     var state by remember(repository) { mutableStateOf(repository.snapshot()) }
     var showDurationDialog by remember { mutableStateOf(false) }
     var hours by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes / 60).toString()) }
     var minutes by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes % 60).toString()) }
-    var durationError by remember { mutableStateOf<String?>(null) }
+    var durationError by remember { mutableStateOf<String?>(null) }\n    var saveMessage by remember { mutableStateOf<String?>(null) }
     var aytField by remember { mutableStateOf(AytField.SAYISAL) }
 
     LaunchedEffect(state.running) {
@@ -126,15 +126,40 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false) {
         Spacer(Modifier.height(9.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
-                onClick = { state = if (state.running) repository.pause() else repository.start() },
+                onClick = {
+                    state = if (state.running) repository.pause() else repository.start()
+                    saveMessage = null
+                },
                 enabled = !state.finished,
                 modifier = Modifier.weight(1f)
             ) { Text(if (state.running) "Ⅱ Duraklat" else if (state.elapsedMs > 0L) "▶ Devam et" else "▶ Başlat") }
             OutlinedButton(
-                onClick = { state = repository.reset() },
+                onClick = {
+                    val result = repository.saveToToday()
+                    state = repository.snapshot()
+                    when (result) {
+                        is FocusSessionRepository.SaveResult.Saved -> {
+                            onSaved()
+                            saveMessage = if (result.loggedMinutes > 0)
+                                "${result.loggedMinutes} dk bugünkü çalışma sürene eklendi."
+                            else "Saniyeler sonraki seansa aktarılmak üzere saklandı."
+                        }
+                        FocusSessionRepository.SaveResult.NoTime -> saveMessage = "Kaydedilecek süre yok."
+                        FocusSessionRepository.SaveResult.DailyLimit -> saveMessage = "Günlük 24 saat sınırına ulaşıldı."
+                    }
+                },
+                enabled = !state.running && state.elapsedMs > 0L,
+                modifier = Modifier.weight(1f)
+            ) { Text("✓ Kaydet") }
+            OutlinedButton(
+                onClick = { state = repository.reset(); saveMessage = null },
                 enabled = !state.running && state.elapsedMs > 0L,
                 modifier = Modifier.weight(1f)
             ) { Text("Sıfırla") }
+        }
+        if (saveMessage != null) {
+            Text(saveMessage.orEmpty(), color = colors.primary,
+                style = MaterialTheme.typography.bodySmall)
         }
         Text("Ders geçişi işaretle", color = colors.onSurface,
             style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
