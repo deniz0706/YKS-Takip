@@ -2,17 +2,25 @@ package com.deniz0706.ykstakip.shared
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -22,8 +30,51 @@ private val GraphiteBackground = Color(0xFF0F1115)
 private val GraphiteSurface = Color(0xFF181B20)
 private val GraphiteAccent = Color(0xFFB8C7E3)
 
+/** Data contract supplied by the platform repository; empty values are genuine empty states. */
+data class DashboardUiState(
+    val tytLatestNet: Double? = null,
+    val tytPreviousNet: Double? = null,
+    val tytGoal: Float? = null,
+    val tytTrend: List<Double> = emptyList(),
+    val aytLatestNet: Double? = null,
+    val aytPreviousNet: Double? = null,
+    val aytGoal: Float? = null,
+    val aytTrend: List<Double> = emptyList(),
+    val daysUntilExam: Long? = null,
+    val todayQuestionCount: Int = 0,
+    val dailyQuestionGoal: Int? = null
+) {
+    init {
+        require(todayQuestionCount >= 0) { "Bugünkü soru sayısı negatif olamaz." }
+        require(dailyQuestionGoal == null || dailyQuestionGoal >= 0) { "Günlük hedef negatif olamaz." }
+        require(daysUntilExam == null || daysUntilExam >= 0) { "Sınava kalan gün negatif olamaz." }
+        require((tytGoal == null || tytGoal >= 0f) && (aytGoal == null || aytGoal >= 0f)) {
+            "Net hedefi negatif olamaz."
+        }
+        require((tytTrend + aytTrend).all { it.isFinite() && it >= 0.0 }) {
+            "Net geçmişi geçersiz değer içeriyor."
+        }
+    }
+}
+
 @Composable
-fun YksTakipApp() {
+fun YksTakipApp(
+    dashboard: DashboardUiState = DashboardUiState(),
+    onAddExam: (String) -> Unit = {},
+    onOpenHistory: () -> Unit = {},
+    onOpenStudy: () -> Unit = {}
+) {
+    var selectedExam by remember { mutableStateOf("TYT") }
+    var showTarget by remember { mutableStateOf(true) }
+    val latest = if (selectedExam == "TYT") dashboard.tytLatestNet else dashboard.aytLatestNet
+    val previous = if (selectedExam == "TYT") dashboard.tytPreviousNet else dashboard.aytPreviousNet
+    val goal = if (selectedExam == "TYT") dashboard.tytGoal else dashboard.aytGoal
+    val trend = if (selectedExam == "TYT") dashboard.tytTrend else dashboard.aytTrend
+    val change = if (latest != null && previous != null) latest - previous else null
+    val progress = if (latest != null && goal != null && goal > 0f) {
+        "${((latest / goal) * 100.0).toInt()}%"
+    } else null
+
     MaterialTheme(
         colorScheme = darkColorScheme(
             primary = GraphiteAccent,
@@ -40,23 +91,55 @@ fun YksTakipApp() {
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(22.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("YKS TAKİP", style = MaterialTheme.typography.labelLarge, color = GraphiteAccent)
-                Text("4.0", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column {
+                        Text("YKS TAKİP", style = MaterialTheme.typography.labelLarge, color = GraphiteAccent)
+                        Text("Bugün", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+                        Text(
+                            dashboard.daysUntilExam?.let { "YKS'ye $it gün kaldı" } ?: "Çalışma durumun",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        "${dashboard.todayQuestionCount}",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = { selectedExam = "TYT" }) { Text(if (selectedExam == "TYT") "● TYT" else "TYT") }
+                    TextButton(onClick = { selectedExam = "AYT" }) { Text(if (selectedExam == "AYT") "● AYT" else "AYT") }
+                }
                 SharedExamTrendCard(
-                    examType = "TYT",
-                    latestNet = null,
-                    change = null,
-                    goal = null,
-                    goalProgressLabel = null,
-                    trend = emptyList(),
-                    trendCount = 0,
-                    showTarget = false,
-                    onShowTargetChange = {}
+                    examType = selectedExam,
+                    latestNet = latest,
+                    change = change,
+                    goal = goal,
+                    goalProgressLabel = progress,
+                    trend = trend,
+                    trendCount = trend.size,
+                    showTarget = showTarget,
+                    onShowTargetChange = { showTarget = it }
                 )
-                Spacer(Modifier.height(4.dp))
+                if (dashboard.dailyQuestionGoal != null) {
+                    Text(
+                        "Günlük hedef: ${dashboard.dailyQuestionGoal} soru",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Button(onClick = { onAddExam(selectedExam) }, modifier = Modifier.fillMaxWidth()) {
+                    Text("$selectedExam denemesi ekle")
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onOpenHistory) { Text("Deneme geçmişi") }
+                    TextButton(onClick = onOpenStudy) { Text("Çalışma takibi") }
+                }
+                Spacer(Modifier.height(8.dp))
                 Text(
-                    "Ortak arayüz kabuğu. iOS veri ve gezinme adaptörleri henüz bağlanmadı.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    "Veriler cihazındaki kayıtlarından alınır. Henüz deneme eklemediysen burada boş durum gösterilir.",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

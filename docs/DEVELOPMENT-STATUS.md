@@ -202,3 +202,11 @@ Updated: 2026-11-26
 - The iOS entry point currently proves the shared UI shell only. iOS persistence, navigation, ranking, app project/signing, and release are not complete and must not be described as shipped.
 - Added a common test for Turkish decimal formatting and extended CI to test the shared UI module, compile its Android target and compile iOS device/simulator targets. Ranking estimator/lookup/calculator and legacy persistence formats remain unchanged.
 - This branch has not yet been merged into `4.0/foundation`; CI must pass before integration.
+
+
+## Latest continuation — Compose dashboard contract
+- Replaced the static Compose Multiplatform placeholder with a data-driven dashboard surface and explicit `DashboardUiState` input plus platform navigation callbacks.
+- Added TYT/AYT switching, latest net/change/goal/trend presentation, empty-state messaging, add-exam action, history and study navigation actions, and daily question/exam countdown context.
+- Added validation for impossible dashboard state (negative counts/goals/days and invalid net trend values) with common tests. Platform repositories must supply persisted values; iOS is not claimed to be connected to Android storage.
+- KMP verification run `45873501403` passed for the preceding shell commit. Android APK run `45873501372` was still running at the time of this update; this new commit will trigger fresh verification.
+- Active branch remains `4.0/compose-multiplatform-shell`; no merge to foundation or main has been performed.
