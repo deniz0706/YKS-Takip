@@ -19,7 +19,7 @@ internal object AiMemoryExtractor {
     private val preferencePattern = Regex("""(?iu)^\s*tercihim\s+(.{3,120}?)\s*[.!]?$""")
     // Intentionally strict: a short imperative must be at the very end.
     private val futurePreferencePattern = Regex(
-        """(?iu)^\s*bundan\s+sonra\s+(.{2,100}?)\s+(anlat|yaz|ver|kullan|konuş|hatırlat)\s*[.!]?$"""
+        """(?iu)^\s*bundan\s+sonra\s+([^,.!?]{2,100}?)\s+(anlat|yaz|ver|kullan|konuş|hatırlat)\s*[.!]?$"""
     )
     private val resourcePatterns = listOf(
         Regex("""(?iu)^\s*(kaynağım|kaynak olarak|çözdüğüm kaynak)\s+(.{2,120}?)\s*[.!]?$"""),
