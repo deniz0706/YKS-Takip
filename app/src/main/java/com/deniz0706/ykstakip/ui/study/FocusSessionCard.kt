@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import com.deniz0706.ykstakip.data.FocusSessionRepository
+import com.deniz0706.ykstakip.data.ExamSessionRepository
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import kotlinx.coroutines.delay
@@ -29,6 +30,8 @@ import kotlinx.coroutines.delay
 fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val store = remember(context) { FocusSessionRepository(context) }
+    val examStore = remember(context) { ExamSessionRepository(context) }
+    var examState by remember(examStore) { mutableStateOf(examStore.snapshot()) }
     var state by remember(store) { mutableStateOf(store.snapshot()) }
     var message by remember { mutableStateOf<String?>(null) }
     var savedSuccessfully by remember { mutableStateOf(false) }
@@ -63,42 +66,38 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
 
     DashboardPanel(modifier, accent = true) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = !showExamTimer,
-                onClick = {
-                    state = store.snapshot()
-                    showExamTimer = false
-                },
-                label = { Text("Odak") },
-                modifier = Modifier.weight(1f)
-            )
-            FilterChip(
-                selected = showExamTimer,
-                onClick = {
-                    state = store.snapshot()
-                    showExamTimer = true
-                },
-                label = { Text("TYT · AYT · Branş") },
-                modifier = Modifier.weight(1f)
-            )
+            FilterChip(selected = !showExamTimer, onClick = {
+                state = store.snapshot()
+                showExamTimer = false
+            }, label = { Text("Odak") }, modifier = Modifier.weight(1f))
+            FilterChip(selected = showExamTimer, onClick = {
+                state = store.snapshot()
+                examState = examStore.snapshot()
+                showExamTimer = true
+            }, label = { Text("Sınav / Branş") }, modifier = Modifier.weight(1f))
         }
-        if (!showExamTimer) {
+
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("ODAK SEANSI", color = colors.secondary,
-                    style = MaterialTheme.typography.labelSmall, letterSpacing = 1.2.sp)
+                Text(if (showExamTimer) "${examState.examType} ZAMANLAYICISI" else "ODAK SEANSI",
+                    color = colors.secondary, style = MaterialTheme.typography.labelSmall,
+                    letterSpacing = 1.2.sp)
                 Spacer(Modifier.height(7.dp))
-                Text("Dikkatini tek noktaya topla", color = colors.onSurface,
-                    style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(if (showExamTimer) "Tek sayaç. Aynı çalışma günlüğü."
+                    else "Dikkatini tek noktaya topla",
+                    color = colors.onSurface, style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
                 Text(when {
-                    state.completed -> "Geri sayım bitti. Çalışmanı günlüğe ekleyebilirsin."
+                    state.completed -> "Süre tamamlandı. Çalışmanı günlüğe ekleyebilirsin."
                     state.limitReached -> "24 saatlik günlük üst sınıra ulaştın. Seansı kaydet."
-                    state.running && state.stopwatch -> "Kronometre sürüyor; 60 dakikada durmaz."
+                    state.running && showExamTimer -> "Sınav süresi devam ediyor."
+                    state.running && state.stopwatch -> "Kronometre sürüyor; süre sınırına takılmaz."
                     state.running -> "Geri sayım çalışıyor; başka sayfaya geçsen de süre korunur."
-                    state.elapsedMs > 0L -> "Duraklatıldı. Kaldığın yerden devam et."
-                    state.stopwatch -> "Süresiz kronometreyi başlat. İstediğin an durdurup kaydet."
+                    state.elapsedMs > 0L -> "Duraklatıldı. Kaldığın yerden devam et veya kaydet."
+                    showExamTimer -> "Sınav türünü seç, ardından aynı kronometreyi başlat."
+                    state.stopwatch -> "Süresiz kronometreyi başlat."
                     else -> "Geri sayım süresini seç ve odak seansını başlat."
                 }, color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
@@ -109,130 +108,100 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
                 diameter = if (state.stopwatch || seconds >= 3600L) 122.dp else 104.dp)
         }
 
-        Spacer(Modifier.height(15.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = !state.stopwatch,
-                onClick = {
-                    state = store.chooseDuration(state.durationMinutes)
-                    message = null
-                },
-                enabled = canChangeDuration,
-                label = { Text("Geri sayım") }, modifier = Modifier.weight(1f)
-            )
-            FilterChip(
-                selected = state.stopwatch,
-                onClick = {
-                    state = store.chooseStopwatch()
-                    message = null
-                },
-                enabled = canChangeDuration,
-                label = { Text("Kronometre") }, modifier = Modifier.weight(1f)
-            )
-        }
-        if (!state.stopwatch) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(25, 45, 60, 120).forEach { duration ->
-                    FilterChip(
-                        selected = duration == state.durationMinutes,
-                        enabled = canChangeDuration,
-                        onClick = {
-                            state = store.chooseDuration(duration)
-                            message = null
-                        },
-                        label = { Text("$duration") },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-            OutlinedButton(
-                onClick = { customDurationDialog = true },
-                enabled = canChangeDuration,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Özel geri sayım süresi · ${state.durationMinutes} dk") }
+        if (showExamTimer) {
+            ExamModeCard(embedded = true, onTimerChanged = {
+                state = store.snapshot()
+                examState = examStore.snapshot()
+                message = null
+            })
         } else {
-            Text("Hedef süre yok. Kronometre 60 veya 120 dakikada durmaz; " +
-                "yalnızca 24 saatlik günlük güvenlik sınırı vardır.",
-                color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+            Spacer(Modifier.height(15.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(selected = !state.stopwatch, onClick = {
+                    state = store.chooseDuration(state.durationMinutes); message = null
+                }, enabled = canChangeDuration, label = { Text("Geri sayım") },
+                    modifier = Modifier.weight(1f))
+                FilterChip(selected = state.stopwatch, onClick = {
+                    state = store.chooseStopwatch(); message = null
+                }, enabled = canChangeDuration, label = { Text("Kronometre") },
+                    modifier = Modifier.weight(1f))
+            }
+            if (!state.stopwatch) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(25, 45, 60, 120).forEach { duration ->
+                        FilterChip(selected = duration == state.durationMinutes,
+                            enabled = canChangeDuration,
+                            onClick = { state = store.chooseDuration(duration); message = null },
+                            label = { Text("$duration") }, modifier = Modifier.weight(1f))
+                    }
+                }
+                OutlinedButton(onClick = { customDurationDialog = true },
+                    enabled = canChangeDuration, modifier = Modifier.fillMaxWidth()) {
+                    Text("Özel geri sayım süresi · ${state.durationMinutes} dk")
+                }
+            } else {
+                Text("Hedef süre yok. Kronometre 60 veya 120 dakikada durmaz; " +
+                    "yalnızca 24 saatlik günlük güvenlik sınırı vardır.",
+                    color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+            }
         }
+
         Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = {
-                    state = if (state.running) store.pause() else store.start()
-                    message = null
-                    savedSuccessfully = false
-                },
-                enabled = !state.completed && !state.limitReached,
+            Button(onClick = {
+                state = if (state.running) store.pause() else store.start()
+                message = null; savedSuccessfully = false
+            }, enabled = !state.completed && !state.limitReached,
                 shape = RoundedCornerShape(15.dp),
-                modifier = Modifier.weight(1f).height(49.dp)
-            ) {
-                Text(if (state.running) "Ⅱ  Duraklat"
-                    else if (state.elapsedMs > 0) "▶  Devam et" else "▶  Başlat",
-                    maxLines = 1)
+                modifier = Modifier.weight(1f).height(49.dp)) {
+                Text(if (state.running) "Ⅱ Duraklat"
+                    else if (state.elapsedMs > 0L) "▶ Devam et" else "▶ Başlat", maxLines = 1)
             }
-            OutlinedButton(
-                onClick = {
-                    val result = store.saveToToday()
-                    state = store.snapshot()
-                    when (result) {
-                        is FocusSessionRepository.SaveResult.Saved -> {
-                            onSaved()
-                            savedSuccessfully = true
-                            message = when {
-                                result.loggedMinutes > 0 && result.carriedSeconds > 0 ->
-                                    "${result.loggedMinutes} dk günlüğe eklendi; ${result.carriedSeconds} sn sonraki seansa taşındı."
-                                result.loggedMinutes > 0 ->
-                                    "${result.loggedMinutes} dk bugünkü çalışma günlüğüne eklendi."
-                                else ->
-                                    "Kalan ${result.carriedSeconds} sn kaydedildi; sonraki seansa eklenecek."
-                            }
-                        }
-                        FocusSessionRepository.SaveResult.NoTime -> {
-                            savedSuccessfully = false
-                            message = "Önce sayacı başlat."
-                        }
-                        FocusSessionRepository.SaveResult.DailyLimit -> {
-                            savedSuccessfully = false
-                            message = "Günlük çalışma süresi 1440 dakikayı aşamaz."
+            OutlinedButton(onClick = {
+                val result = store.saveToToday()
+                state = store.snapshot()
+                examState = examStore.snapshot()
+                when (result) {
+                    is FocusSessionRepository.SaveResult.Saved -> {
+                        onSaved(); savedSuccessfully = true
+                        message = when {
+                            result.loggedMinutes > 0 && result.carriedSeconds > 0 ->
+                                "${result.loggedMinutes} dk günlüğe eklendi; ${result.carriedSeconds} sn sonraki seansa taşındı."
+                            result.loggedMinutes > 0 ->
+                                "${result.loggedMinutes} dk bugünkü çalışma günlüğüne eklendi."
+                            else -> "Kalan ${result.carriedSeconds} sn kaydedildi; sonraki seansa eklenecek."
                         }
                     }
-                },
-                // Saving a paused session must never require completing the preset
-                // or even its first full minute.
-                enabled = !state.running && state.elapsedMs > 0L,
+                    FocusSessionRepository.SaveResult.NoTime -> {
+                        savedSuccessfully = false; message = "Önce sayacı başlat."
+                    }
+                    FocusSessionRepository.SaveResult.DailyLimit -> {
+                        savedSuccessfully = false; message = "Günlük çalışma süresi 1440 dakikayı aşamaz."
+                    }
+                }
+            }, enabled = !state.running && state.elapsedMs > 0L,
                 shape = RoundedCornerShape(15.dp),
-                modifier = Modifier.weight(1f).height(49.dp)
-            ) { Text("✓  Kaydet", maxLines = 1) }
+                modifier = Modifier.weight(1f).height(49.dp)) { Text("✓ Kaydet", maxLines = 1) }
         }
         if (state.elapsedMs > 0L) {
             TextButton(onClick = {
                 state = store.discard()
-                message = null
-                savedSuccessfully = false
+                examState = examStore.snapshot()
+                message = null; savedSuccessfully = false
             }, modifier = Modifier.align(Alignment.End)) {
                 Text("Seansı sıfırla", color = colors.error,
                     style = MaterialTheme.typography.labelMedium)
             }
         }
         OutlinedButton(onClick = { manualTimeDialog = true },
-            modifier = Modifier.fillMaxWidth()) {
-            Text("+ Bugüne elle çalışma süresi ekle")
-        }
-        if (message != null) {
-            Text(message.orEmpty(),
-                color = if (savedSuccessfully) colors.primary else colors.error,
-                style = MaterialTheme.typography.bodySmall)
-        }
+            modifier = Modifier.fillMaxWidth()) { Text("+ Bugüne elle çalışma süresi ekle") }
+        if (message != null) Text(message.orEmpty(),
+            color = if (savedSuccessfully) colors.primary else colors.error,
+            style = MaterialTheme.typography.bodySmall)
         if (state.elapsedMs == 0L) {
-            Text("Duraklatıp istediğin an kaydet. Tam dakikaya ulaşmayan saniyeler " +
-                "aynı günkü sonraki seansa aktarılır. Elle girdiğin süreyi tekrar sayaçtan kaydetme.",
-                color = colors.onSurfaceVariant,
-                style = MaterialTheme.typography.labelSmall)
-        }
-        }
-        if (showExamTimer) {
-            ExamModeCard(embedded = true, onSaved = onSaved)
+            Text("Kaydettiğin süre bugünkü çalışma toplamına eklenir. Tam dakikaya ulaşmayan saniyeler " +
+                "aynı günkü sonraki seansa aktarılır.",
+                color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
         }
     }
 
