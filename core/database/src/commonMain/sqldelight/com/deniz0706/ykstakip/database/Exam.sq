@@ -26,7 +26,7 @@ ON SubjectResultRecord(examId, subjectOrder);
 
 selectAllExams:
 SELECT * FROM ExamRecord
-ORDER BY examDate DESC, id DESC;
+ORDER BY examDate ASC, id ASC;
 
 selectExamById:
 SELECT * FROM ExamRecord
@@ -76,7 +76,7 @@ DELETE FROM SubjectResultRecord;
 
 selectAllStudyDays:
 SELECT * FROM StudyDayRecord
-ORDER BY studyDate DESC;
+ORDER BY studyDate ASC;
 
 selectStudyDay:
 SELECT * FROM StudyDayRecord
