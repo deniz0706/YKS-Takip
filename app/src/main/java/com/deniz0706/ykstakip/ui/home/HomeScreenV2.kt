@@ -231,21 +231,51 @@ fun HomeScreenV2(
                 }
             }
         }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                DashboardMetric("Ortalama", average?.let(Fmt::net) ?: "—",
-                    Modifier.weight(1f), "Tüm denemeler", c.onSurface)
-                DashboardMetric("En iyi", best?.let(Fmt::net) ?: "—",
-                    Modifier.weight(1f), "Kişisel rekor", c.primary)
-            }
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                DashboardMetric("Son 5", lastFive?.let(Fmt::net) ?: "—",
-                    Modifier.weight(1f), "Güncel ortalama")
-                DashboardMetric("Sınava kalan", countdown?.let {
-                    if (it >= 0) "$it" else "—"
-                } ?: "—", Modifier.weight(1f), "gün")
+        item(key = "performance-snapshot") {
+            DashboardPanel(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text("GENEL ORTALAMA", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = .8.sp)
+                        Spacer(Modifier.height(5.dp))
+                        Text(average?.let(Fmt::net) ?: "—", color = c.onSurface,
+                            fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                        Text("Tüm denemeler", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                    }
+                    Column(Modifier.weight(1f)) {
+                        Text("KİŞİSEL REKOR", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = .8.sp)
+                        Spacer(Modifier.height(5.dp))
+                        Text(best?.let(Fmt::net) ?: "—", color = c.primary,
+                            fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                        Text("En yüksek net", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+                Spacer(Modifier.height(13.dp))
+                HorizontalDivider(color = c.outlineVariant.copy(alpha = .55f))
+                Spacer(Modifier.height(13.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text("SON 5 DENEME", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = .8.sp)
+                        Spacer(Modifier.height(5.dp))
+                        Text(lastFive?.let(Fmt::net) ?: "—", color = c.secondary,
+                            fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                        Text("Güncel ortalama", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                    }
+                    Column(Modifier.weight(1f)) {
+                        Text("SINAVA KALAN", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall, letterSpacing = .8.sp)
+                        Spacer(Modifier.height(5.dp))
+                        Text(countdown?.let { if (it >= 0) "$it" else "—" } ?: "—",
+                            color = c.onSurface, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                        Text("gün", color = c.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             }
         }
         item(key = "exam-rhythm") {
