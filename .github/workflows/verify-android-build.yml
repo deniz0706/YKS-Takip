@@ -7,9 +7,11 @@ on:
       - 'feature/nvidia-ai-coach'
       - 'v3.0-test/product-foundation'
       - 'v3.0/ui-foundation'
+      - 'integration/complete-mainline'
   pull_request:
     branches:
       - '2.0'
+      - 'main'
   workflow_dispatch:
 
 permissions:
