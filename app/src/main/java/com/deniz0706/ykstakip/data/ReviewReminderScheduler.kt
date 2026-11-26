@@ -33,7 +33,10 @@ object ReviewReminderScheduler {
             cancel(context, outcome.id)
             return
         }
-        val dueDate = runCatching { LocalDate.parse(date) }.getOrNull() ?: return
+        val dueDate = runCatching { LocalDate.parse(date) }.getOrNull() ?: run {
+            cancel(context, outcome.id)
+            return
+        }
         val dueAt = dueDate.atTime(9, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val delay = (dueAt - System.currentTimeMillis()).coerceAtLeast(0L)
         val request = OneTimeWorkRequestBuilder<ReviewReminderWorker>()
