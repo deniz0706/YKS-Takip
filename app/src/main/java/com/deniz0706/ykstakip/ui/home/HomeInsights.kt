@@ -9,14 +9,15 @@ object HomeInsights {
         else -> "Hazırlığını verilerle takip et."
     }
 
-    /** Share of the goal reached in percent; null when there is no usable goal or exam. */
-    fun goalPercent(latest: Double?, goal: Float?): Int? =
-        if (latest == null || goal == null || goal <= 0f) null
-        else ((latest / goal) * 100).toInt().coerceIn(0, 999)
+    /** Share of the goal reached in percent; null when the input is missing or unusable. */
+    fun goalPercent(latest: Double?, goal: Float?): Int? {
+        if (latest == null || goal == null || !latest.isFinite() || !goal.isFinite() || goal <= 0f) return null
+        return ((latest / goal) * 100).toInt().coerceIn(0, 999)
+    }
 
     fun trendSentence(recentAvg: Double?, olderAvg: Double?, recentCount: Int): String = when {
         recentAvg == null -> "İlk denemeni eklediğinde gelişim analizin burada görünecek."
-        olderAvg == null -> "İlk $recentCount denemen kaydedildi. Birkaç deneme daha ekleyince dönemleri karşılaştırabileceksin."
+        olderAvg == null -> "Son $recentCount denemenin ortalaması hazır. Dönem karşılaştırması için en az 5 eski deneme daha ekle."
         recentAvg - olderAvg > 0.5 -> "Son 5 denemede yükseliş var. Önceki 5 denemeye göre ortalaman arttı."
         recentAvg - olderAvg < -0.5 -> "Son 5 denemede ortalama geriledi. Zayıf branşlarını inceleyebilirsin."
         else -> "Son 5 denemede performansın dengeli seyrediyor."

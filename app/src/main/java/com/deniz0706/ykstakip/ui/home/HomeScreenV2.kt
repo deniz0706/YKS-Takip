@@ -114,7 +114,10 @@ fun HomeScreenV2(
     val recent = remember(all) { all.takeLast(5) }
     val older = remember(all) { all.dropLast(5).takeLast(5) }
     val recentAvg = remember(recent) { recent.map { it.totalNet }.takeIf { it.isNotEmpty() }?.average() }
-    val olderAvg = remember(older) { older.map { it.totalNet }.takeIf { it.isNotEmpty() }?.average() }
+    // A one-to-four-exam sample is not a comparable "previous five" period.
+    val olderAvg = remember(older) {
+        older.takeIf { it.size == 5 }?.map { it.totalNet }?.average()
+    }
 
     LazyColumn(
         modifier.fillMaxSize().background(c.background),
