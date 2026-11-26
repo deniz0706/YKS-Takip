@@ -23,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.deniz0706.ykstakip.data.AiContextBuilder
 import com.deniz0706.ykstakip.data.AiMemoryRepository
 import com.deniz0706.ykstakip.data.AiSecretStore
@@ -273,7 +272,7 @@ class AiCoachFragment : Fragment() {
             return
         }
         sending.value = true
-        viewLifecycleOwner.lifecycleScope.launch {
+        (requireActivity().application as com.deniz0706.ykstakip.YksApp).applicationScope.launch {
             var answer: String? = null
             var failure: String? = null
             try {
@@ -305,7 +304,6 @@ class AiCoachFragment : Fragment() {
             } finally {
                 sending.value = false
             }
-            if (!isAdded) return@launch
             val result = if (answer != null) CoachLine("assistant", answer!!) else
                 CoachLine("error", "Yanıt alınamadı: " + (failure ?: "Bilinmeyen hata"))
             lines.add(result)
