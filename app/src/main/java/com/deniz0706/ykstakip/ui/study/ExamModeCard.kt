@@ -93,7 +93,7 @@ fun ExamModeCard(
                     FilterChip(
                         selected = aytField == field,
                         onClick = { aytField = field },
-                        enabled = !state.running && state.elapsedMs == 0L,
+                        enabled = !timerRunning && timerElapsedMs == 0L,
                         label = { Text(label) }
                     )
                 }
