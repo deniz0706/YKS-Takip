@@ -1,6 +1,5 @@
 package com.deniz0706.ykstakip.database
 
-import app.cash.sqldelight.db.SqlDriver
 import com.deniz0706.ykstakip.domain.AytField
 import com.deniz0706.ykstakip.domain.Exam
 import com.deniz0706.ykstakip.domain.ExamType
