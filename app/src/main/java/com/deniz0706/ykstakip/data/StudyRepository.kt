@@ -2,13 +2,13 @@ package com.deniz0706.ykstakip.data
 
 import android.content.Context
 import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.widget.StudySummaryWidgetProvider
 import org.json.JSONArray
 import org.json.JSONObject
 
 class StudyRepository(context: Context) {
-
-    private val prefs =
-        context.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
+    private val app = context.applicationContext
+    private val prefs = app.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
 
     fun getAll(): List<StudyDay> {
         val raw = prefs.getString(KEY_STUDY_DAYS, null) ?: return emptyList()
@@ -72,6 +72,7 @@ class StudyRepository(context: Context) {
             .remove(KEY_BEFORE_IMPORT)
             .remove(KEY_AFTER_IMPORT)
             .apply()
+        StudySummaryWidgetProvider.updateAll(app)
     }
 
     /** Atomic merge. Existing days stay unchanged unless user explicitly allows overwrites. */
@@ -102,6 +103,7 @@ class StudyRepository(context: Context) {
             .putString(KEY_STUDY_DAYS, updated).commit()) {
             "Çalışma geçmişi kaydedilemedi."
         }
+        StudySummaryWidgetProvider.updateAll(app)
         return changes
     }
 
@@ -115,9 +117,11 @@ class StudyRepository(context: Context) {
         // Older backups lack an after-import snapshot: do not restore blindly.
         if (!canUndoLastImport()) return false
         val previous = prefs.getString(KEY_BEFORE_IMPORT, null) ?: return false
-        return prefs.edit().putString(KEY_STUDY_DAYS, previous)
+        val restored = prefs.edit().putString(KEY_STUDY_DAYS, previous)
             .remove(KEY_BEFORE_IMPORT)
             .remove(KEY_AFTER_IMPORT).commit()
+        if (restored) StudySummaryWidgetProvider.updateAll(app)
+        return restored
     }
 
     companion object {
