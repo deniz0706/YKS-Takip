@@ -1,16 +1,23 @@
 package com.deniz0706.ykstakip.domain
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class SubjectRule(
     val name: String,
     val questionCount: Int
 )
 
+@Serializable
 sealed interface ExamValidationResult {
     data object Valid : ExamValidationResult
     data object NegativeAnswers : ExamValidationResult
-    data class AnswerCountExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
-    data class TotalAnswersExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
-    data class TotalTimeExceeded(val actualMinutes: Int, val limitMinutes: Int) : ExamValidationResult
+    @Serializable
+data class AnswerCountExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
+    @Serializable
+data class TotalAnswersExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
+    @Serializable
+data class TotalTimeExceeded(val actualMinutes: Int, val limitMinutes: Int) : ExamValidationResult
 }
 
 /**
