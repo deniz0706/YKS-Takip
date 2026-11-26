@@ -84,8 +84,18 @@ Updated: 2026-11-26
 - Added ADR 0003 to document this boundary and compatibility policy.
 - Latest source commit: `d05f07f8f8b6c84a5a646e1383118e7db0ace945`. No Gradle build has been run from the GitHub connector; CI must validate plugin resolution and compilation.
 
+## Latest continuation work — shared serialization and database foundation
+- Added Kotlin Serialization 2.0.21 plugin and kotlinx-serialization-json 1.7.3 to `:core:domain`; shared exam/subject/study models and validation results are serializable from common code.
+- Added common serialization tests for Turkish text, nested subject records, optional legacy fields, polymorphic validation results, study-day values, and AYT enum values.
+- Added isolated `:core:database` Kotlin Multiplatform module using SQLDelight 2.0.2 with JVM/iOS targets.
+- Added initial normalized schema for exams, ordered subject results, and daily study records, plus basic read/write/delete queries.
+- Added ADR 0003 (serialization boundary) and ADR 0004 (SQLDelight foundation and migration gate).
+- Extended macOS KMP CI to compile the database module for JVM and iOS; extended Android APK CI to compile its JVM target.
+- The SQLDelight module is deliberately not connected to production repositories. No legacy SharedPreferences or photo data has been touched; no migration has been run.
+- Latest schema/CI/docs commits: `ad6f1e91e664981f3e4e04cfbcfadafc32351f2e`. GitHub connector cannot execute Gradle; no green build is claimed.
+
 ## Immediate next steps
-1. Add the next pure shared-domain slice (exam validation and time/net primitives) with characterization tests before moving repositories.
+1. Add SQLDelight platform driver factories and database tests, then implement a staged, lossless importer behind existing repository interfaces.
 2. Introduce Compose Multiplatform UI only after shared domain and persistence boundaries are stable; do not rewrite screens in one pass.
 3. Complete the preference/key and model/backup schema census, including settings, timers, AI cache, and photo ownership.
 4. Add CI execution for `:core:domain:allTests` and Android build; add iOS compile validation on a macOS runner.
