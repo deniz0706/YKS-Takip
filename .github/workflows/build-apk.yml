@@ -66,6 +66,19 @@ jobs:
       - name: Build APK
         run: gradle --no-daemon testDebugUnitTest assembleDebug assembleRelease
 
+      - name: Verify in-place update identity and version
+        env:
+          EXPECTED_VERSION_CODE: ${{ 1000 + github.run_number }}
+          EXPECTED_VERSION_NAME: 4.0.${{ github.run_number }}
+        run: |
+          AAPT="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -n 1)"
+          if [ -z "$AAPT" ]; then
+            echo "::error::Android SDK aapt was not installed."
+            exit 1
+          fi
+          BADGING="$("$AAPT" dump badging app/build/outputs/apk/debug/app-debug.apk)"
+          printf '%s\\n' "$BADGING" | grep -F "package: name='com.deniz0706.ykstakip' versionCode='$EXPECTED_VERSION_CODE' versionName='$EXPECTED_VERSION_NAME'"
+
       - name: Report APK signing fingerprint
         if: steps.preview_signing.outputs.ready == 'true'
         run: |
