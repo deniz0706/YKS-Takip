@@ -201,9 +201,9 @@ class AiCoachFragment : Fragment() {
         if (showPattern.matches(trimmed)) {
             val memories = repository.all()
             if (memories.isEmpty()) return "Henüz kalıcı hafızama kaydedilmiş bir bilgi yok. Hatırla: ... yazarak bir bilgi ekleyebilirsin."
-            return "Kalıcı hafızamda şunlar var:\\n" + memories.take(30).joinToString("\\n") {
+            return "Kalıcı hafızamda şunlar var:\n" + memories.take(30).joinToString("\n") {
                 "• [${it.category}] ${it.content}"
-            } + if (memories.size > 30) "\\n… ve ${memories.size - 30} kayıt daha." else ""
+            } + if (memories.size > 30) "\n… ve ${memories.size - 30} kayıt daha." else ""
         }
 
         val rememberPattern = Regex("^(?:(?:lütfen )?(?:bunu )?)?(?:hatırla|hafızana kaydet|aklında tut)\\s*[:：-]?\\s*(.+)$", RegexOption.IGNORE_CASE)
@@ -250,7 +250,9 @@ class AiCoachFragment : Fragment() {
         if (question.isEmpty() || sending.value || !AiSecretStore.hasApiKey(requireContext())) return
         draft.value = ""
         lines.add(CoachLine("user", question))
-        persistConversation(requireContext().applicationContext)
+        val appContext = requireContext().applicationContext
+        AiMemoryRepository(appContext).captureFromUserMessage(question)
+        persistConversation(appContext)
         val memoryReply = handleMemoryCommand(question)
         if (memoryReply != null) {
             lines.add(CoachLine("assistant", memoryReply))
