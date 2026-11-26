@@ -60,6 +60,7 @@ Updated: 2026-11-26
 - Extracted focus countdown/stopwatch elapsed-time arithmetic into `commonMain`; the existing Android API delegates to the shared implementation. Added shared tests for pause/clock rollback, configured countdowns, 24-hour cap, and target clamping.
 - Moved the `StudyDay` value model and daily study-time addition rules into `commonMain`, retaining the original Android package through a Kotlin typealias and adapter. Shared tests cover data preservation, invalid input, date mismatch, and the 24-hour limit.
 - Moved the `SubjectResult` exam value model and derived blank/net/time calculations into `commonMain`; Android JSON encoding/decoding remains in a compatibility adapter so the persisted exam JSON contract is unchanged. Added shared model tests.
+- Moved the `Exam` aggregate, exam types, AYT fields, and TYT/AYT subject configurations into `commonMain`. Existing Android model package names remain source-compatible aliases; the existing JSON field names and parsing defaults remain in the Android adapter.
 - Updated the 4.0 APK workflow to execute the shared domain JVM test task before Android unit tests and APK builds.
 - Added Android adapter regression tests to ensure Turkish validation messages and TYT/AYT time boundaries remain unchanged.
 - Recorded the incremental migration strategy and explicit iOS validation limits in ADR 0002.
