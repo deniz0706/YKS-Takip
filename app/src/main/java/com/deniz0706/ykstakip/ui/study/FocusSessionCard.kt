@@ -97,6 +97,9 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
                 Text(when {
                     state.completed -> "Süre tamamlandı. Çalışmanı günlüğe ekleyebilirsin."
                     state.limitReached -> "24 saatlik günlük üst sınıra ulaştın. Seansı kaydet."
+                    showExamTimer && (state.running || state.elapsedMs > 0L) &&
+                        (state.stopwatch || state.durationMinutes != examState.durationMinutes) ->
+                        "Açık oturumun süre ayarı korunuyor; sınav süresi sonraki oturumda uygulanır."
                     state.running && showExamTimer -> "Sınav süresi devam ediyor."
                     state.running && state.stopwatch -> "Kronometre sürüyor; süre sınırına takılmaz."
                     state.running -> "Geri sayım çalışıyor; başka sayfaya geçsen de süre korunur."
