@@ -135,7 +135,7 @@ class AiMemoryRepository(context: Context) {
             listOf("adım ", "benim adım", "ismim", "adı ").any(text::contains) -> "İsim"
             listOf("hocam", "öğretmenim", "öğretmeni", "arkadaşım", "annem", "babam").any(text::contains) -> "Kişi"
             listOf("tercih", "seviyorum", "sevmiyorum", "istemiyorum", "bundan sonra", "şöyle anlat").any(text::contains) -> "Tercih"
-            listOf("hedefim", "hedefim", "hedef olarak", "istiyorum", "amacım").any(text::contains) -> "Hedef"
+            listOf("hedefim", "hedefi:", "hedef olarak", "istiyorum", "amacım").any(text::contains) -> "Hedef"
             listOf("kaynak", "kitap", "deneme", "yayın").any(text::contains) -> "Kaynak"
             listOf("konusunda", "konuyu", "dersinde", "matematik", "fizik", "kimya", "biyoloji", "türkçe").any(text::contains) -> "Akademik"
             else -> "Not"
