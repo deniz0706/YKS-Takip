@@ -10,10 +10,12 @@ data class SubjectRule(
 
 @Serializable
 sealed interface ExamValidationResult {
+    @Serializable
     data object Valid : ExamValidationResult
+    @Serializable
     data object NegativeAnswers : ExamValidationResult
     @Serializable
-data class AnswerCountExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
+    data class AnswerCountExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
     @Serializable
 data class TotalAnswersExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
     @Serializable
