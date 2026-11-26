@@ -71,6 +71,9 @@ deleteSubjectsForExam:
 DELETE FROM SubjectResultRecord
 WHERE examId = ?;
 
+deleteAllSubjectResults:
+DELETE FROM SubjectResultRecord;
+
 selectAllStudyDays:
 SELECT * FROM StudyDayRecord
 ORDER BY studyDate DESC;
