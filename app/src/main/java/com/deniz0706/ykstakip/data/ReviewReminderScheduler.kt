@@ -68,7 +68,7 @@ class ReviewReminderWorker(
     override suspend fun doWork(): Result {
         val id = inputData.getString(KEY_OUTCOME_ID) ?: return Result.failure()
         val expectedDate = inputData.getString(KEY_DUE_DATE) ?: return Result.failure()
-        val outcome = LearningRepository(applicationContext).outcomes()
+        val outcome = LearningRepository.getInstance(applicationContext).outcomes()
             .firstOrNull { it.id == id } ?: return Result.success()
         if (outcome.nextReviewDate != expectedDate) return Result.success()
         val dueDate = runCatching { LocalDate.parse(expectedDate) }.getOrNull()
