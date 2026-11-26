@@ -42,7 +42,8 @@ object StudyBackupManager {
             require(envelope.optInt("version") == 1) { "Bilinmeyen yedek sürümü." }
         }
         val rows = envelope?.getJSONArray("days") ?: JSONArray(source)
-        require(rows.length() in 1..5000) { "Dosyada geçerli sayıda gün yok." }
+        require(rows.length() in 0..5000) { "Dosyada geçerli sayıda gün yok." }
+        if (rows.length() == 0) return Parsed(emptyList(), 0)
         val defaultEstimate = envelope?.optBoolean("estimated", false) ?: false
         val seen = hashSetOf<String>()
         val days = (0 until rows.length()).map { i ->
