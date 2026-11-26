@@ -60,9 +60,9 @@ class StudyFragment : Fragment() {
     private val learningField = mutableStateOf(AytField.SAYISAL)
     private var learningJumpSeq = 0
 
-    fun openLearning(examType: String, subject: String) {
+    fun openLearning(examType: String, subject: String, topic: String = "") {
         learningJumpSeq++
-        learningJump.value = StudyLearningJump(learningJumpSeq, examType, subject)
+        learningJump.value = StudyLearningJump(learningJumpSeq, examType, subject, topic)
     }
 
     private val takePhoto = registerForActivityResult(ActivityResultContracts.TakePicture()) { succeeded ->
@@ -190,7 +190,7 @@ class StudyFragment : Fragment() {
                             val normalizedSubject = subject
                                 .replace(Regex("^(TYT|AYT)\\s*", RegexOption.IGNORE_CASE), "")
                                 .trim()
-                            openLearning(if (isAyt) "AYT" else "TYT", normalizedSubject)
+                            openLearning(if (isAyt) "AYT" else "TYT", normalizedSubject, item.topic)
                         },
                         onDeletePlan = { deletePlan(it) }
                     )

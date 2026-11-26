@@ -50,7 +50,12 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-data class StudyLearningJump(val requestId: Int, val examType: String, val subject: String)
+data class StudyLearningJump(
+    val requestId: Int,
+    val examType: String,
+    val subject: String,
+    val topic: String = ""
+)
 
 @Composable
 fun StudyScreenV2(
@@ -220,6 +225,7 @@ fun StudyScreenV2(
                 startingPane = if (openRepeatInbox) "review" else "outcomes",
                 startingExamType = learningJump?.examType ?: "TYT",
                 startingSubject = learningJump?.subject.orEmpty(),
+                startingTopic = learningJump?.topic.orEmpty(),
                 // Repeat inbox should span all TYT/AYT courses and fields.
                 signals = reviewSignals,
                 learningField = learningField,

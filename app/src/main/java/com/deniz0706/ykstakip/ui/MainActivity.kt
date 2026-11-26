@@ -157,10 +157,10 @@ class MainActivity : AppCompatActivity() {
         showFragment(NAV_STUDY)
     }
 
-    fun openLearning(examType: String, subject: String) {
+    fun openLearning(examType: String, subject: String, topic: String = "") {
         nav.select(NAV_STUDY)
         showFragment(NAV_STUDY)
-        (fragmentCache[NAV_STUDY] as? StudyFragment)?.openLearning(examType, subject)
+        (fragmentCache[NAV_STUDY] as? StudyFragment)?.openLearning(examType, subject, topic)
     }
 
     fun openNewExam(type: ExamType) {
