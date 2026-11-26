@@ -7,6 +7,7 @@ on:
       - main
       - master
       - '2.0'
+      - '4.0/**'
 
 permissions:
   contents: write
@@ -97,17 +98,17 @@ jobs:
           path: app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: error
 
-      - name: Publish 2.0 preview release
-        if: github.ref == 'refs/heads/2.0' && steps.preview_signing.outputs.ready == 'true'
+      - name: Publish 4.0 preview release
+        if: startsWith(github.ref, 'refs/heads/4.0/') && steps.preview_signing.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v2.0-preview"
+          TAG="v4.0-preview"
           APK="app/build/outputs/apk/debug/app-debug.apk"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "YKS Takip 2.0 · Önizleme" --prerelease --latest=false
+            gh release edit "$TAG" --title "YKS Takip 4.0 · Önizleme" --prerelease --latest=false
           else
-            gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 2.0 · Önizleme" --notes "Jetpack Compose arayüzünün geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 2.0 · Önizleme" --notes "YKS Takip 4.0 Android geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
           fi
           gh release upload "$TAG" "$APK" --clobber
           gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fx 'app-debug.apk'
