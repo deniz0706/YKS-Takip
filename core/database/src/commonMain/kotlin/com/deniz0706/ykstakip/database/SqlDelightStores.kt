@@ -87,6 +87,7 @@ class SqlDelightExamStore(
             "Exam IDs must be unique."
         }
         database.transaction {
+            database.examQueries.deleteAllSubjectResults()
             database.examQueries.deleteAllExams()
             exams.forEach { exam ->
                 upsertParent(exam)
@@ -96,7 +97,10 @@ class SqlDelightExamStore(
     }
 
     fun delete(id: Long) {
-        database.examQueries.deleteExamById(id)
+        database.transaction {
+            database.examQueries.deleteSubjectsForExam(id)
+            database.examQueries.deleteExamById(id)
+        }
     }
 
     private fun upsertParent(exam: Exam) {
