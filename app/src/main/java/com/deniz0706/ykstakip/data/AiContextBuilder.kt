@@ -14,6 +14,7 @@ object AiContextBuilder {
         val studyDays = StudyRepository(app).getAll().sortedBy { it.date }
         val outcomes = LearningRepository(app).outcomes()
         val plan = StudyPlanRepository(app).getAll()
+        val memorySnapshot = AiMemoryRepository(app).promptSnapshot()
         val today = LocalDate.now()
         val recent = exams.takeLast(5)
         val weak = WeakTopicAnalyzer.findWeakSpots(exams, sampleSize = 8, top = 5)
@@ -36,6 +37,15 @@ object AiContextBuilder {
         lines += "Son 7 gün: ${last7.sumOf { it.studyMinutes }} dakika, ${last7.sumOf { it.questionCount }} soru (${last7.size} kayıt günü)."
         val todayPlan = plan.filter { it.dayOfWeek == today.dayOfWeek.value % 7 || it.dayOfWeek == today.dayOfWeek.value }
         if (todayPlan.isNotEmpty()) lines += "Haftalık program (bugün): " + todayPlan.take(6).joinToString("; ") { "${it.startTime}-${it.endTime} ${it.subject} ${it.topic}" }
-        return lines.take(15).joinToString("\n").take(5000)
+        val currentSnapshot = lines.take(15).joinToString("\n").take(4200)
+        return buildString {
+            if (memorySnapshot.isNotBlank()) {
+                append("KALICI ÖĞRENCİ HAFIZASI (kullanıcının özellikle kaydettiği bilgiler):\\n")
+                append(memorySnapshot)
+                append("\\n\\n")
+            }
+            append("GÜNCEL UYGULAMA VERİLERİ:\\n")
+            append(currentSnapshot)
+        }.take(6800)
     }
 }
