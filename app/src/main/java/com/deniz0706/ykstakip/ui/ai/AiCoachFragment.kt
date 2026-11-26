@@ -23,12 +23,17 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.AiContextBuilder
 import com.deniz0706.ykstakip.data.AiMemoryRepository
 import com.deniz0706.ykstakip.data.AiSecretStore
 import com.deniz0706.ykstakip.data.NvidiaAiService
+import com.deniz0706.ykstakip.data.StudyPlanRepository
+import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.util.PlanActionParser
+import com.deniz0706.ykstakip.util.StudyPlanConflicts
 import com.deniz0706.ykstakip.ui.theme.YksTheme
 import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 import kotlinx.coroutines.Dispatchers
@@ -59,6 +64,9 @@ class AiCoachFragment : Fragment() {
             setContent {
                 YksTheme(darkTheme = activeDarkTheme(context)) {
                     val listState = rememberLazyListState()
+                    val appContext = LocalContext.current.applicationContext
+                    val studyPlanRepository = remember(appContext) { StudyPlanRepository(appContext) }
+                    var pendingPlanDraft by remember { mutableStateOf<PlanActionParser.Draft?>(null) }
                     LaunchedEffect(lines.size, sending.value) {
                         val count = lines.size + if (sending.value) 1 else 0
                         if (count > 0) listState.animateScrollToItem(count - 1)
@@ -149,15 +157,23 @@ class AiCoachFragment : Fragment() {
                                             bottomEnd = if (isUser) 5.dp else 18.dp
                                         )
                                     ) {
-                                        MarkdownMessage(
-                                            text = line.text,
-                                            modifier = Modifier.padding(horizontal = 15.dp, vertical = 12.dp),
-                                            color = when {
-                                                isUser -> MaterialTheme.colorScheme.onPrimaryContainer
-                                                isError -> MaterialTheme.colorScheme.onErrorContainer
-                                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        Column(Modifier.padding(horizontal = 15.dp, vertical = 12.dp)) {
+                                            MarkdownMessage(
+                                                text = if (line.role == "assistant") PlanActionParser.visibleText(line.text) else line.text,
+                                                modifier = Modifier,
+                                                color = when {
+                                                    isUser -> MaterialTheme.colorScheme.onPrimaryContainer
+                                                    isError -> MaterialTheme.colorScheme.onErrorContainer
+                                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                                }
+                                            )
+                                            val planDraft = if (line.role == "assistant") PlanActionParser.parse(line.text) else null
+                                            if (planDraft != null) {
+                                                TextButton(onClick = { pendingPlanDraft = planDraft }) {
+                                                    Text("✓  Öneriyi haftalık plana ekle")
+                                                }
                                             }
-                                        )
+                                        }
                                     }
                                 }
                             }
@@ -168,6 +184,59 @@ class AiCoachFragment : Fragment() {
                                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
+                        }
+                        pendingPlanDraft?.let { proposed ->
+                            val existing = studyPlanRepository.getAll()
+                            val candidateId = maxOf(
+                                System.currentTimeMillis(),
+                                (existing.maxOfOrNull { it.id } ?: 0L) + 1L
+                            )
+                            val candidate = StudyPlanItem(
+                                id = candidateId,
+                                dayOfWeek = proposed.dayOfWeek,
+                                startTime = proposed.startTime,
+                                endTime = proposed.endTime,
+                                subject = proposed.subject,
+                                topic = proposed.topic,
+                                completed = false
+                            )
+                            val duplicate = existing.any {
+                                it.dayOfWeek == proposed.dayOfWeek &&
+                                    it.startTime == proposed.startTime &&
+                                    it.endTime == proposed.endTime &&
+                                    it.subject.equals(proposed.subject, ignoreCase = true) &&
+                                    it.topic.equals(proposed.topic, ignoreCase = true)
+                            }
+                            val conflict = candidate.id in StudyPlanConflicts.findConflictingIds(existing + candidate)
+                            val dayName = listOf("", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar")[proposed.dayOfWeek]
+                            AlertDialog(
+                                onDismissRequest = { pendingPlanDraft = null },
+                                title = { Text("Çalışma planına eklensin mi?") },
+                                text = {
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text("$dayName · ${proposed.startTime}–${proposed.endTime}")
+                                        Text(proposed.subject, fontWeight = FontWeight.SemiBold)
+                                        if (proposed.topic.isNotBlank()) Text(proposed.topic)
+                                        Text("Bu işlem haftalık tekrar eden planına kaydedilecek.")
+                                        if (duplicate) Text("Bu görev planında zaten var.", color = MaterialTheme.colorScheme.error)
+                                        else if (conflict) Text("Bu saat aralığı mevcut bir dersle çakışıyor. Önce saatleri düzenle.", color = MaterialTheme.colorScheme.error)
+                                    }
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        enabled = !duplicate && !conflict,
+                                        onClick = {
+                                            studyPlanRepository.save(candidate)
+                                            lines.add(CoachLine("assistant", "✓ $dayName ${proposed.startTime}–${proposed.endTime} ${proposed.subject} haftalık planına eklendi."))
+                                            persistConversation(appContext)
+                                            pendingPlanDraft = null
+                                        }
+                                    ) { Text("Onayla ve ekle") }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { pendingPlanDraft = null }) { Text("Vazgeç") }
+                                }
+                            )
                         }
                         Row(
                             Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -308,7 +377,7 @@ class AiCoachFragment : Fragment() {
                 answer = withTimeout(80_000) {
                     val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
                     val messages = mutableListOf(NvidiaAiService.Message("system",
-                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Her zaman Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir ve önceliklendirilmiş öneriler sun. Performans özetinde son 5 denemeyi önceki 5 denemeyle karşılaştır; veri azsa bunu açıkça söyle. Branş önceliğini yalnızca nete göre değil doğru oranı, değişkenlik, süre ve öğrencinin etiketlediği tekrar konularına göre değerlendir. Net verisinden dikkat hatası veya bilgi eksiği teşhisi koyma; kullanıcıdan hata türü verisi yoksa bunu bilmediğini söyle. Tekrar zamanı gelen kazanımları ve çözülmemiş soru kayıtlarını önceliklendir. Günlük/haftalık plan önerirken mevcut programı dikkate al; uygulamada kaydetmediğin bir görevi kaydedilmiş gibi sunma. Kalıcı öğrenci hafızasındaki isimleri, tercihleri, kaynakları ve kararları sonraki konuşmalarda hatırla; bunları güncel uygulama verileriyle karıştırma. Hafızadaki bilgi ile yeni söylenen bilgi çelişirse bunu belirt ve netleştir. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
+                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Her zaman Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir ve önceliklendirilmiş öneriler sun. Performans özetinde son 5 denemeyi önceki 5 denemeyle karşılaştır; veri azsa bunu açıkça söyle. Branş önceliğini yalnızca nete göre değil doğru oranı, değişkenlik, süre ve öğrencinin etiketlediği tekrar konularına göre değerlendir. Net verisinden dikkat hatası veya bilgi eksiği teşhisi koyma; kullanıcıdan hata türü verisi yoksa bunu bilmediğini söyle. Tekrar zamanı gelen kazanımları ve çözülmemiş soru kayıtlarını önceliklendir. Günlük/haftalık plan önerirken mevcut programı dikkate al; uygulamada kaydetmediğin bir görevi kaydedilmiş gibi sunma. Kalıcı öğrenci hafızasındaki isimleri, tercihleri, kaynakları ve kararları sonraki konuşmalarda hatırla; bunları güncel uygulama verileriyle karıştırma. Hafızadaki bilgi ile yeni söylenen bilgi çelişirse bunu belirt ve netleştir. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al. Haftalık plan için somut ve saatli bir görev önerdiğinde yanıtın sonuna yalnızca tek bir makine-okunur blok ekle: [[YKS_PLAN_ACTION]]{"type":"add_plan","dayOfWeek":1,"startTime":"09:00","endTime":"10:00","subject":"Matematik","topic":"Fonksiyonlar"}[[/YKS_PLAN_ACTION]]. dayOfWeek 1 Pazartesi, 7 Pazar. Saatler 24 saat biçiminde ve bitiş başlangıçtan sonra olmalı. Birden fazla görev için blok üretme; belirsiz önerilerde blok ekleme. Bu blok yalnızca kullanıcı açıkça onaylarsa kaydedilir.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
                     lines.asSequence()
                         .filter { it.role == "user" || it.role == "assistant" }
                         .toList()
