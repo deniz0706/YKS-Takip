@@ -111,7 +111,7 @@ fun StudyScreenV2(
     // Recommendation matching scans historical exams and the full learning catalog.
     // Keep it off the UI thread so larger personal datasets do not block frames.
     val insights by produceState(
-        initialValue = StudyInsightsSnapshot(emptyList(), emptyList(), emptyList()),
+        StudyInsightsSnapshot(emptyList(), emptyList(), emptyList()),
         learningOutcomes, learningQuestions, exams
     ) {
         value = withContext(Dispatchers.Default) {
