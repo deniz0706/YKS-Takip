@@ -1,0 +1,27 @@
+name: Inspect Claude ZIP
+on:
+  push:
+    branches: [review]
+    paths:
+      - '.github/workflows/inspect-claude-zip.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract Claude archive
+        run: |
+          test -f YKS-Takip-main-ui-v1.zip
+          mkdir extracted
+          unzip -q YKS-Takip-main-ui-v1.zip -d extracted
+          find extracted -maxdepth 3 -type f | head -40
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claude-zip-extracted
+          path: extracted/
+          if-no-files-found: error
+          retention-days: 3
