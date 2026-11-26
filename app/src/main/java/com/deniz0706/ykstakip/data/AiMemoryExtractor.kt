@@ -41,7 +41,7 @@ internal object AiMemoryExtractor {
                     ?: preferencePattern.matchEntire(sentence)?.groupValues?.getOrNull(1)
                         ?.let { Candidate("Tercih", it.trim()) }
                     ?: futurePreferencePattern.matchEntire(sentence)?.let {
-                        Candidate("Tercih", "Bundan sonra \${it.groupValues[1].trim()} \${it.groupValues[2].trim()}")
+                        Candidate("Tercih", "Bundan sonra " + it.groupValues[1].trim() + " " + it.groupValues[2].trim())
                     }
                     ?: resourcePatterns.firstNotNullOfOrNull { pattern ->
                         pattern.matchEntire(sentence)?.groupValues?.getOrNull(2)
