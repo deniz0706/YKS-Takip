@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.data.ExamSessionRepository
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.ExamSessionMath
@@ -52,7 +53,7 @@ fun ExamModeCard(modifier: Modifier = Modifier) {
 
     DashboardPanel(modifier, accent = true) {
         Text("GERÇEK DENEME MODU", color = colors.secondary,
-            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1f)
+            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1.sp)
         Spacer(Modifier.height(5.dp))
         Text("Sınav süreni yönet", color = colors.onSurface,
             style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
