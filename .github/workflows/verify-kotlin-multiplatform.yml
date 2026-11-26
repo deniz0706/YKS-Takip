@@ -1,0 +1,44 @@
+name: Verify Kotlin Multiplatform
+
+on:
+  push:
+    branches:
+      - '4.0/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-kmp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared-domain:
+    name: Shared domain tests and iOS compilation
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Run shared JVM tests and compile iOS targets
+        run: >-
+          gradle --no-daemon
+          :core:domain:jvmTest
+          :core:domain:compileKotlinIosArm64
+          :core:domain:compileKotlinIosSimulatorArm64
