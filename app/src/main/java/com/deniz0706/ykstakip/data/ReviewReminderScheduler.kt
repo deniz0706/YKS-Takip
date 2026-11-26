@@ -54,7 +54,7 @@ object ReviewReminderScheduler {
     }
 
     fun rescheduleAll(context: Context, outcomes: List<LearningOutcome>) {
-        outcomes.forEach { schedule(context, it) }
+        outcomes.filter { it.nextReviewDate.isNotBlank() }.forEach { schedule(context, it) }
     }
 }
 
