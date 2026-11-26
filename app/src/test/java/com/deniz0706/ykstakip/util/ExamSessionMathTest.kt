@@ -31,7 +31,7 @@ class ExamSessionMathTest {
     }
 
     @Test fun clockFormattingRoundsRemainingTimeUp() {
-        assertEquals( "02:45:00", ExamSessionMath.formatClock(
+        assertEquals( "02:45:01", ExamSessionMath.formatClock(
             ExamSessionMath.displaySeconds(9_900_001L)
         ))
         assertEquals("00:01", ExamSessionMath.formatClock(
