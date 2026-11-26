@@ -21,12 +21,13 @@ import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.components.ExamTypeTabs
-import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
+import com.deniz0706.ykstakip.ui.components.DashboardSectionHeading
+import com.deniz0706.ykstakip.ui.components.DashboardEmptyState
 import com.deniz0706.ykstakip.util.Fmt
 
 @Composable
@@ -146,13 +147,9 @@ fun HistoryScreenV2(
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
-                Column {
-                    Text("Kayıtlar", fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleMedium)
-                    Text("${filtered.size} deneme · ${if (newestFirst) "yeniden eskiye" else "eskiden yeniye"}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall)
+                Column(Modifier.weight(1f)) {
+                    DashboardSectionHeading("Kayıtlar",
+                        detail = "${filtered.size} deneme · ${if (newestFirst) "yeniden eskiye" else "eskiden yeniye"}")
                 }
                 TextButton(onClick = { newestFirst = !newestFirst }) {
                     Text(if (newestFirst) "En eski önce ↑" else "En yeni önce ↓")
@@ -161,13 +158,8 @@ fun HistoryScreenV2(
         }
         if (filtered.isEmpty()) {
             item {
-                YksCard {
-                    Text("Burada henüz deneme görünmüyor", fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface)
-                    Spacer(Modifier.height(6.dp))
-                    Text("Arama ve tarih filtrelerini kontrol edebilir veya yeni bir deneme ekleyebilirsin.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                }
+                DashboardEmptyState("Burada henüz deneme görünmüyor",
+                    "Arama ve tarih filtrelerini kontrol edebilir veya yeni bir deneme ekleyebilirsin.")
             }
         }
         itemsIndexed(filtered, key = { _, exam -> exam.id }) { index, exam ->
@@ -175,13 +167,7 @@ fun HistoryScreenV2(
             val comparisonIndex = if (newestFirst) index + 1 else index - 1
             val previousExam = filtered.getOrNull(comparisonIndex)
             val netChange = previousExam?.let { exam.totalNet - it.totalNet }
-            val shape = RoundedCornerShape(22.dp)
-            Column(
-                Modifier.fillMaxWidth()
-                    .background(c.surfaceContainerLow, shape)
-                    .clickable { onExamClick(exam.id) }
-                    .padding(horizontal = 16.dp, vertical = 15.dp)
-            ) {
+            DashboardPanel(Modifier.fillMaxWidth().clickable { onExamClick(exam.id) }) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(exam.title, fontWeight = FontWeight.SemiBold, color = c.onSurface,

@@ -18,6 +18,7 @@ import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
+import com.deniz0706.ykstakip.ui.components.DashboardSectionHeading
 
 @Composable
 fun SettingsScreenV2(
@@ -104,8 +105,7 @@ fun SettingsScreenV2(
         DashboardPanel(Modifier.fillMaxWidth()) {
             Text("01  /  GÖRÜNÜM", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
-            Text("Görünüm", color = colors.onSurface,
-                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            DashboardSectionHeading("Görünüm", detail = "Uygulamanın renk temasını seç.")
             Spacer(Modifier.height(14.dp))
             ThemePreviewSelector(
                 selected = selectedTheme,
@@ -121,8 +121,7 @@ fun SettingsScreenV2(
         DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
             Text("02  /  HEDEFLER", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
-            Text("Hedeflerin", color = colors.onSurface,
-                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            DashboardSectionHeading("Hedeflerin", detail = "Sınav ve günlük çalışma hedeflerini düzenle.")
             Text("Boş bıraktığın hedefler kaldırılır.", color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(12.dp))
@@ -157,7 +156,7 @@ fun SettingsScreenV2(
         DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
             Text("03  /  YAPAY ZEKÂ KOÇU", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
-            Text("AI koç bağlantısı", color = colors.onSurface, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            DashboardSectionHeading("AI koç bağlantısı", detail = "Kendi sağlayıcı ayarlarını güvenle yönet.")
             Text("Kendi sağlayıcı anahtarını kullan. Anahtar Android Keystore ile şifrelenerek bu cihazda saklanır. Uygulama açılışında otomatik istek gönderilmez.", color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(value = aiKey, onValueChange = { aiKey = it; aiError = null; aiSaved = false }, label = { Text(if (hasAiKey) "Yeni API anahtarı (boş bırak: mevcut kalsın)" else "NVIDIA API anahtarı") }, modifier = Modifier.fillMaxWidth(), singleLine = true, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(), shape = RoundedCornerShape(16.dp))
@@ -176,8 +175,7 @@ fun SettingsScreenV2(
         DashboardPanel(Modifier.fillMaxWidth()) {
             Text("04  /  VERİ YÖNETİMİ", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
-            Text("Verilerin", color = colors.onSurface,
-                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            DashboardSectionHeading("Verilerin", detail = "Yedekleme ve geri yükleme araçları.")
             Text("Deneme arşivini JSON dosyası olarak yedekle veya geri yükle.",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(16.dp))

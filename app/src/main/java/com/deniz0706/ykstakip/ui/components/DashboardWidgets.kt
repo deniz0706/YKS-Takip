@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
@@ -25,17 +26,18 @@ import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.theme.YksSpacing
 import com.deniz0706.ykstakip.ui.theme.YksShape
 import com.deniz0706.ykstakip.ui.theme.YksMotion
+import com.deniz0706.ykstakip.ui.theme.YksText
 
 /** Shared, borderless visual primitives used by every main screen. */
 @Composable
 fun DashboardPageHeader(eyebrow: String, title: String, subtitle: String, modifier: Modifier = Modifier) {
     val c = MaterialTheme.colorScheme
-    Column(modifier.fillMaxWidth().padding(top = 5.dp, bottom = 3.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(modifier.fillMaxWidth().padding(top = YksSpacing.xs, bottom = YksSpacing.xxs),
+        verticalArrangement = Arrangement.spacedBy(YksSpacing.xxs)) {
         Text(eyebrow.uppercase(), color = c.primary, style = MaterialTheme.typography.labelSmall,
             letterSpacing = 1.7.sp, fontWeight = FontWeight.Bold)
-        Text(title, color = c.onSurface, fontSize = 31.sp, lineHeight = 36.sp,
-            fontWeight = FontWeight.Bold, letterSpacing = (-0.6).sp)
-        Text(subtitle, color = c.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium, lineHeight = 20.sp)
+        Text(title, color = c.onSurface, style = YksText.pageTitle)
+        Text(subtitle, color = c.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium, lineHeight = 21.sp)
     }
 }
 
@@ -46,7 +48,7 @@ fun DashboardPanel(modifier: Modifier = Modifier, accent: Boolean = false, conte
     val fill = if (accent) Brush.linearGradient(
         listOf(c.primary.copy(alpha = 0.14f), c.secondary.copy(alpha = 0.045f), c.surfaceContainerHigh)
     ) else Brush.linearGradient(listOf(c.surfaceContainerLow, c.surfaceContainerLow))
-    Column(modifier.background(fill, shape).padding(YksSpacing.cardContent),
+    Column(modifier.clip(shape).background(fill).padding(YksSpacing.cardContent),
         content = { CompositionLocalProvider(LocalContentColor provides c.onSurface) { content() } })
 }
 
@@ -58,8 +60,7 @@ fun DashboardMetric(label: String, value: String, modifier: Modifier = Modifier,
         Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant,
             letterSpacing = 1.1.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(9.dp))
-        Text(value, fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold,
-            letterSpacing = (-0.5).sp, color = color, maxLines = 1)
+        Text(value, style = YksText.statNumber, color = color, maxLines = 1)
         if (detail != null) {
             Spacer(Modifier.height(6.dp))
             Text(detail, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant, maxLines = 2)
@@ -101,8 +102,50 @@ fun DashboardRing(fraction: Float, center: String, modifier: Modifier = Modifier
             }
         })
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(center, fontSize = 21.sp, fontWeight = FontWeight.Bold, color = c.onSurface)
+            Text(center, style = YksText.smallNumber, color = c.onSurface)
             if (caption.isNotEmpty()) Text(caption, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
         }
+    }
+}
+
+ 
+/** Shared section heading: consistent hierarchy across every main screen. */
+@Composable
+fun DashboardSectionHeading(
+    title: String,
+    modifier: Modifier = Modifier,
+    detail: String? = null,
+    trailing: String? = null
+) {
+    val c = MaterialTheme.colorScheme
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, color = c.onSurface, style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold, letterSpacing = (-0.2).sp)
+            if (detail != null) Text(detail, color = c.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall)
+        }
+        if (trailing != null) Text(trailing, color = c.onSurfaceVariant,
+            style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium)
+    }
+}
+
+/** Calm empty state shared by charts, archives and filtered views. */
+@Composable
+fun DashboardEmptyState(
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier
+) {
+    val c = MaterialTheme.colorScheme
+    Column(modifier.fillMaxWidth().clip(RoundedCornerShape(YksShape.card))
+        .background(c.surfaceContainerLow).padding(horizontal = 18.dp, vertical = 22.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(title, color = c.onSurface, style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold)
+        Text(description, color = c.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp)
     }
 }
