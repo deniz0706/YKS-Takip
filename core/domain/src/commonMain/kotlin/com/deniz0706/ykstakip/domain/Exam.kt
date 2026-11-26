@@ -1,8 +1,11 @@
 package com.deniz0706.ykstakip.domain
 
+import kotlinx.serialization.Serializable
+
 import kotlin.math.roundToInt
 
 /** Shared YKS exam aggregate; JSON encoding remains in the Android compatibility layer. */
+@Serializable
 data class Exam(
     val id: Long,
     val title: String,
