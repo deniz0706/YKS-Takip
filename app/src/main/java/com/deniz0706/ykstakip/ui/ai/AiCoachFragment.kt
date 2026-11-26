@@ -312,7 +312,7 @@ class AiCoachFragment : Fragment() {
                             }
                         }
                         Text(
-                            if (visionSupported) "Görsel, mesajı gönderdiğinde NVIDIA AI’ye iletilir; sohbet geçmişine dosya olarak kaydedilmez."
+                            if (visionSupported) "Görsel NVIDIA’nın deneme API’sine gönderilir; hizmet girdileri kaydedebilir. Kişisel bilgi içeren görsel yükleme. Dosya yerel sohbet geçmişine kaydedilmez."
                             else "Görsel analizi için Ayarlar’dan Mistral Large 4 modelini seç.",
 
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
