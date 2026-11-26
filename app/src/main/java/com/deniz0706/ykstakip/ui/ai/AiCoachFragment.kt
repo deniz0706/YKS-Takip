@@ -88,7 +88,7 @@ class AiCoachFragment : Fragment() {
                         }
                         Spacer(Modifier.height(12.dp))
                         if (!AiSecretStore.hasApiKey(context)) {
-                            Surface(color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(14.dp)) {
+                            Surface(color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(18.dp)) {
                                 Text("Sohbet için Ayarlar bölümünden NVIDIA API anahtarını eklemelisin.",
                                     Modifier.padding(12.dp), color = MaterialTheme.colorScheme.onErrorContainer)
                             }
@@ -103,7 +103,7 @@ class AiCoachFragment : Fragment() {
                             if (lines.isEmpty()) item {
                                 Surface(
                                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f),
-                                    shape = RoundedCornerShape(20.dp)
+                                    shape = RoundedCornerShape(24.dp)
                                 ) {
                                     Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Text("Merhaba! 👋", style = MaterialTheme.typography.titleMedium,
@@ -113,6 +113,19 @@ class AiCoachFragment : Fragment() {
                                         Text("Örnek: Son üç denememde en çok nerede net kaybediyorum?",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.primary)
+                                        Row(
+                                            Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            AssistChip(
+                                                onClick = { draft.value = "Son 5 denememin gelişimini analiz et." },
+                                                label = { Text("Net trendim") }
+                                            )
+                                            AssistChip(
+                                                onClick = { draft.value = "Bu haftam için gerçekçi bir çalışma önceliği çıkar." },
+                                                label = { Text("Haftalık öncelik") }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -126,7 +139,7 @@ class AiCoachFragment : Fragment() {
                                         color = when {
                                             isUser -> MaterialTheme.colorScheme.primaryContainer
                                             isError -> MaterialTheme.colorScheme.errorContainer
-                                            else -> MaterialTheme.colorScheme.surfaceVariant
+                                            else -> MaterialTheme.colorScheme.surfaceContainerLow
                                         },
                                         shape = RoundedCornerShape(
                                             topStart = 18.dp, topEnd = 18.dp,
@@ -155,9 +168,9 @@ class AiCoachFragment : Fragment() {
                             }
                         }
                         Surface(
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f),
-                            shape = RoundedCornerShape(22.dp),
-                            tonalElevation = 1.dp
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            shape = RoundedCornerShape(24.dp),
+                            tonalElevation = 0.dp
                         ) {
                             Row(
                                 Modifier.fillMaxWidth().padding(7.dp),
@@ -279,7 +292,7 @@ class AiCoachFragment : Fragment() {
                 answer = withTimeout(80_000) {
                     val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
                     val messages = mutableListOf(NvidiaAiService.Message("system",
-                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir öneriler sun. Markdown biçimlendirmesi kullanabilirsin. Kalıcı öğrenci hafızasındaki isimleri, tercihleri, kaynakları ve kararları sonraki konuşmalarda hatırla; bunları güncel uygulama verileriyle karıştırma. Hafızadaki bilgi ile yeni söylenen bilgi çelişirse bunu belirt ve netleştir. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
+                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Her zaman Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir ve önceliklendirilmiş öneriler sun. Performans özetinde son 5 denemeyi önceki 5 denemeyle karşılaştır; veri azsa bunu açıkça söyle. Branş önceliğini yalnızca nete göre değil doğru oranı, değişkenlik, süre ve öğrencinin etiketlediği tekrar konularına göre değerlendir. Net verisinden dikkat hatası veya bilgi eksiği teşhisi koyma; kullanıcıdan hata türü verisi yoksa bunu bilmediğini söyle. Tekrar zamanı gelen kazanımları ve çözülmemiş soru kayıtlarını önceliklendir. Günlük/haftalık plan önerirken mevcut programı dikkate al; uygulamada kaydetmediğin bir görevi kaydedilmiş gibi sunma. Kalıcı öğrenci hafızasındaki isimleri, tercihleri, kaynakları ve kararları sonraki konuşmalarda hatırla; bunları güncel uygulama verileriyle karıştırma. Hafızadaki bilgi ile yeni söylenen bilgi çelişirse bunu belirt ve netleştir. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
                     lines.asSequence()
                         .filter { it.role == "user" || it.role == "assistant" }
                         .toList()

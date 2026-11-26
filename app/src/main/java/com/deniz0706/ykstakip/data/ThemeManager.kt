@@ -83,16 +83,16 @@ object ThemeManager {
     )
 
     private val lightPalette = palette(
-        "#F5F7FC", "#FFFFFF", "#E9EDF5", "#152238",
-        "#53657D", "#7055A5", "#CAD3DF", "#EEE8FA"
+        "#F3F5F2", "#FBFCFA", "#E7ECE8", "#202925",
+        "#5D6B65", "#28685D", "#D2DAD4", "#D9EBE3"
     )
     private val auroraPalette = palette(
-        "#0B1220", "#172337", "#22334A", "#F3F8FF",
-        "#9AAFC5", "#B9A4F5", "#30445C", "#2D344F"
+        "#10171B", "#192227", "#232F35", "#F0F4F2",
+        "#A5B3B5", "#9BCBBE", "#39474B", "#29413D"
     )
     private val darkPalette = palette(
-        "#090B10", "#15181F", "#242831", "#F5F6FA",
-        "#A8ADBC", "#E6C38F", "#343744", "#493923"
+        "#0D1012", "#171B1D", "#252C2F", "#F0F2EF",
+        "#AAB5B2", "#A9C9B9", "#303A37", "#30483D"
     )
 
     fun nativePalette(context: Context): NativePalette = when (currentTheme(context)) {

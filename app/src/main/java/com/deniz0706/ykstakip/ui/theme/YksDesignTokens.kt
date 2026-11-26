@@ -19,16 +19,16 @@ object YksSpacing {
     val xl = 24.dp
     val xxl = 32.dp
     val pageHorizontal = 20.dp
-    val pageVertical = 24.dp
-    val section = 16.dp
-    val cardContent = 18.dp
+    val pageVertical = 22.dp
+    val section = 18.dp
+    val cardContent = 20.dp
 }
 
 object YksShape {
     val control = 12.dp
-    val input = 15.dp
+    val input = 16.dp
     val card = 22.dp
-    val panel = 26.dp
+    val panel = 24.dp
     val floating = 28.dp
     val pill = 100.dp
 }

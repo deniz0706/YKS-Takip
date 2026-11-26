@@ -45,16 +45,16 @@ fun ThemePreviewSelector(
         Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
     val options = listOf(
         PreviewOption("light", "Açık", "Ferahlık",
-            Color(0xFFF5F7FC), Color.White, Color(0xFF152238), Color(0xFF087E72)),
+            Color(0xFFF3F5F2), Color(0xFFFBFCFA), Color(0xFF202925), Color(0xFF28685D)),
         PreviewOption("dark", "Koyu", "Grafit",
-            Color(0xFF090B10), Color(0xFF15181F), Color(0xFFF5F6FA), Color(0xFFE6C38F)),
-        PreviewOption("aurora", "Aurora", "Mint & lila",
-            Color(0xFF0B1220), Color(0xFF172337), Color(0xFFF3F8FF), Color(0xFF57D6C1)),
+            Color(0xFF0D1012), Color(0xFF171B1D), Color(0xFFF0F2EF), Color(0xFFA9C9B9)),
+        PreviewOption("aurora", "Aurora", "Sisli petrol",
+            Color(0xFF10171B), Color(0xFF192227), Color(0xFFF0F4F2), Color(0xFF9BCBBE)),
         PreviewOption("system", "Sistem", "Otomatik",
-            if (systemDark) Color(0xFF090B10) else Color(0xFFF5F7FC),
-            if (systemDark) Color(0xFF15181F) else Color.White,
-            if (systemDark) Color(0xFFF5F6FA) else Color(0xFF152238),
-            if (systemDark) Color(0xFFE6C38F) else Color(0xFF087E72),
+            if (systemDark) Color(0xFF0D1012) else Color(0xFFF3F5F2),
+            if (systemDark) Color(0xFF171B1D) else Color(0xFFFBFCFA),
+            if (systemDark) Color(0xFFF0F2EF) else Color(0xFF202925),
+            if (systemDark) Color(0xFFA9C9B9) else Color(0xFF28685D),
             splitPreview = true)
     )
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -65,10 +65,7 @@ fun ThemePreviewSelector(
                     Column(
                         Modifier.weight(1f)
                             .clip(RoundedCornerShape(19.dp))
-                            .background(if (isSelected) scheme.primaryContainer else scheme.surfaceVariant)
-                            .border(if (isSelected) 2.dp else 1.dp,
-                                if (isSelected) scheme.primary else scheme.outline.copy(alpha = .5f),
-                                RoundedCornerShape(19.dp))
+                            .background(if (isSelected) scheme.primaryContainer else scheme.surfaceContainerLow)
                             .clickable { onSelect(option.id) }
                             .padding(9.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
