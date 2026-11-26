@@ -16,7 +16,7 @@ import java.net.URL
 
 /** OpenAI-compatible NVIDIA NIM client with SSE support and a non-streaming fallback. */
 class NvidiaAiService(private val context: Context) {
-    data class Message(val role: String, val content: String)
+    data class Message(val role: String, val content: String, val imageDataUrls: List<String> = emptyList())
 
     private class HttpFailure(val status: Int, message: String) : IOException(message)
 
@@ -76,8 +76,24 @@ class NvidiaAiService(private val context: Context) {
             if (effort != null) put("reasoning_effort", effort)
             put("stream", stream)
             put("messages", JSONArray().apply {
-                messages.forEach {
-                    put(JSONObject().put("role", it.role).put("content", it.content))
+                messages.forEach { message ->
+                    require(message.imageDataUrls.size <= 8) { "Tek mesajda en fazla 8 görsel gönderilebilir." }
+                    require(message.imageDataUrls.all {
+                        it.startsWith("data:image/") && it.contains(";base64,")
+                    }) { "Görsel biçimi desteklenmiyor." }
+                    val content: Any = if (message.imageDataUrls.isEmpty()) {
+                        message.content
+                    } else {
+                        JSONArray().apply {
+                            put(JSONObject().put("type", "text").put("text", message.content))
+                            message.imageDataUrls.forEach { dataUrl ->
+                                put(JSONObject().put("type", "image_url").put(
+                                    "image_url", JSONObject().put("url", dataUrl)
+                                ))
+                            }
+                        }
+                    }
+                    put(JSONObject().put("role", message.role).put("content", content))
                 }
             })
         }
