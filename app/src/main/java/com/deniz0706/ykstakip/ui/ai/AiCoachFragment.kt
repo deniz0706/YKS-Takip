@@ -48,7 +48,7 @@ import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 import org.json.JSONObject
 
-private data class CoachLine(val role: String, val text: String, val imageDataUrl: String? = null)
+private data class CoachLine(val role: String, val text: String, val imageDataUrl: String? = null, val imageAttached: Boolean = false)
 
 class AiCoachFragment : Fragment() {
     private val lines = mutableStateListOf<CoachLine>()
@@ -184,7 +184,7 @@ class AiCoachFragment : Fragment() {
                                         )
                                     ) {
                                         Column(Modifier.padding(horizontal = 15.dp, vertical = 12.dp)) {
-                                            if (line.imageDataUrl != null) {
+                                            if (line.imageAttached || line.imageDataUrl != null) {
                                                 Text("📎 Görsel eklendi · bu istek için gönderildi",
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     style = MaterialTheme.typography.labelSmall)
@@ -421,7 +421,7 @@ class AiCoachFragment : Fragment() {
         }
         draft.value = ""
         pendingImageData.value = null
-        lines.add(CoachLine("user", question, imageData))
+        lines.add(CoachLine("user", question, imageData, imageAttached = imageData != null))
         persistConversation(appContext)
         if (memoryReply != null) {
             lines.add(CoachLine("assistant", memoryReply))
@@ -454,7 +454,13 @@ class AiCoachFragment : Fragment() {
                                 messages.add(NvidiaAiService.Message(line.role, line.text, imageParts))
                             }
                         }
-                    NvidiaAiService(appContext).chat(messages)
+                    NvidiaAiService(appContext).chat(messages).also {
+                        for (index in lines.indices) {
+                            if (lines[index].imageDataUrl != null) {
+                                lines[index] = lines[index].copy(imageDataUrl = null, imageAttached = true)
+                            }
+                        }
+                    }
                 }
             } catch (e: TimeoutCancellationException) {
                 failure = "Yanıt 80 saniyede tamamlanmadı. Tekrar deneyebilirsin."
