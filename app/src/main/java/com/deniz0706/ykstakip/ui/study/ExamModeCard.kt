@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.data.ExamSessionRepository
 import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.model.SubjectConfigs
@@ -61,7 +62,7 @@ fun ExamModeCard(
 
     val content: @Composable () -> Unit = {
         Text("SINAV TÜRÜ", color = colors.secondary,
-            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1f)
+            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1.sp)
         Spacer(Modifier.height(6.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("TYT", "AYT", "BRANŞ").forEach { type ->
