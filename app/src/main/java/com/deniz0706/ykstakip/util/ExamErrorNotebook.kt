@@ -32,7 +32,7 @@ object ExamErrorNotebook {
         questions: List<QuestionCard>
     ): List<Suggestion> {
         val importedKeys = questions.mapNotNull { question ->
-            Regex("""\\[deneme-kaynak:([^\\]]+)\\]""")
+            Regex("""\[deneme-kaynak:([^\]]+)\]""")
                 .find(question.notes)?.groupValues?.getOrNull(1)
         }.toSet()
 
