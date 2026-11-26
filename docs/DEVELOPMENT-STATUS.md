@@ -104,6 +104,16 @@ Updated: 2026-11-26
 - No legacy preferences, backup files, photos, or signing material were read or modified by these changes. No importer has run.
 - No Gradle execution is available through the GitHub connector; build status remains unverified.
 
+## Latest continuation work — transactional data stores
+- Added shared `SqlDelightExamStore` and `SqlDelightStudyDayStore` adapters using the common domain models.
+- Exam save now updates the parent and replaces ordered subject rows inside one SQLDelight transaction. Full replacement rejects duplicate IDs before deleting anything, then clears child rows and parents transactionally. Deletion explicitly removes children before parents rather than relying on driver foreign-key defaults.
+- Exam parent writes use SQLite `ON CONFLICT DO UPDATE`; avoided `INSERT OR REPLACE`, which can delete the old parent and cascade-delete child rows.
+- Preserved the legacy ascending chronological order for exam history.
+- Added an in-memory SQLite JVM test suite covering aggregate replacement, duplicate-ID protection, deletion, and study-day upsert.
+- Added a JVM target and SQLite test driver to the database module; both CI workflows now run the database JVM tests.
+- These adapters are still isolated: app production repositories continue using legacy SharedPreferences. No data migration or legacy writes have been enabled.
+- Build/test execution is still unverified from this GitHub-only session; the new Gradle tasks must run in Actions before any production wiring.
+
 ## Immediate next steps
 1. Add SQLDelight platform driver factories and database tests, then implement a staged, lossless importer behind existing repository interfaces.
 2. Introduce Compose Multiplatform UI only after shared domain and persistence boundaries are stable; do not rewrite screens in one pass.
