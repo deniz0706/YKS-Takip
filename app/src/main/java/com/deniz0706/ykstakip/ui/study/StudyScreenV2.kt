@@ -51,6 +51,15 @@ import com.deniz0706.ykstakip.ui.components.DashboardSectionHeading
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.deniz0706.ykstakip.util.ReviewSignal
+
+private data class StudyInsightsSnapshot(
+    val reviewSignals: List<ReviewSignal>,
+    val examTopicSuggestions: List<ExamErrorNotebook.Suggestion>,
+    val smartPriorities: List<Triple<String, String, String>>
+)
 
 data class StudyLearningJump(
     val requestId: Int,
@@ -99,27 +108,36 @@ fun StudyScreenV2(
     onDeletePlan: (StudyPlanItem) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val reviewSignals = remember(learningOutcomes, learningQuestions, exams) {
-        ReviewAdvisor.recommendations(learningOutcomes, learningQuestions, exams)
+    // Recommendation matching scans historical exams and the full learning catalog.
+    // Keep it off the UI thread so larger personal datasets do not block frames.
+    val insights by produceState(
+        StudyInsightsSnapshot(emptyList(), emptyList(), emptyList()),
+        learningOutcomes, learningQuestions, exams
+    ) {
+        value = withContext(Dispatchers.Default) {
+            val signals = ReviewAdvisor.recommendations(learningOutcomes, learningQuestions, exams)
+            val suggestions = ExamErrorNotebook.suggestions(exams, learningOutcomes, learningQuestions)
+            val fromLearning = signals.map { signal ->
+                Triple(signal.outcome.subject,
+                    signal.outcome.topic.ifBlank { signal.outcome.title },
+                    signal.explanation)
+            }.distinctBy {
+                it.first.lowercase(Locale("tr", "TR")) + "|" + it.second.lowercase(Locale("tr", "TR"))
+            }
+            val priorities = if (fromLearning.isNotEmpty()) fromLearning.take(3)
+            else WeakTopicAnalyzer.findWeakSpots(exams, sampleSize = 5, top = 3).map { spot ->
+                Triple(spot.subject, spot.topic,
+                    "Son ${spot.outOf} ders kaydında ${spot.count} kez zayıf konu olarak işaretlendi")
+            }
+            StudyInsightsSnapshot(signals, suggestions, priorities)
+        }
     }
-    val examTopicSuggestions = remember(exams, learningOutcomes, learningQuestions) {
-        ExamErrorNotebook.suggestions(exams, learningOutcomes, learningQuestions)
-    }
+    val reviewSignals = insights.reviewSignals
+    val examTopicSuggestions = insights.examTopicSuggestions
+    val smartPriorities = insights.smartPriorities
     // Daily repeat reminders cover every course, including other AYT tracks.
     val urgentReviews = reviewSignals.count { it.urgent }
     val reviewSuggestions = reviewSignals.size
-    val smartPriorities = remember(reviewSignals, exams) {
-        val fromLearning = reviewSignals.map { signal ->
-            Triple(signal.outcome.subject,
-                signal.outcome.topic.ifBlank { signal.outcome.title },
-                signal.explanation)
-        }.distinctBy { it.first.lowercase(Locale("tr", "TR")) + "|" + it.second.lowercase(Locale("tr", "TR")) }
-        if (fromLearning.isNotEmpty()) fromLearning.take(3)
-        else WeakTopicAnalyzer.findWeakSpots(exams, sampleSize = 5, top = 3).map { spot ->
-            Triple(spot.subject, spot.topic,
-                "Son ${spot.outOf} ders kaydında ${spot.count} kez zayıf konu olarak işaretlendi")
-        }
-    }
     val manuallyMarked = learningOutcomes.count { it.reviewRequested }
     val pendingQuestions = learningQuestions.count {
         it.status != QuestionStatus.COZULDU
@@ -332,6 +350,9 @@ fun StudyScreenV2(
                 }
             }
         }
+        }
+        if (section == "today") item(key = "exam-mode") {
+            ExamModeCard(modifier = Modifier.fillMaxWidth())
         }
         if (section == "today") item(key = "focus-session") {
             FocusSessionCard(onSaved = onFocusSaved, modifier = Modifier.fillMaxWidth())
