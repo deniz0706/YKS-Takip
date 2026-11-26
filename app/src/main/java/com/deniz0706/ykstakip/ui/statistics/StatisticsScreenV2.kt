@@ -60,6 +60,9 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
     val metrics = listOf("net" to "Net", "correct" to "Doğru", "wrong" to "Yanlış",
         "blank" to "Boş", "time" to "Süre", "mpq" to "Dakika/Soru")
     val all = remember(exams, type) { exams.filter { it.type == type }.sortedBy { it.date } }
+    val comparisonExams = remember(all, type, field) {
+        if (type == ExamType.AYT) all.filter { it.aytField == field } else all
+    }
     val series = remember(all, branchMode, selectedBranch, metric, range) {
         val raw = all.mapNotNull { exam ->
             val subject = if (branchMode) exam.subject(selectedBranch) else null
@@ -228,7 +231,7 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
             }
         }
         if (section == "general") item(key = "exam-duel") {
-            ExamComparisonPanel(all, Modifier.fillMaxWidth())
+            ExamComparisonPanel(comparisonExams, Modifier.fillMaxWidth())
         }
         if (section == "branches") item(key = "subject-momentum") {
             SubjectMomentumPanel(all, Modifier.fillMaxWidth())

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.util.Fmt
+import com.deniz0706.ykstakip.util.ExamComparisonAnalyzer
 
 /**
  * Compare any two recent exams and their subject-level net changes.
@@ -97,7 +98,13 @@ fun ExamComparisonPanel(exams: List<Exam>, modifier: Modifier = Modifier) {
         }
 
         if (older == null || newer == null) return@DashboardPanel
-        val netDelta = newer.totalNet - older.totalNet
+        val analysis = ExamComparisonAnalyzer.analyze(older, newer)
+        if (analysis == null) {
+            Text("Farklı alanlardaki denemeler karşılaştırılamaz. Aynı AYT alanından iki deneme seç.",
+                color = colors.error, style = MaterialTheme.typography.bodySmall)
+            return@DashboardPanel
+        }
+        val netDelta = analysis.netDelta
         Spacer(Modifier.height(13.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
@@ -122,6 +129,28 @@ fun ExamComparisonPanel(exams: List<Exam>, modifier: Modifier = Modifier) {
             }
         }
         Spacer(Modifier.height(12.dp))
+        if (analysis.bestImprovement != null || analysis.biggestDecline != null) {
+            Column(
+                Modifier.fillMaxWidth()
+                    .background(colors.surfaceContainerHigh, RoundedCornerShape(14.dp))
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Text("BRANŞ ÖZETİ", color = colors.secondary,
+                    style = MaterialTheme.typography.labelSmall, letterSpacing = .8.sp)
+                analysis.bestImprovement?.let { change ->
+                    Text("En çok yükselen: ${change.subject} · +${Fmt.net(change.delta)} net",
+                        color = colors.primary, style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold)
+                }
+                analysis.biggestDecline?.let { change ->
+                    Text("En çok gerileyen: ${change.subject} · ${Fmt.net(change.delta)} net",
+                        color = colors.error, style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold)
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
         HorizontalDivider(color = colors.outline.copy(alpha = .35f))
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
