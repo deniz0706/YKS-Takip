@@ -77,7 +77,7 @@ jobs:
             exit 1
           fi
           BADGING="$("$AAPT" dump badging app/build/outputs/apk/debug/app-debug.apk)"
-          printf '%s\\n' "$BADGING" | grep -F "package: name='com.deniz0706.ykstakip' versionCode='$EXPECTED_VERSION_CODE' versionName='$EXPECTED_VERSION_NAME'"
+          echo "$BADGING" | grep -F "package: name='com.deniz0706.ykstakip' versionCode='$EXPECTED_VERSION_CODE' versionName='$EXPECTED_VERSION_NAME'"
 
       - name: Report APK signing fingerprint
         if: steps.preview_signing.outputs.ready == 'true'
