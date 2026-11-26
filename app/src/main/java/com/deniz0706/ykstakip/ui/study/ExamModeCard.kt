@@ -106,7 +106,7 @@ fun ExamModeCard(modifier: Modifier = Modifier) {
             }
         }
         state.splits.takeLast(4).forEach { split ->
-            Text("${split.label} · ${ExamSessionMath.formatClock((split.elapsedMs / 1000L).toInt())}",
+            Text("${split.label} · ${ExamSessionMath.formatClock(split.elapsedMs / 1000L)}",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
         }
         if (state.finished) Text("Sınav süresi tamamlandı.",
