@@ -40,6 +40,8 @@ jobs:
         run: >-
           gradle --no-daemon
           :core:domain:jvmTest
+          :core:database:jvmTest
+          :core:database:compileKotlinJvm
           :core:domain:compileKotlinIosArm64
           :core:domain:compileKotlinIosSimulatorArm64
           :core:database:compileDebugKotlinAndroid
