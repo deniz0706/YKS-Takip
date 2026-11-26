@@ -4,19 +4,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -25,91 +28,181 @@ import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.data.ExamSessionRepository
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.ExamSessionMath
+import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.model.SubjectConfigs
 import kotlinx.coroutines.delay
 
-/** Full-length exam clock, independent from the daily focus timer. */
+/** Exam and branch timing controls embedded in the existing focus timer panel. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ExamModeCard(modifier: Modifier = Modifier) {
+fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false) {
     val context = LocalContext.current
     val repository = remember(context) { ExamSessionRepository(context) }
     var state by remember(repository) { mutableStateOf(repository.snapshot()) }
+    var showDurationDialog by remember { mutableStateOf(false) }
+    var hours by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes / 60).toString()) }
+    var minutes by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes % 60).toString()) }
+    var durationError by remember { mutableStateOf<String?>(null) }
+    var aytField by remember { mutableStateOf(AytField.SAYISAL) }
+
     LaunchedEffect(state.running) {
         while (state.running) {
             delay(1000L)
             state = repository.snapshot()
         }
     }
+
     val subjects = when (state.examType) {
-        "TYT" -> listOf("Türkçe", "Sosyal", "Matematik", "Fen")
-        "AYT" -> listOf("Matematik", "Fizik", "Kimya", "Biyoloji")
-        else -> listOf("1. Ders", "2. Ders", "3. Ders")
+        "TYT" -> listOf("Türkçe", "Sosyal Bilimler", "Matematik", "Fen Bilimleri")
+        "AYT" -> SubjectConfigs.subjectsFor(aytField).map { it.name }
+        else -> listOf("Türkçe", "Sosyal Bilimler", "Matematik", "Fen Bilimleri",
+            "Edebiyat", "Tarih-1", "Coğrafya-1", "Tarih-2", "Coğrafya-2",
+            "Felsefe Grubu", "Din Kültürü / Ek Felsefe")
     }
     val elapsedSeconds = state.elapsedMs / 1000L
-    val remainingSeconds = ExamSessionMath.displaySeconds(state.remainingMs)
-    val clock = ExamSessionMath.formatClock(remainingSeconds)
-    val progress = (state.elapsedMs.toFloat() / (state.durationMinutes * 60_000L))
-        .coerceIn(0f, 1f)
+    val clock = ExamSessionMath.formatClock(ExamSessionMath.displaySeconds(state.remainingMs))
+    val progress = (state.elapsedMs.toFloat() / (state.durationMinutes * 60_000L)).coerceIn(0f, 1f)
     val colors = MaterialTheme.colorScheme
 
-    DashboardPanel(modifier, accent = true) {
-        Text("GERÇEK DENEME MODU", color = colors.secondary,
+    val content: @Composable () -> Unit = {
+        Text("SINAV / BRANŞ ZAMANLAYICISI", color = colors.secondary,
             style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1.sp)
-        Spacer(Modifier.height(5.dp))
-        Text("Sınav süreni yönet", color = colors.onSurface,
-            style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text("Uygulamadan çıksan da oturum ve süre korunur.",
-            color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-        Spacer(Modifier.height(12.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("TYT", "AYT", "BRANŞ").forEach { type ->
                 FilterChip(
                     selected = state.examType == type,
                     enabled = !state.running && state.elapsedMs == 0L,
-                    onClick = { state = repository.configure(type) },
+                    onClick = {
+                        state = repository.configure(type)
+                        if (type == "BRANŞ") showDurationDialog = true
+                    },
                     label = { Text(type) },
                     modifier = Modifier.weight(1f)
                 )
             }
         }
+        if (state.examType == "AYT") {
+            Text("AYT ALANI", color = colors.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf(
+                    AytField.SAYISAL to "Sayısal",
+                    AytField.ESIT_AGIRLIK to "Eşit Ağırlık",
+                    AytField.SOZEL to "Sözel"
+                ).forEach { (field, label) ->
+                    FilterChip(
+                        selected = aytField == field,
+                        onClick = { aytField = field },
+                        enabled = !state.running && state.elapsedMs == 0L,
+                        label = { Text(label) }
+                    )
+                }
+            }
+        }
+        if (state.examType == "BRANŞ") {
+            OutlinedButton(
+                onClick = {
+                    hours = (state.durationMinutes / 60).toString()
+                    minutes = (state.durationMinutes % 60).toString()
+                    durationError = null
+                    showDurationDialog = true
+                },
+                enabled = !state.running && state.elapsedMs == 0L,
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Branş süresini ayarla · ${state.durationMinutes} dk") }
+        }
         Text(clock, color = if (state.finished) colors.error else colors.onSurface,
             style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
         Text("${state.durationMinutes} dakika · geçen ${ExamSessionMath.formatClock(elapsedSeconds)}",
             color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
-        androidx.compose.material3.LinearProgressIndicator(
+        LinearProgressIndicator(
             progress = { progress }, modifier = Modifier.fillMaxWidth(),
             color = colors.primary, trackColor = colors.surfaceVariant
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(9.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = { state = if (state.running) repository.pause() else repository.start() },
                 enabled = !state.finished,
                 modifier = Modifier.weight(1f)
-            ) { Text(if (state.running) "Duraklat" else if (state.elapsedMs > 0L) "Devam et" else "Başlat") }
+            ) { Text(if (state.running) "Ⅱ Duraklat" else if (state.elapsedMs > 0L) "▶ Devam et" else "▶ Başlat") }
             OutlinedButton(
                 onClick = { state = repository.reset() },
                 enabled = !state.running && state.elapsedMs > 0L,
                 modifier = Modifier.weight(1f)
             ) { Text("Sıfırla") }
         }
-        Text("Ders geçişi kaydet", color = colors.onSurface,
+        Text("Ders geçişi işaretle", color = colors.onSurface,
             style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
             subjects.forEach { subject ->
                 FilterChip(
                     selected = false,
                     enabled = state.elapsedMs > 0L,
                     onClick = { state = repository.recordSplit(subject) },
-                    label = { Text(subject, maxLines = 1) },
-                    modifier = Modifier.weight(1f)
+                    label = { Text(subject, maxLines = 1) }
                 )
             }
         }
-        state.splits.takeLast(4).forEach { split ->
+        state.splits.takeLast(6).forEach { split ->
             Text("${split.label} · ${ExamSessionMath.formatClock(split.elapsedMs / 1000L)}",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
         }
         if (state.finished) Text("Sınav süresi tamamlandı.",
             color = colors.error, fontWeight = FontWeight.SemiBold)
+    }
+
+    if (embedded) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) { content() }
+    } else {
+        DashboardPanel(modifier, accent = true) { content() }
+    }
+
+    if (showDurationDialog) {
+        AlertDialog(
+            onDismissRequest = { showDurationDialog = false },
+            title = { Text("Branş süresi") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("1 dakika ile 10 saat arasında istediğin süreyi belirle.")
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(hours, { hours = it.filter(Char::isDigit).take(2); durationError = null },
+                            label = { Text("Saat") }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f))
+                        OutlinedTextField(minutes, { minutes = it.filter(Char::isDigit).take(2); durationError = null },
+                            label = { Text("Dakika") }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f))
+                    }
+                    if (durationError != null) Text(durationError.orEmpty(), color = colors.error)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val h = hours.toIntOrNull()
+                    val m = minutes.toIntOrNull()
+                    val total = if (h != null && m != null) h * 60 + m else 0
+                    if (h == null || m == null || h !in 0..10 || m !in 0..59 ||
+                        total !in ExamSessionMath.MIN_DURATION_MINUTES..ExamSessionMath.MAX_DURATION_MINUTES) {
+                        durationError = "1–600 dakika arasında geçerli bir süre gir."
+                    } else {
+                        state = repository.configure("BRANŞ", total)
+                        showDurationDialog = false
+                    }
+                }) { Text("Süreyi uygula") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDurationDialog = false }) { Text("Vazgeç") }
+            }
+        )
     }
 }
