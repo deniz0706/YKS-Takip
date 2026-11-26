@@ -1,5 +1,6 @@
 package com.deniz0706.ykstakip.model
 
+import com.deniz0706.ykstakip.domain.SubjectResult
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -15,7 +16,7 @@ fun SubjectResult.toJson(): JSONObject = JSONObject().apply {
     put("weakTopics", JSONArray(weakTopics))
 }
 
-fun SubjectResult.Companion.fromJson(json: JSONObject): SubjectResult {
+fun subjectResultFromJson(json: JSONObject): SubjectResult {
     val topics = mutableListOf<String>()
     json.optJSONArray("weakTopics")?.let { arr ->
         for (i in 0 until arr.length()) topics.add(arr.getString(i))
