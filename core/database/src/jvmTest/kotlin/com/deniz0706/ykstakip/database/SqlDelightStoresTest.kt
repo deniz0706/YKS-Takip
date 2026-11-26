@@ -9,7 +9,7 @@ import com.deniz0706.ykstakip.domain.SubjectResult
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNull\nimport kotlin.test.assertTrue
+import kotlin.test.assertNull
 
 class SqlDelightStoresTest {
     private fun database(): Pair<JdbcSqliteDriver, YksDatabase> {
