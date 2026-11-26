@@ -126,3 +126,26 @@ Updated: 2026-11-26
 - GitHub API inspection is not a substitute for a local checkout and full Gradle build.
 - The installed APK signing certificate has not been verified against the CI preview certificate; update compatibility is not guaranteed.
 - iOS compilation and signing require macOS/Xcode and Apple tooling.
+
+
+## Current integration checkpoint — 2026-11-26
+
+- Active integration branch: `4.0/foundation`.
+- Latest known pre-checkpoint source commit: `8728e8616fe0e5959ed33ea4fee172496360708d`; the architecture decision and this status update are being recorded as follow-up documentation commits.
+- `main` is at `2205ada64597c955ab1e546d2dc9b859a07f3927` after the isolated documentation-only PR #52 merge. The foundation branch compares as 109 commits ahead and 1 behind; the one-behind difference is the separate PR #52 merge commit. No reset, force-push, or automatic merge was performed.
+- PR #51 (`4.0/architecture-audit` -> `main`) remains open and draft. It contains 15 commits focused on build/version/signing safeguards and the initial architecture audit. Its changes overlap the foundation branch's ancestry; do not merge it independently or close it without an explicit integration review.
+- The dedicated KMP CI run `45869883815` passed on foundation commit `8728e861`: shared JVM tests, database JVM tests, Android database compilation, iOS arm64 and iOS simulator arm64 domain compilation, and iOS arm64/simulator/x64 database compilation all passed.
+- The dedicated APK CI run `45869883822` passed on the same foundation commit: APK build, in-place update identity/version verification, signing fingerprint report, and artifact upload passed.
+- Main's post-PR #52 Android build run `45870601053` was still in progress at the last check. The Android verification workflow on the docs branch passed; this does not replace the foundation branch's own validation.
+- These CI results prove Kotlin target compilation and Android APK generation, not a complete iOS app build, Xcode archive, Apple code signing, simulator launch, or App Store readiness.
+- Added `docs/adr/ADR-001-platform-architecture.md` to formalize the already selected KMP + Compose Multiplatform direction, module boundaries, offline-first policy, backend deferral, platform adapters, migration gate, and explicit non-goals.
+- The shared SQLDelight stores remain isolated from production repositories. No migration was run; legacy SharedPreferences/JSON, photos, timers, backup snapshots, and AI credentials remain untouched.
+- The ranking engine remains unchanged. No ranking engine refactor or lookup-table modification is included in this checkpoint.
+
+## Next engineering slice
+
+1. Audit `commonMain` imports and module dependency direction; enforce the no-`android.*` / no-`java.*` / no-`org.json` rule with CI checks.
+2. Inspect the real legacy backup/import code paths and add source-derived, privacy-safe fixtures before implementing `LegacyBackupImporter`.
+3. Add characterization tests around the current ranking estimator/lookup/calculator using existing regression vectors; do not change the calculation implementation.
+4. Design repository interfaces and a migration coordinator without switching production storage.
+5. Start the first Compose Multiplatform vertical slice only when it can use real domain/repository/ranking code rather than static demo data.
