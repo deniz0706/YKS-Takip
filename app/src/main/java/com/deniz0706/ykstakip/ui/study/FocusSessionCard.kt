@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import com.deniz0706.ykstakip.data.FocusSessionRepository
+import com.deniz0706.ykstakip.data.ExamSessionRepository
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 import kotlinx.coroutines.delay
@@ -29,6 +30,7 @@ import kotlinx.coroutines.delay
 fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val store = remember(context) { FocusSessionRepository(context) }
+    val examStore = remember(context) { ExamSessionRepository(context) }
     var state by remember(store) { mutableStateOf(store.snapshot()) }
     var message by remember { mutableStateOf<String?>(null) }
     var savedSuccessfully by remember { mutableStateOf(false) }
@@ -65,13 +67,19 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = !showExamTimer,
-                onClick = { showExamTimer = false },
+                onClick = {
+                    if (examStore.snapshot().running) examStore.pause()
+                    showExamTimer = false
+                },
                 label = { Text("Odak") },
                 modifier = Modifier.weight(1f)
             )
             FilterChip(
                 selected = showExamTimer,
-                onClick = { showExamTimer = true },
+                onClick = {
+                    if (state.running) state = store.pause()
+                    showExamTimer = true
+                },
                 label = { Text("TYT · AYT · Branş") },
                 modifier = Modifier.weight(1f)
             )
