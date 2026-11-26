@@ -19,7 +19,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     # Only trusted branch pushes/maintainer dispatches trigger this workflow.
-    # Cache access is needed to retain the private development signing key.
     cache-mode: write
     steps:
       - name: Checkout
@@ -33,9 +32,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      # Android would otherwise generate a different debug certificate on
-      # every ephemeral runner, so installed previews could never be updated.
-      # This is only a temporary development fallback: caches can be evicted.
+      # Keep the stable preview key when available. A missing key must not
+      # prevent tests and unsigned release compilation from running.
       - name: Restore preview debug signing key
         id: preview_signing_cache
         uses: actions/cache@v4
@@ -44,6 +42,7 @@ jobs:
           key: yks-takip-2-0-debug-signing-linux-v1
 
       - name: Prepare preview debug signing
+        id: preview_signing
         env:
           PREVIEW_DEBUG_KEYSTORE_B64: ${{ secrets.YKS_PREVIEW_DEBUG_KEYSTORE_B64 }}
         run: |
@@ -54,21 +53,21 @@ jobs:
           elif [ -s "$HOME/.android/debug.keystore" ]; then
             echo "Using cached development signing key."
           else
-            echo "::error::Preview signing key is missing. Refusing to create an incompatible APK. Restore the original keystore using the repository secret."
-            exit 1
+            echo "::warning::Stable preview signing key is unavailable. Build and tests will continue, but no debug APK will be published because its signature cannot be guaranteed."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           chmod 600 "$HOME/.android/debug.keystore"
           test -s "$HOME/.android/debug.keystore"
-          # Force Gradle to use EXACTLY the same key that will be cached.
           echo "YKS_PREVIEW_DEBUG_KEYSTORE=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - name: Build APK
         run: gradle --no-daemon testDebugUnitTest assembleDebug assembleRelease
 
       - name: Report APK signing fingerprint
+        if: steps.preview_signing.outputs.ready == 'true'
         run: |
-          # Inspect the actual signed APK, not a locale-dependent keytool label.
-          # Print only the public certificate digest, never private key material.
           APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
           if [ -z "$APK_SIGNER" ]; then
             echo "::error::Android SDK apksigner was not installed."
@@ -83,7 +82,9 @@ jobs:
             exit 1
           fi
           echo "Preview signature unchanged."
+
       - name: Upload debug APK
+        if: steps.preview_signing.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: YKS-Takip-Debug
@@ -97,7 +98,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish 2.0 preview release
-        if: github.ref == 'refs/heads/2.0'
+        if: github.ref == 'refs/heads/2.0' && steps.preview_signing.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -108,7 +109,5 @@ jobs:
           else
             gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 2.0 · Önizleme" --notes "Jetpack Compose arayüzünün geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
           fi
-          # Keep the user-facing download URL stable and always overwrite the
-          # app-debug.apk asset, rather than creating an unrelated filename.
           gh release upload "$TAG" "$APK" --clobber
           gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fx 'app-debug.apk'
