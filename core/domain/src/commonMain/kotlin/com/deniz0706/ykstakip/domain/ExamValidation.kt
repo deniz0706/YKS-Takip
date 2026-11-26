@@ -17,9 +17,9 @@ sealed interface ExamValidationResult {
     @Serializable
     data class AnswerCountExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
     @Serializable
-data class TotalAnswersExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
+    data class TotalAnswersExceedsSubjectLimit(val subject: String, val limit: Int) : ExamValidationResult
     @Serializable
-data class TotalTimeExceeded(val actualMinutes: Int, val limitMinutes: Int) : ExamValidationResult
+    data class TotalTimeExceeded(val actualMinutes: Int, val limitMinutes: Int) : ExamValidationResult
 }
 
 /**
