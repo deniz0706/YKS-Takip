@@ -57,6 +57,7 @@ Updated: 2026-11-26
 - Added the first real Kotlin Multiplatform domain module (`:core:domain`) with JVM + iOS targets; Android app consumes its JVM variant.
 - Extracted the canonical correct-minus-wrong/4 net calculation into `commonMain` and added shared common tests for quarter-net and rounding behavior.
 - Moved exam answer-count and TYT/AYT total-duration validation rules into `commonMain`; the Android adapter preserves the existing Turkish validation messages and public API. Added common tests for negative answers, subject limits, combined limits, and 165/180-minute boundaries.
+- Extracted focus countdown/stopwatch elapsed-time arithmetic into `commonMain`; the existing Android API delegates to the shared implementation. Added shared tests for pause/clock rollback, configured countdowns, 24-hour cap, and target clamping.
 - Ranking estimator, lookup tables, ranking fixtures, persistence formats, signing configuration, and application ID remain untouched.
 - No build or test has been run from the GitHub connector; do not infer a green build from this audit.
 
