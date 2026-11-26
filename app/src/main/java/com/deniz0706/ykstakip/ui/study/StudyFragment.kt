@@ -329,6 +329,10 @@ class StudyFragment : Fragment() {
         val appContext = requireContext().applicationContext
         refreshJob = viewLifecycleOwner.lifecycleScope.launch {
             val snapshot = withContext(Dispatchers.IO) {
+                if (!::learningRepository.isInitialized) {
+                    learningRepository = LearningRepository.getInstance(appContext)
+                    ReviewReminderScheduler.rescheduleAll(appContext, learningRepository.outcomes())
+                }
                 StudySnapshot(
                     outcomes = learningRepository.outcomes(),
                     cards = learningRepository.questions(),
