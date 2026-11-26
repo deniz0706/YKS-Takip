@@ -29,6 +29,7 @@ class ExamRepository(context: Context) {
         }
     }
 
+    @Synchronized
     fun saveExam(exam: Exam) {
         val current = getAllExams().toMutableList()
         val idx = current.indexOfFirst { it.id == exam.id }
@@ -36,9 +37,12 @@ class ExamRepository(context: Context) {
         persist(current)
     }
 
+    @Synchronized
     fun deleteExam(id: Long) { persist(getAllExams().filterNot { it.id == id }) }
+    @Synchronized
     fun replaceAll(exams: List<Exam>) { persist(exams) }
 
+    @Synchronized
     private fun persist(exams: List<Exam>) {
         val sorted = exams.sortedBy { it.date }
         cachedExams = sorted
