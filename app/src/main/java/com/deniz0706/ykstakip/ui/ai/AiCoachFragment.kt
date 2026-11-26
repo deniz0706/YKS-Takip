@@ -1,6 +1,8 @@
 package com.deniz0706.ykstakip.ui.ai
 
 import android.content.Context
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -27,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.AiContextBuilder
+import com.deniz0706.ykstakip.data.AiImageEncoder
 import com.deniz0706.ykstakip.data.AiMemoryRepository
 import com.deniz0706.ykstakip.data.AiSecretStore
 import com.deniz0706.ykstakip.data.NvidiaAiService
@@ -45,12 +48,35 @@ import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 import org.json.JSONObject
 
-private data class CoachLine(val role: String, val text: String)
+private data class CoachLine(val role: String, val text: String, val imageDataUrl: String? = null)
 
 class AiCoachFragment : Fragment() {
     private val lines = mutableStateListOf<CoachLine>()
     private val draft = mutableStateOf("")
     private val sending = mutableStateOf(false)
+    private val pendingImageData = mutableStateOf<String?>(null)
+    private val imageLoading = mutableStateOf(false)
+
+    private val pickAiImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null && isAdded) {
+            val appContext = requireContext().applicationContext
+            imageLoading.value = true
+            (requireActivity().application as com.deniz0706.ykstakip.YksApp).applicationScope.launch {
+                val result = runCatching {
+                    withContext(Dispatchers.IO) { AiImageEncoder.encodeJpegDataUrl(appContext, uri) }
+                }
+                if (isAdded) {
+                    imageLoading.value = false
+                    result.onSuccess { pendingImageData.value = it }
+                        .onFailure {
+                            Toast.makeText(requireContext(),
+                                "Görsel hazırlanamadı: ${it.message ?: "Dosya hatası"}",
+                                Toast.LENGTH_LONG).show()
+                        }
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -158,6 +184,11 @@ class AiCoachFragment : Fragment() {
                                         )
                                     ) {
                                         Column(Modifier.padding(horizontal = 15.dp, vertical = 12.dp)) {
+                                            if (line.imageDataUrl != null) {
+                                                Text("📎 Görsel eklendi · bu istek için gönderildi",
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    style = MaterialTheme.typography.labelSmall)
+                                            }
                                             MarkdownMessage(
                                                 text = if (line.role == "assistant") PlanActionParser.visibleText(line.text) else line.text,
                                                 modifier = Modifier,
@@ -251,6 +282,30 @@ class AiCoachFragment : Fragment() {
                                 AssistChip(onClick = { draft.value = prompt }, label = { Text(label, maxLines = 1) })
                             }
                         }
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            TextButton(
+                                onClick = { pickAiImage.launch("image/*") },
+                                enabled = !sending.value && !imageLoading.value
+                            ) { Text(if (imageLoading.value) "Görsel hazırlanıyor…" else "＋ Görsel ekle") }
+                            if (pendingImageData.value != null) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Görsel hazır", color = MaterialTheme.colorScheme.primary,
+                                        style = MaterialTheme.typography.labelSmall)
+                                    TextButton(onClick = { pendingImageData.value = null }) {
+                                        Text("Kaldır")
+                                    }
+                                }
+                            }
+                        }
+                        Text(
+                            "Görsel, mesajı gönderdiğinde NVIDIA AI’ye iletilir; sohbet geçmişine dosya olarak kaydedilmez.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall
+                        )
                         Spacer(Modifier.height(8.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -274,7 +329,7 @@ class AiCoachFragment : Fragment() {
                                 )
                                 FilledIconButton(
                                     onClick = { sendMessage() },
-                                    enabled = !sending.value && draft.value.isNotBlank(),
+                                    enabled = !sending.value && !imageLoading.value && (draft.value.isNotBlank() || pendingImageData.value != null),
                                     modifier = Modifier.size(50.dp)
                                 ) {
                                     Text("➤", style = MaterialTheme.typography.titleLarge)
@@ -352,20 +407,24 @@ class AiCoachFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        val question = draft.value.trim()
-        if (question.isEmpty() || sending.value) return
-        draft.value = ""
-        lines.add(CoachLine("user", question))
+        if (sending.value || imageLoading.value) return
+        val imageData = pendingImageData.value
+        val question = draft.value.trim().ifBlank {
+            if (imageData != null) "Bu görseldeki YKS sorusunu çöz ve çözümünü adım adım açıkla." else return
+        }
         val appContext = requireContext().applicationContext
-        persistConversation(appContext)
-        val memoryReply = handleMemoryCommand(question)
-        if (memoryReply != null) {
-            lines.add(CoachLine("assistant", memoryReply))
-            persistConversation(requireContext().applicationContext)
+        val memoryReply = if (imageData == null) handleMemoryCommand(question) else null
+        if (memoryReply == null && !AiSecretStore.hasApiKey(appContext)) {
+            lines.add(CoachLine("error", "Görsel analizi ve normal sohbet için Ayarlar bölümünden NVIDIA API anahtarını eklemelisin."))
+            persistConversation(appContext)
             return
         }
-        if (!AiSecretStore.hasApiKey(appContext)) {
-            lines.add(CoachLine("error", "Normal sohbet için Ayarlar bölümüne NVIDIA API anahtarı eklemelisin. Hafıza komutları çevrimdışı da çalışır."))
+        draft.value = ""
+        pendingImageData.value = null
+        lines.add(CoachLine("user", question, imageData))
+        persistConversation(appContext)
+        if (memoryReply != null) {
+            lines.add(CoachLine("assistant", memoryReply))
             persistConversation(appContext)
             return
         }
@@ -385,10 +444,14 @@ class AiCoachFragment : Fragment() {
                         .dropWhile { it.role != "user" }
                         .forEach { line ->
                             val last = messages.last()
+                            val imageParts = line.imageDataUrl?.let { listOf(it) }.orEmpty()
                             if (messages.size > 1 && last.role == line.role) {
-                                messages[messages.lastIndex] = last.copy(content = last.content + "\n\n" + line.text)
+                                messages[messages.lastIndex] = last.copy(
+                                    content = last.content + "\n\n" + line.text,
+                                    imageDataUrls = last.imageDataUrls + imageParts
+                                )
                             } else {
-                                messages.add(NvidiaAiService.Message(line.role, line.text))
+                                messages.add(NvidiaAiService.Message(line.role, line.text, imageParts))
                             }
                         }
                     NvidiaAiService(appContext).chat(messages)
