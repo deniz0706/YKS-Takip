@@ -208,6 +208,8 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
                 color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.labelSmall)
         }
+        HorizontalDivider(color = colors.outlineVariant)
+        ExamModeCard(embedded = true)
     }
 
     if (customDurationDialog) {
