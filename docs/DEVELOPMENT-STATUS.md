@@ -170,3 +170,14 @@ Updated: 2026-11-26
 - Root cause: `YksRankingEstimatorTest.kt` declared a Kotlin test function beginning with the numeric token `114Net...`, which is invalid Kotlin syntax. Production ranking implementation and expected calibration assertions are unchanged.
 - Corrective change prepared: rename the test to `tyt114NetRegressionRemainsNearCalibratedRank`. The correction is not considered verified until a new APK CI run passes.
 - KMP workflow run `45871452275` was still running at the time of this checkpoint; its result must be checked before another push to avoid cancelling it.
+
+
+## CI dependency-resolution incident — 2026-11-26
+- APK run `45871984455` reached Gradle but stopped during root build configuration because Gradle could not resolve the SQLDelight plugin marker `app.cash.sqldelight:app.cash.sqldelight.gradle.plugin:2.0.2`. It failed before Kotlin compilation or tests. The same plugin declaration/repositories were unchanged from earlier successful foundation builds; do not alter plugin coordinates without evidence of a configuration defect. Check the paired macOS KMP run and retry after determining whether this was a transient repository-resolution failure.
+- The corrected ranking test name is committed in `49ba58598f2dc9f3ede08db3b29d68f8df2842f6`; its new APK build remains unverified because dependency resolution failed before compilation.
+
+## Legacy JSON write-protection slice — staged for next commit
+- The current exam and study repositories convert malformed legacy JSON into an empty list. Without a guard, a later save/import could overwrite the unreadable original with that empty fallback.
+- A focused guard is staged for both repositories: parse failures mark the store unreadable; exam saves/replacements and study saves/deletes/imports/undo are blocked before any SharedPreferences write. Read paths keep their existing fallback contract, and the original raw preference remains untouched.
+- The repositories expose `hasUnreadableLegacyData()` for a future recovery UI. The guard and its state transitions have focused JVM tests.
+- This slice is staged for integration only after the currently running KMP validation is checked; no production data has been read, migrated, or modified by CI.

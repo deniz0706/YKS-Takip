@@ -12,6 +12,7 @@ class ExamRepository(context: Context) {
         context.getSharedPreferences("yks_takip_prefs", Context.MODE_PRIVATE)
     private val listeners = mutableListOf<() -> Unit>()
     @Volatile private var cachedExams: List<Exam>? = null
+    private val writeGuard = LegacyDataWriteGuard("Sınav")
 
     fun addChangeListener(listener: () -> Unit) { listeners.add(listener) }
     fun removeChangeListener(listener: () -> Unit) { listeners.remove(listener) }
@@ -25,7 +26,10 @@ class ExamRepository(context: Context) {
             val loaded = if (raw.isNullOrBlank()) emptyList() else try {
                 val array = JSONArray(raw)
                 (0 until array.length()).map { examFromJson(array.getJSONObject(it)) }.sortedBy { it.date }
-            } catch (_: Exception) { emptyList() }
+            } catch (_: Exception) {
+                writeGuard.markUnreadable()
+                emptyList()
+            }
             cachedExams = loaded
             loaded
         }
@@ -44,8 +48,12 @@ class ExamRepository(context: Context) {
     @Synchronized
     fun replaceAll(exams: List<Exam>) { persist(exams) }
 
+    fun hasUnreadableLegacyData(): Boolean = writeGuard.isBlocked
+
     @Synchronized
     private fun persist(exams: List<Exam>) {
+        if (cachedExams == null) getAllExams()
+        writeGuard.requireWritable()
         val sorted = exams.sortedBy { it.date }
         cachedExams = sorted
         val array = JSONArray(sorted.map { it.toJson() })

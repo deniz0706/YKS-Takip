@@ -9,6 +9,7 @@ import org.json.JSONObject
 class StudyRepository(context: Context) {
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
+    private val writeGuard = LegacyDataWriteGuard("Çalışma geçmişi")
 
     fun getAll(): List<StudyDay> {
         val raw = prefs.getString(KEY_STUDY_DAYS, null) ?: return emptyList()
@@ -27,6 +28,7 @@ class StudyRepository(context: Context) {
                 )
             }.sortedBy { it.date }
         } catch (e: Exception) {
+            writeGuard.markUnreadable()
             emptyList()
         }
     }
@@ -52,7 +54,10 @@ class StudyRepository(context: Context) {
         persist(getAll().filterNot { it.date == date })
     }
 
+    fun hasUnreadableLegacyData(): Boolean = writeGuard.isBlocked
+
     private fun persist(days: List<StudyDay>) {
+        writeGuard.requireWritable()
         val array = JSONArray()
 
         days.sortedBy { it.date }.forEach { day ->
@@ -78,6 +83,7 @@ class StudyRepository(context: Context) {
     /** Atomic merge. Existing days stay unchanged unless user explicitly allows overwrites. */
     fun importDays(incoming: List<StudyDay>, overwrite: Boolean = false): Int {
         val current = getAll()
+        writeGuard.requireWritable()
         val merged = current.associateBy { it.date }.toMutableMap()
         var changes = 0
         for (day in incoming) {
@@ -107,11 +113,16 @@ class StudyRepository(context: Context) {
         return changes
     }
 
-    fun canUndoLastImport(): Boolean = StudyBackupManager.canUndoImport(
-        prefs.getString(KEY_BEFORE_IMPORT, null),
-        prefs.getString(KEY_AFTER_IMPORT, null),
-        prefs.getString(KEY_STUDY_DAYS, null)
-    )
+    fun canUndoLastImport(): Boolean {
+        // A malformed current store must never be replaced by an older rollback snapshot.
+        getAll()
+        if (writeGuard.isBlocked) return false
+        return StudyBackupManager.canUndoImport(
+            prefs.getString(KEY_BEFORE_IMPORT, null),
+            prefs.getString(KEY_AFTER_IMPORT, null),
+            prefs.getString(KEY_STUDY_DAYS, null)
+        )
+    }
 
     fun undoLastImport(): Boolean {
         // Older backups lack an after-import snapshot: do not restore blindly.
