@@ -55,6 +55,7 @@ import com.deniz0706.ykstakip.ui.theme.YksShape
 import com.deniz0706.ykstakip.ui.theme.YksSpacing
 import com.deniz0706.ykstakip.ui.theme.YksText
 import com.deniz0706.ykstakip.util.Fmt
+import com.deniz0706.ykstakip.shared.SharedExamTrendCard
 
 /**
  * Home, organised around one question: "what should I do today?"
@@ -102,7 +103,6 @@ fun HomeScreenV2(
             else -> all
         }
     }
-    val shownDates = remember(shown) { shown.map { it.date } }
     val nets = remember(shown) { shown.map { it.totalNet } }
     val latest = all.lastOrNull()?.totalNet
     val previous = all.getOrNull(all.lastIndex - 1)?.totalNet
@@ -152,68 +152,19 @@ fun HomeScreenV2(
         }
         item { ExamTypeTabs(type.name, { type = ExamType.valueOf(it) }) }
 
-        // 2. Evidence: latest net, change, goal and the trend in one panel
+        // 2. Evidence: shared Compose Multiplatform exam trend component.
         item {
-            DashboardPanel(Modifier.fillMaxWidth(), accent = true) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text("Son ${type.name} neti", style = MaterialTheme.typography.labelLarge, color = c.onSurfaceVariant)
-                        Spacer(Modifier.height(4.dp))
-                        AnimatedContent(
-                            Fmt.net(latest),
-                            transitionSpec = { fadeIn(tween(YksMotion.standardMs)) togetherWith fadeOut(tween(YksMotion.quickMs)) },
-                            label = "hero-net"
-                        ) { value ->
-                            Text(value, style = YksText.heroNumber, color = c.onSurface)
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        YksDeltaChip(change)
-                    }
-                    val percent = HomeInsights.goalPercent(latest, goal)
-                    if (goal != null && latest != null && percent != null) {
-                        DashboardRing((latest / goal).toFloat(), "$percent%", caption = "hedef")
-                    }
-                }
-                Spacer(Modifier.height(16.dp))
-                HorizontalDivider(color = c.outline.copy(alpha = .35f))
-                Spacer(Modifier.height(14.dp))
-                YksSectionTitle("Net trendi", trailing = "${shown.size} kayıt")
-                Spacer(Modifier.height(12.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    listOf("Son 5", "Son 10", "Son 20", "Tümü").forEachIndexed { index, label ->
-                        val active = period == index
-                        Text(
-                            label,
-                            Modifier.weight(1f)
-                                .background(
-                                    if (active) c.secondary.copy(alpha = .17f) else c.surfaceVariant.copy(alpha = .35f),
-                                    RoundedCornerShape(YksShape.control)
-                                )
-                                .clickable { period = index }
-                                .padding(vertical = 10.dp),
-                            textAlign = TextAlign.Center,
-                            color = if (active) c.secondary else c.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                }
-                Spacer(Modifier.height(14.dp))
-                NetTrendChart(nets, shownDates, Modifier.fillMaxWidth(), if (showTarget) goal else null)
-                if (goal != null) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Hedef çizgisini göster", color = c.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                        Switch(checked = showTarget, onCheckedChange = { showTarget = it })
-                    }
-                }
-            }
+            SharedExamTrendCard(
+                examType = type.name,
+                latestNet = latest,
+                change = change,
+                goal = goal,
+                goalProgressLabel = HomeInsights.goalPercent(latest, goal)?.let { "$it%" },
+                trend = nets,
+                trendCount = shown.size,
+                showTarget = showTarget,
+                onShowTargetChange = { showTarget = it }
+            )
         }
 
         // 3. Action: the most frequent task first

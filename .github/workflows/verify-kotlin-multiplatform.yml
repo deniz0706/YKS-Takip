@@ -51,3 +51,7 @@ jobs:
           :core:database:compileKotlinIosArm64
           :core:database:compileKotlinIosSimulatorArm64
           :core:database:compileKotlinIosX64
+          :composeApp:jvmTest
+          :composeApp:compileDebugKotlinAndroid
+          :composeApp:compileKotlinIosArm64
+          :composeApp:compileKotlinIosSimulatorArm64

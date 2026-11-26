@@ -192,3 +192,13 @@ Updated: 2026-11-26
 - During review, found that standalone study JSON export and full ZIP export read guarded repositories but did not check their unreadable flags. Both export paths now stop before opening/writing the destination if their source data is unreadable.
 - The original SharedPreferences values remain untouched and backup schemas are unchanged. This prevents a corrupt legacy store from being silently exported as an apparently valid empty backup.
 - This follow-up is committed separately and requires its own APK/KMP CI validation.
+
+
+## Compose Multiplatform shared UI slice — branch in progress
+- Working branch: `4.0/compose-multiplatform-shell`, based on the verified foundation checkpoint `4521b4ef6f66162c700a985a2f34849528307f1a`.
+- Toolchain baseline selected for the first CMP slice: Kotlin/Kotlin Multiplatform/Compose compiler plugin `2.2.21`, Compose Multiplatform Gradle plugin `1.9.3`, kotlinx.serialization `1.9.0`; existing AGP `8.7.3` and CI Gradle `8.11.1` retained. SQLDelight remains `2.0.2` pending compatibility validation rather than being upgraded speculatively.
+- Added a real `:composeApp` KMP module with Android, JVM test, iOS device, iOS simulator, and iOS x64 targets. It exposes a static `YksTakipShared` framework and an iOS `MainViewController` entry point.
+- The Android home screen now uses the shared Compose Multiplatform exam-trend/goal component for its main net evidence card. The remaining Android dashboard sections and workflows are retained; this is an incremental migration, not a replacement with a static demo.
+- The iOS entry point currently proves the shared UI shell only. iOS persistence, navigation, ranking, app project/signing, and release are not complete and must not be described as shipped.
+- Added a common test for Turkish decimal formatting and extended CI to test the shared UI module, compile its Android target and compile iOS device/simulator targets. Ranking estimator/lookup/calculator and legacy persistence formats remain unchanged.
+- This branch has not yet been merged into `4.0/foundation`; CI must pass before integration.

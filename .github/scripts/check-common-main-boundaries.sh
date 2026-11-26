@@ -8,7 +8,8 @@ forbidden_pattern='(^|[^[:alnum:]_])(android|java|org\.json)\.'
 
 if grep -RInE --include='*.kt' "$forbidden_pattern" \
   core/domain/src/commonMain \
-  core/database/src/commonMain; then
+  core/database/src/commonMain \
+  composeApp/src/commonMain; then
   echo "::error::Platform-specific API reference found in commonMain. Move it to a platform source set or introduce a shared abstraction."
   exit 1
 fi

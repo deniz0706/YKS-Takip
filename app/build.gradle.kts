@@ -20,8 +20,6 @@ android {
         versionName = appVersionName
     }
 
-    // Android Studio retains its normal debug configuration.
-    // Only CI explicitly supplies this stable preview development keystore.
     signingConfigs {
         getByName("debug") {
             val ciPreviewKeystore = System.getenv("YKS_PREVIEW_DEBUG_KEYSTORE")
@@ -58,6 +56,7 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:database"))
+    implementation(project(":composeApp"))
     implementation(platform("androidx.compose:compose-bom:2024.10.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")
@@ -75,6 +74,5 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     testImplementation("junit:junit:4.13.2")
-    // Android's org.json methods are not functional in host-JVM unit tests.
     testImplementation("org.json:json:20240303")
 }

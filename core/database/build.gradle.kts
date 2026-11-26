@@ -17,7 +17,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core:domain"))
             implementation("app.cash.sqldelight:runtime:2.0.2")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

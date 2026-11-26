@@ -5,9 +5,6 @@ plugins {
 
 kotlin {
     jvmToolchain(17)
-
-    // Android consumes the JVM variant today. iOS targets are declared now so
-    // shared business rules cannot accidentally become Android-only.
     jvm()
     iosArm64()
     iosSimulatorArm64()
@@ -15,7 +12,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
