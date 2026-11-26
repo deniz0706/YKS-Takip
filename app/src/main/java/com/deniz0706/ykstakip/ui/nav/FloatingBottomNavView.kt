@@ -10,8 +10,10 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.deniz0706.ykstakip.R
 import com.deniz0706.ykstakip.data.ThemeManager
 
 class FloatingBottomNavView @JvmOverloads constructor(
@@ -23,7 +25,7 @@ class FloatingBottomNavView @JvmOverloads constructor(
     private var onItemSelected: ((Int) -> Unit)? = null
     private val cells = mutableMapOf<Int, LinearLayout>()
     private val titles = mutableMapOf<Int, TextView>()
-    private val icons = mutableMapOf<Int, TextView>()
+    private val icons = mutableMapOf<Int, ImageView>()
     private val selectionAnimators = mutableMapOf<Int, ValueAnimator>()
     private val cellBackgrounds = mutableMapOf<Int, GradientDrawable>()
     private val backgroundColors = mutableMapOf<Int, Int>()
@@ -74,13 +76,13 @@ class FloatingBottomNavView @JvmOverloads constructor(
         updateSelectionVisuals(animate = false)
     }
 
-    private fun symbol(id: Int) = when (id) {
-        1 -> "⌂"
-        2 -> "▦"
-        3 -> "◷"
-        4 -> "▥"
-        5 -> "⚙"
-        else -> "•"
+    private fun iconResource(id: Int) = when (id) {
+        1 -> R.drawable.ic_nav_home
+        2 -> R.drawable.ic_nav_history
+        3 -> R.drawable.ic_nav_study
+        4 -> R.drawable.ic_nav_ai
+        5 -> R.drawable.ic_nav_settings
+        else -> R.drawable.ic_nav_home
     }
 
     private fun rebuild() {
@@ -117,11 +119,11 @@ class FloatingBottomNavView @JvmOverloads constructor(
                     }
                 }
             }
-            val icon = TextView(context).apply {
-                text = symbol(item.id)
-                gravity = Gravity.CENTER
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 23f)
-                includeFontPadding = false
+            val icon = ImageView(context).apply {
+                setImageResource(iconResource(item.id))
+                scaleType = ImageView.ScaleType.CENTER_INSIDE
+                setPadding(dp(3), dp(3), dp(3), dp(3))
+                contentDescription = item.label
             }
             val title = TextView(context).apply {
                 text = item.label
@@ -158,7 +160,7 @@ class FloatingBottomNavView @JvmOverloads constructor(
             val end = if (selected) active else muted
             title.alpha = if (selected) 1f else 0f
             title.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
-            icon.setTextSize(TypedValue.COMPLEX_UNIT_SP, if (selected) 24f else 22f)
+            icon.setColorFilter(end)
             cell.isSelected = selected
             cell.contentDescription = if (selected) item.label + ", seçili" else item.label
             val targetBackground = if (selected) palette.selected
