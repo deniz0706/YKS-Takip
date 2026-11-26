@@ -2,6 +2,8 @@ package com.deniz0706.ykstakip.ui.statistics
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.LinearGradient
+import android.graphics.Shader
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
@@ -63,7 +65,7 @@ class LineChartView @JvmOverloads constructor(
 
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = lineColor
-        alpha = 30
+        alpha = 55
         style = Paint.Style.FILL
     }
 
@@ -89,7 +91,6 @@ class LineChartView @JvmOverloads constructor(
 
     private val tooltipBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = surfaceColor
-        setShadowLayer(12f, 0f, 4f, 0x33000000)
     }
 
     private val tooltipTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -116,19 +117,15 @@ class LineChartView @JvmOverloads constructor(
         isFakeBoldText = true
     }
 
-    init {
-        setLayerType(LAYER_TYPE_SOFTWARE, null)
-    }
-
     override fun onMeasure(
         widthMeasureSpec: Int,
         heightMeasureSpec: Int
     ) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
         val height =
-            (width * 0.62f)
+            (width * 0.86f)
                 .toInt()
-                .coerceAtLeast(dp(180))
+                .coerceAtLeast(dp(280))
 
         setMeasuredDimension(width, height)
     }
@@ -153,10 +150,10 @@ class LineChartView @JvmOverloads constructor(
     }
 
     private fun chartRect(): RectF {
-        val padLeft = 60f
-        val padRight = 12f
-        val padTop = 30f
-        val padBottom = 50f
+        val padLeft = dp(48).toFloat()
+        val padRight = dp(14).toFloat()
+        val padTop = dp(20).toFloat()
+        val padBottom = dp(42).toFloat()
 
         return RectF(
             padLeft,
@@ -175,7 +172,7 @@ class LineChartView @JvmOverloads constructor(
             rect.width() / (points.size - 1)
 
         val idx =
-            ((touchX - rect.left) / stepX)
+            kotlin.math.round((touchX - rect.left) / stepX)
                 .toInt()
                 .coerceIn(0, points.size - 1)
 
@@ -210,9 +207,6 @@ class LineChartView @JvmOverloads constructor(
         minV -= rangePad
         maxV += rangePad
 
-        if (!reverseY && minV > 0f) {
-            minV = 0f
-        }
 
         for (i in 0..3) {
             val y =
@@ -313,8 +307,11 @@ class LineChartView @JvmOverloads constructor(
                 fillPath.moveTo(x, rect.bottom)
                 fillPath.lineTo(x, y)
             } else {
-                path.lineTo(x, y)
-                fillPath.lineTo(x, y)
+                val prevX = xFor(i - 1)
+                val prevY = yFor(points[i - 1].value)
+                val midX = (prevX + x) / 2f
+                path.cubicTo(midX, prevY, midX, y, x, y)
+                fillPath.cubicTo(midX, prevY, midX, y, x, y)
             }
         }
 
@@ -325,10 +322,13 @@ class LineChartView @JvmOverloads constructor(
 
         fillPath.close()
 
+        fillPaint.shader = LinearGradient(0f, rect.top, 0f, rect.bottom, lineColor and 0x00FFFFFF or (0x55 shl 24), lineColor and 0x00FFFFFF, Shader.TileMode.CLAMP)
         canvas.drawPath(fillPath, fillPaint)
+        fillPaint.shader = null
         canvas.drawPath(path, linePaint)
 
         points.forEachIndexed { i, p ->
+            if (i != selectedIndex && i != points.lastIndex) return@forEachIndexed
             val x = xFor(i)
             val y = yFor(p.value)
 
@@ -404,7 +404,7 @@ class LineChartView @JvmOverloads constructor(
 
             if (boxLeft + boxW > width) {
                 boxLeft =
-                    width - boxW - 4f
+                    (width - boxW - 4f).coerceAtLeast(4f)
             }
 
             var boxTop =

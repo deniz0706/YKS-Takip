@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#0E0E0D</color>
-    <color name="surface">#1C1C1A</color>
-    <color name="on_background">#F0EFE9</color>
-    <color name="on_surface_secondary">#A3A29B</color>
-    <color name="border">#33332F</color>
-
-    <color name="accent">#409CFF</color>
-    <color name="accent_soft">#1C2C3D</color>
-    <color name="positive">#30D158</color>
-    <color name="negative">#FF453A</color>
-
-    <color name="nav_island_bg">#DD222220</color>
-    <color name="nav_island_selected">#409CFF</color>
-    <color name="input_bg">#262623</color>
+    <!-- System dark / Graphite; Aurora is applied to native views at runtime. -->
+    <color name="background">#090B10</color>
+    <color name="surface">#15181F</color>
+    <color name="on_background">#F5F6FA</color>
+    <color name="on_surface_secondary">#A8ADBC</color>
+    <color name="border">#343744</color>
+    <color name="accent">#E6C38F</color>
+    <color name="accent_soft">#493923</color>
+    <color name="positive">#83D0BE</color>
+    <color name="negative">#FF90A5</color>
+    <color name="nav_island_bg">#15181F</color>
+    <color name="nav_island_selected">#E6C38F</color>
+    <color name="input_bg">#242831</color>
 </resources>

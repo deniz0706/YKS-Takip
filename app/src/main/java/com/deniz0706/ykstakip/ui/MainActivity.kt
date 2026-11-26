@@ -1,18 +1,22 @@
 package com.deniz0706.ykstakip.ui
 
 import android.os.Bundle
+import android.content.res.Configuration
+import android.view.View
+import androidx.core.view.WindowCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import com.deniz0706.ykstakip.R
 import com.deniz0706.ykstakip.model.ExamType
-import com.deniz0706.ykstakip.ui.history.HistoryFragment
+import com.deniz0706.ykstakip.ui.ai.AiCoachFragment
+import com.deniz0706.ykstakip.ui.history.ExamHubFragment
 import com.deniz0706.ykstakip.ui.home.HomeFragment
 import com.deniz0706.ykstakip.ui.nav.FloatingBottomNavView
 import com.deniz0706.ykstakip.ui.newexam.NewExamFragment
 import com.deniz0706.ykstakip.ui.settings.SettingsFragment
-import com.deniz0706.ykstakip.ui.statistics.StatisticsFragment
 import com.deniz0706.ykstakip.ui.study.StudyFragment
-import com.deniz0706.ykstakip.util.ThemeTransitionHelper
+import com.deniz0706.ykstakip.data.ThemeManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,34 +38,62 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         currentNavId = savedInstanceState?.getInt(KEY_CURRENT_NAV, NAV_HOME) ?: NAV_HOME
+        // Older saved sessions may still point at the retired Statistics tab.
+        if (currentNavId == NAV_STATS) currentNavId = NAV_HISTORY
 
         nav = findViewById(R.id.bottomNav)
 
         nav.setItems(
             items = listOf(
                 FloatingBottomNavView.NavItem(NAV_HOME, "Ana Sayfa"),
-                FloatingBottomNavView.NavItem(NAV_HISTORY, "Geçmiş"),
+                FloatingBottomNavView.NavItem(NAV_HISTORY, "Denemeler"),
                 FloatingBottomNavView.NavItem(NAV_STUDY, "Çalışma"),
-                FloatingBottomNavView.NavItem(NAV_STATS, "İstatistik"),
                 FloatingBottomNavView.NavItem(NAV_SETTINGS, "Ayarlar")
             ),
             initialSelectedId = currentNavId,
             onSelected = { id -> showFragment(id) }
         )
 
-        if (savedInstanceState == null) {
-            showFragment(NAV_HOME)
+        // Restore the selected tab without rebuilding every screen.
+        showFragment(currentNavId)
+        refreshAppearance()
+    }
+
+    /**
+     * Handling uiMode in place avoids destroying the Activity, its fragments and
+     * all Compose scroll/input state on each appearance change.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        refreshAppearance()
+    }
+
+    /**
+     * Explicit palette changes (Aurora <-> Graphite) do not change uiMode.
+     * Refresh classic Android views in place; Compose screens observe selectedMode.
+     */
+    fun refreshAppearance() {
+        updateThemeChrome()
+        supportFragmentManager.fragments.filterIsInstance<ExamHubFragment>()
+            .forEach { it.refreshTheme() }
+    }
+
+    private fun updateThemeChrome() {
+        val palette = ThemeManager.nativePalette(this)
+        val isDark = when (ThemeManager.currentTheme(this)) {
+            "aurora", "dark" -> true
+            "light" -> false
+            else -> (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
         }
-    
-        window.decorView.viewTreeObserver.addOnPreDrawListener(
-            object : android.view.ViewTreeObserver.OnPreDrawListener {
-                override fun onPreDraw(): Boolean {
-                    window.decorView.viewTreeObserver.removeOnPreDrawListener(this)
-                    ThemeTransitionHelper.applyPendingSnapshot(this@MainActivity)
-                    return true
-                }
-            }
-        )
+        findViewById<View>(R.id.mainRoot)?.setBackgroundColor(palette.background)
+        window.statusBarColor = palette.background
+        window.navigationBarColor = palette.background
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !isDark
+            isAppearanceLightNavigationBars = !isDark
+        }
+        if (::nav.isInitialized) nav.refreshTheme()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -70,26 +102,65 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFragment(navId: Int) {
+        // Detail/editor pages use the back stack. Clear them before switching tabs
+        // so hidden tab fragments are not stranded behind an editor.
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStackImmediate(
+                null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+            )
+        }
         currentNavId = navId
-
+        val manager = supportFragmentManager
+        val tag = "main_tab_$navId"
         val fragment = fragmentCache.getOrPut(navId) {
-            when (navId) {
+            manager.findFragmentByTag(tag) ?: when (navId) {
                 NAV_HOME -> HomeFragment()
-                NAV_HISTORY -> HistoryFragment()
+                NAV_HISTORY -> ExamHubFragment()
                 NAV_STUDY -> StudyFragment()
-                NAV_STATS -> StatisticsFragment()
+                NAV_STATS -> ExamHubFragment()
                 NAV_SETTINGS -> SettingsFragment()
                 else -> HomeFragment()
             }
         }
 
+        // Hide/show retains Compose views and their scroll/filter state. Previously
+        // replace() discarded the view and rebuilt the entire page on each tab tap.
+        val transaction = manager.beginTransaction()
+            .setReorderingAllowed(true)
+        manager.fragments.filter {
+            it.isAdded && it.id == R.id.fragmentContainer && it !== fragment
+        }.forEach {
+            transaction.hide(it)
+            transaction.setMaxLifecycle(it, Lifecycle.State.STARTED)
+        }
+        if (fragment.isAdded) {
+            transaction.show(fragment)
+        } else {
+            transaction.add(R.id.fragmentContainer, fragment, tag)
+        }
+        transaction.setMaxLifecycle(fragment, Lifecycle.State.RESUMED)
+        // This tab transaction has no back-stack entry: execute it synchronously
+        // to avoid queued swaps and a secondary fade on rapid taps.
+        transaction.commitNow()
+    }
+
+    fun openAiCoach() {
         supportFragmentManager.beginTransaction()
-            .setCustomAnimations(
-                android.R.anim.fade_in,
-                android.R.anim.fade_out
-            )
-            .replace(R.id.fragmentContainer, fragment)
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+            .replace(R.id.fragmentContainer, AiCoachFragment())
+            .addToBackStack("ai_coach")
             .commit()
+    }
+
+    fun openStudy() {
+        nav.select(NAV_STUDY)
+        showFragment(NAV_STUDY)
+    }
+
+    fun openLearning(examType: String, subject: String) {
+        nav.select(NAV_STUDY)
+        showFragment(NAV_STUDY)
+        (fragmentCache[NAV_STUDY] as? StudyFragment)?.openLearning(examType, subject)
     }
 
     fun openNewExam(type: ExamType) {
@@ -139,7 +210,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun closeAndReturnHome() {
-        supportFragmentManager.popBackStack(
+        supportFragmentManager.popBackStackImmediate(
             null,
             androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
         )

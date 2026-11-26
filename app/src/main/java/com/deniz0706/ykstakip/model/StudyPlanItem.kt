@@ -7,5 +7,6 @@ data class StudyPlanItem(
     val endTime: String,
     val subject: String,
     val topic: String,
-    val completed: Boolean
+    val completed: Boolean,
+    val completedWeek: String? = null
 )

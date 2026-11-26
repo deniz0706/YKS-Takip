@@ -1,213 +1,203 @@
 package com.deniz0706.ykstakip.ui.home
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.TextView
-import androidx.core.content.ContextCompat
+import android.view.ViewGroup
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
-import com.deniz0706.ykstakip.R
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import com.deniz0706.ykstakip.data.AppSettings
+import com.deniz0706.ykstakip.data.AiCoachCache
+import com.deniz0706.ykstakip.data.AiContextBuilder
+import com.deniz0706.ykstakip.data.AiSecretStore
+import com.deniz0706.ykstakip.data.NvidiaAiService
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.StudyRepository
+import com.deniz0706.ykstakip.data.FocusSessionRepository
+import com.deniz0706.ykstakip.data.LearningRepository
+import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.util.ReviewAdvisor
+import com.deniz0706.ykstakip.data.ThemeManager
+import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.MainActivity
-import com.deniz0706.ykstakip.util.Fmt
+import com.deniz0706.ykstakip.ui.theme.YksTheme
+import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class HomeFragment : Fragment(R.layout.fragment_home) {
-
+class HomeFragment : Fragment() {
     private lateinit var repository: ExamRepository
     private lateinit var studyRepository: StudyRepository
+    private lateinit var focusRepository: FocusSessionRepository
+    private lateinit var learningRepository: LearningRepository
+    private val exams = mutableStateOf<List<Exam>>(emptyList())
+    private data class Summary(
+        val daysTyt: Long? = null,
+        val daysAyt: Long? = null,
+        val goalTyt: Float? = null,
+        val goalAyt: Float? = null,
+        val todayQuestions: Int = 0,
+        val dailyGoal: Int? = null,
+        val hasFocusSession: Boolean = false,
+        val learningAlertTitle: String? = null,
+        val learningAlertType: String = "TYT",
+        val learningAlertSubject: String = "",
+        val reviewAlertCount: Int = 0,
+        val learningDoneCount: Int = 0,
+        val learningTotalCount: Int = 0,
+        val aiCoachAdvice: String = "",
+        val aiCoachDate: String = ""
+    )
+    private val dashboardSummary = mutableStateOf(Summary())
+    private var refreshJob: Job? = null
+    private var knownExamIds: Set<Long>? = null
+    private val refreshListener: () -> Unit = { refresh() }
 
-    private var selectedType = ExamType.TYT
-
-    private val changeListener = { refresh() }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         repository = ExamRepository.getInstance(requireContext())
         studyRepository = StudyRepository(requireContext())
+        focusRepository = FocusSessionRepository(requireContext())
+        learningRepository = LearningRepository(requireContext())
+    }
 
-        view.findViewById<TextView>(R.id.tvDate).text =
-            SimpleDateFormat(
-                "d MMMM yyyy, EEEE",
-                Locale("tr", "TR")
-            ).format(Date())
-
-        view.findViewById<View>(R.id.toggleTyt).setOnClickListener {
-            selectedType = ExamType.TYT
-            refresh()
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val dark = activeDarkTheme(context)
+                YksTheme(darkTheme = dark) {
+                    val summary = dashboardSummary.value
+                    HomeScreenV2(
+                        exams = exams.value,
+                        onNewExam = { (activity as? MainActivity)?.openNewExam(it) },
+                        onOpenStudy = { (activity as? MainActivity)?.openStudy() },
+                        onOpenAiCoach = { (activity as? MainActivity)?.openAiCoach() },
+                        onOpenLearning = { type, subject ->
+                            (activity as? MainActivity)?.openLearning(type, subject)
+                        },
+                        learningAlertTitle = summary.learningAlertTitle,
+                        learningAlertType = summary.learningAlertType,
+                        learningAlertSubject = summary.learningAlertSubject,
+                        reviewAlertCount = summary.reviewAlertCount,
+                        learningDoneCount = summary.learningDoneCount,
+                        learningTotalCount = summary.learningTotalCount,
+                        aiCoachAdvice = summary.aiCoachAdvice,
+                        aiCoachDate = summary.aiCoachDate,
+                        daysLeft = summary.daysTyt,
+                        daysLeftAyt = summary.daysAyt,
+                        targetTyt = summary.goalTyt,
+                        targetAyt = summary.goalAyt,
+                        todayQuestions = summary.todayQuestions,
+                        dailyGoal = summary.dailyGoal,
+                        hasFocusSession = summary.hasFocusSession
+                    )
+                }
+            }
         }
-
-        view.findViewById<View>(R.id.toggleAyt).setOnClickListener {
-            selectedType = ExamType.AYT
-            refresh()
-        }
-
-        view.findViewById<View>(R.id.btnNewExam).setOnClickListener {
-            (activity as? MainActivity)?.openNewExam(selectedType)
-        }
-
-        refresh()
     }
 
     override fun onResume() {
         super.onResume()
-
-        repository.addChangeListener(changeListener)
+        repository.addChangeListener(refreshListener)
         refresh()
     }
 
     override fun onPause() {
+        repository.removeChangeListener(refreshListener)
         super.onPause()
-
-        repository.removeChangeListener(changeListener)
     }
 
     private fun refresh() {
-        val view = view ?: return
-
-        view.findViewById<View>(R.id.toggleTyt).isSelected =
-            selectedType == ExamType.TYT
-
-        view.findViewById<View>(R.id.toggleAyt).isSelected =
-            selectedType == ExamType.AYT
-
-        val exams = repository.getAllExams()
-            .filter { it.type == selectedType }
-            .sortedBy { it.date }
-
-        val nets = exams.map { it.totalNet }
-
-        val tvLastNet = view.findViewById<TextView>(R.id.tvLastNet)
-        val tvDelta = view.findViewById<TextView>(R.id.tvDelta)
-        val emptyState = view.findViewById<View>(R.id.emptyState)
-
-        if (nets.isEmpty()) {
-            tvLastNet.text = "—"
-            tvDelta.visibility = View.GONE
-            emptyState.visibility = View.VISIBLE
-        } else {
-            emptyState.visibility = View.GONE
-            tvLastNet.text = Fmt.net(nets.last())
-
-            if (nets.size >= 2) {
-                val delta =
-                    Fmt.round2(nets.last() - nets[nets.size - 2])
-
-                tvDelta.visibility = View.VISIBLE
-                tvDelta.text = Fmt.netWithSign(delta)
-
-                val color =
-                    if (delta >= 0) {
-                        R.color.positive
-                    } else {
-                        R.color.negative
-                    }
-
-                tvDelta.setTextColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        color
-                    )
+        if (!isAdded) return
+        refreshJob?.cancel()
+        val appContext = requireContext().applicationContext
+        refreshJob = viewLifecycleOwner.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val savedExams = repository.getAllExams()
+                val newExamId = knownExamIds?.let { previous -> savedExams.firstOrNull { it.id !in previous }?.id }
+                knownExamIds = savedExams.map { it.id }.toSet()
+                val cachedAdvice = AiCoachCache.getAdvice(appContext)
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val session = focusRepository.snapshot()
+                val learningOutcomes = learningRepository.outcomes()
+                val alerts = ReviewAdvisor.recommendations(
+                    learningOutcomes, learningRepository.questions(), savedExams
                 )
-            } else {
-                tvDelta.visibility = View.GONE
+                val mainAlert = alerts.firstOrNull { it.urgent || it.due }
+                    ?: alerts.firstOrNull()
+                Triple(savedExams, Summary(
+                    daysTyt = daysUntilExam(19),
+                    daysAyt = daysUntilExam(20),
+                    goalTyt = AppSettings.getTargetNet(appContext, ExamType.TYT),
+                    goalAyt = AppSettings.getTargetNet(appContext, ExamType.AYT),
+                    todayQuestions = studyRepository.get(today)?.questionCount ?: 0,
+                    dailyGoal = AppSettings.getDailyGoal(appContext),
+                    hasFocusSession = session.running || session.elapsedMs > 0L,
+                    learningAlertTitle = mainAlert?.outcome?.let {
+                        it.subject + " · " + it.title
+                    },
+                    learningAlertType = mainAlert?.outcome?.examType ?: "TYT",
+                    learningAlertSubject = mainAlert?.outcome?.subject.orEmpty(),
+                    reviewAlertCount = alerts.size,
+                    learningDoneCount = learningOutcomes.count { it.completed },
+                    learningTotalCount = learningOutcomes.size,
+                    aiCoachAdvice = cachedAdvice?.first.orEmpty(),
+                    aiCoachDate = cachedAdvice?.second.orEmpty()
+                ), newExamId)
+            }
+            if (isAdded) {
+                exams.value = result.first
+                dashboardSummary.value = result.second
+                result.third?.let(::analyzeNewExam)
             }
         }
-
-        view.findViewById<TextView>(R.id.tvAvg).text =
-            if (nets.isEmpty()) {
-                "—"
-            } else {
-                Fmt.net(nets.average())
-            }
-
-        view.findViewById<TextView>(R.id.tvMax).text =
-            if (nets.isEmpty()) {
-                "—"
-            } else {
-                Fmt.net(nets.max())
-            }
-
-        view.findViewById<TextView>(R.id.tvLast5).text =
-            if (nets.isEmpty()) {
-                "—"
-            } else {
-                Fmt.net(nets.takeLast(5).average())
-            }
-
-        view.findViewById<TextView>(R.id.tvTotalCount).text =
-            "Toplam ${exams.size} ${selectedType.label} denemesi"
-
-        renderCountdown(view)
     }
 
-    private fun renderCountdown(view: View) {
-        val card = view.findViewById<View>(R.id.countdownCard)
-        val dailyGoal = AppSettings.getDailyGoal(requireContext())
-
-        card.visibility = View.VISIBLE
-
-        view.findViewById<TextView>(R.id.tvCountdownLabel).text =
-            "${selectedType.label}'ye kalan"
-
-        val days = daysUntilExam(selectedType)
-
-        view.findViewById<TextView>(R.id.tvDaysLeft).text =
-            if (days >= 0) {
-                "$days gün"
-            } else {
-                "Geçti"
+    private fun analyzeNewExam(examId: Long) {
+        val appContext = requireContext().applicationContext
+        if (!AiSecretStore.hasApiKey(appContext) || !AiCoachCache.claimDailySlot(appContext, examId)) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val advice = runCatching {
+                val snapshot = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
+                NvidiaAiService(appContext).chat(listOf(
+                    NvidiaAiService.Message("system",
+                        "Sen YKS-Takip uygulamasının gerçekçi ve veri odaklı YKS koçusun. Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgi uydurma. Yeni denemesini, önceki sonuçlarını ve konu ilerlemesini birlikte değerlendir. En fazla 3 somut öneri ver. Öğrenci özeti:\n$snapshot"),
+                    NvidiaAiService.Message("user",
+                        "Yeni bir deneme kaydettim (kayıt kimliği: $examId). Sonuçlarıma göre kısa bir değerlendirme ve öncelikli çalışma önerisi hazırla.")
+                ), 520)
+            }.getOrNull()
+            if (!advice.isNullOrBlank()) {
+                AiCoachCache.save(appContext, advice)
+                if (isAdded) dashboardSummary.value = dashboardSummary.value.copy(
+                    aiCoachAdvice = advice, aiCoachDate = LocalDate.now().toString()
+                )
             }
-
-        val today = todayString()
-        val studyDay = studyRepository.get(today)
-
-        val todayQuestionCount =
-            studyDay?.questionCount ?: 0
-
-        view.findViewById<TextView>(R.id.tvTodayQuestions).text =
-            if (dailyGoal != null) {
-                "$todayQuestionCount / $dailyGoal"
-            } else {
-                todayQuestionCount.toString()
-            }
+        }
     }
-
-    private fun daysUntilExam(type: ExamType): Long {
+    private fun daysUntilExam(dayOfMonth: Int): Long {
         val exam = Calendar.getInstance().apply {
-            set(
-                2027,
-                Calendar.JUNE,
-                if (type == ExamType.TYT) 19 else 20,
-                0,
-                0,
-                0
-            )
-
+            set(2027, Calendar.JUNE, dayOfMonth, 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }
-
         val today = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-
-        return (exam.timeInMillis - today.timeInMillis) /
-                (24L * 60L * 60L * 1000L)
-    }
-
-    private fun todayString(): String {
-        return SimpleDateFormat(
-            "yyyy-MM-dd",
-            Locale.US
-        ).format(Date())
+        return (exam.timeInMillis - today.timeInMillis) / 86_400_000L
     }
 }

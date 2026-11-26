@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
+import com.deniz0706.ykstakip.model.AytField
 
 object AppSettings {
     private const val PREFS = "yks_takip_prefs"
@@ -9,6 +10,34 @@ object AppSettings {
     private const val KEY_EXAM_DATE = "yks_exam_date_millis" // yyyy-MM-dd formatında epoch millis
     private const val KEY_DAILY_GOAL = "daily_question_goal"
     private const val KEY_OBP = "obp"
+    private const val KEY_LEARNING_FIELD = "learning_ayt_field"
+    private const val KEY_AI_BASE_URL = "ai_base_url"
+    private const val KEY_AI_MODEL = "ai_model"
+
+    fun getLearningField(context: Context): AytField =
+        runCatching {
+            AytField.valueOf(prefs(context).getString(KEY_LEARNING_FIELD, "SAYISAL") ?: "SAYISAL")
+        }.getOrDefault(AytField.SAYISAL)
+
+    fun setLearningField(context: Context, field: AytField) {
+        prefs(context).edit().putString(KEY_LEARNING_FIELD, field.name).apply()
+    }
+
+    fun getAiBaseUrl(context: Context): String = prefs(context).getString(KEY_AI_BASE_URL, "https://integrate.api.nvidia.com/v1") ?: "https://integrate.api.nvidia.com/v1"
+    fun setAiBaseUrl(context: Context, value: String) { prefs(context).edit().putString(KEY_AI_BASE_URL, value.trim().trimEnd('/')).apply() }
+    private const val DEFAULT_AI_MODEL = "mistralai/mistral-large-4-1t-a52b"
+
+    fun getAiModel(context: Context): String {
+        val saved = prefs(context).getString(KEY_AI_MODEL, null)?.trim()
+        // Move previous app defaults to the new NVIDIA free-endpoint model.
+        return when (saved) {
+            null, "", "meta/llama-3.3-70b-instruct",
+            "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+            "z-ai/glm-5.3-flash" -> DEFAULT_AI_MODEL
+            else -> saved
+        }
+    }
+    fun setAiModel(context: Context, value: String) { prefs(context).edit().putString(KEY_AI_MODEL, value.trim()).apply() }
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 

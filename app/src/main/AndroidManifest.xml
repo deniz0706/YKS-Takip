@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".YksApp"
@@ -10,6 +11,7 @@
 
         <activity
             android:name=".ui.MainActivity"
+            android:configChanges="uiMode"
             android:exported="true"
             android:theme="@style/Theme.YksTakip">
             <intent-filter>
@@ -18,5 +20,14 @@
             </intent-filter>
         </activity>
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.reviewphotos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/review_photo_paths" />
+        </provider>
     </application>
 </manifest>

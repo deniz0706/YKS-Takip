@@ -6,31 +6,109 @@ on:
     branches:
       - main
       - master
+      - '2.0'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    # Only trusted branch pushes/maintainer dispatches trigger this workflow.
+    # Cache access is needed to retain the private development signing key.
+    cache-mode: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
+      # Android would otherwise generate a different debug certificate on
+      # every ephemeral runner, so installed previews could never be updated.
+      # This is only a temporary development fallback: caches can be evicted.
+      - name: Restore preview debug signing key
+        id: preview_signing_cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: yks-takip-2-0-debug-signing-linux-v1
+
+      - name: Prepare preview debug signing
+        env:
+          PREVIEW_DEBUG_KEYSTORE_B64: ${{ secrets.YKS_PREVIEW_DEBUG_KEYSTORE_B64 }}
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ -n "$PREVIEW_DEBUG_KEYSTORE_B64" ]; then
+            printf '%s' "$PREVIEW_DEBUG_KEYSTORE_B64" | base64 --decode > "$HOME/.android/debug.keystore"
+            echo "Using repository-secret signing key."
+          elif [ -s "$HOME/.android/debug.keystore" ]; then
+            echo "Using cached development signing key."
+          else
+            echo "::error::Preview signing key is missing. Refusing to create an incompatible APK. Restore the original keystore using the repository secret."
+            exit 1
+          fi
+          chmod 600 "$HOME/.android/debug.keystore"
+          test -s "$HOME/.android/debug.keystore"
+          # Force Gradle to use EXACTLY the same key that will be cached.
+          echo "YKS_PREVIEW_DEBUG_KEYSTORE=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
 
       - name: Build APK
-        run: gradle assembleDebug
+        run: gradle --no-daemon testDebugUnitTest assembleDebug assembleRelease
 
-      - name: Upload APK
+      - name: Report APK signing fingerprint
+        run: |
+          # Inspect the actual signed APK, not a locale-dependent keytool label.
+          # Print only the public certificate digest, never private key material.
+          APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          if [ -z "$APK_SIGNER" ]; then
+            echo "::error::Android SDK apksigner was not installed."
+            exit 1
+          fi
+          SIGNER_REPORT="$("$APK_SIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk)"
+          printf '%s\n' "$SIGNER_REPORT" | grep -Ei 'SHA-256|SHA256'
+          EXPECTED="00cd083532461daf80c7c381e016c6f183970fe9d62f320abfda9969a3b22b46"
+          CERT="$(printf '%s\n' "$SIGNER_REPORT" | sed -nE 's/^.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' | tr '[:upper:]' '[:lower:]' | tr -d '\r')"
+          if [ -z "$CERT" ] || [ "$CERT" != "$EXPECTED" ]; then
+            echo "::error::Preview signing certificate changed or could not be read. Expected: $EXPECTED. Got: ${CERT:-missing}. Refusing to publish an incompatible APK."
+            exit 1
+          fi
+          echo "Preview signature unchanged."
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: YKS-Takip-APK
+          name: YKS-Takip-Debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload release APK (unsigned)
+        uses: actions/upload-artifact@v4
+        with:
+          name: YKS-Takip-Release-Unsigned
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+
+      - name: Publish 2.0 preview release
+        if: github.ref == 'refs/heads/2.0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v2.0-preview"
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "YKS Takip 2.0 · Önizleme" --prerelease --latest=false
+          else
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 2.0 · Önizleme" --notes "Jetpack Compose arayüzünün geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
+          fi
+          # Keep the user-facing download URL stable and always overwrite the
+          # app-debug.apk asset, rather than creating an unrelated filename.
+          gh release upload "$TAG" "$APK" --clobber
+          gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fx 'app-debug.apk'
