@@ -163,3 +163,10 @@ Updated: 2026-11-26
 - The complete YKS Takip 4.0 master development specification is preserved in `docs/MASTER-DEVELOPMENT-PROMPT.md`.
 - Commit: `2e1609eaa0ad9c9d49b1858446a60eb3e9620d0c` on `4.0/foundation`.
 - This file is the durable project-level source of truth. At the start of every continuation, read it together with this status file and verify the live Git/CI state. It is not a new scope change; it records the previously agreed master instructions.
+
+
+## CI failure investigation — 2026-11-26
+- Latest APK workflow at commit `6474287db577c4c00b117105f6351af65d6cf1e4` (run `45871452264`) failed at `:app:compileDebugUnitTestKotlin`, not in production app compilation.
+- Root cause: `YksRankingEstimatorTest.kt` declared a Kotlin test function beginning with the numeric token `114Net...`, which is invalid Kotlin syntax. Production ranking implementation and expected calibration assertions are unchanged.
+- Corrective change prepared: rename the test to `tyt114NetRegressionRemainsNearCalibratedRank`. The correction is not considered verified until a new APK CI run passes.
+- KMP workflow run `45871452275` was still running at the time of this checkpoint; its result must be checked before another push to avoid cancelling it.

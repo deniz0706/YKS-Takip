@@ -39,7 +39,7 @@ class YksRankingEstimatorTest {
         subj("Biyoloji", 13, 11, 2)
     )
 
-    @Test fun 114NetTytRegressionRemainsNearCalibratedRank() {
+    @Test fun tyt114NetRegressionRemainsNearCalibratedRank() {
         val highTyt = tyt(
             subj("Türkçe", 40, 38, 0),
             subj("Sosyal Bilimler", 20, 18, 0),
