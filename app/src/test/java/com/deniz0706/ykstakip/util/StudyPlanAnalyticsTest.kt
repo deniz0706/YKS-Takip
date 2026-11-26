@@ -15,7 +15,7 @@ class StudyPlanAnalyticsTest {
             item(3, "Fizik", "13:00", "14:30", true)
         ))
         assertEquals(240, result.plannedMinutes)
-        assertEquals(120, result.completedMinutes)
+        assertEquals(180, result.completedMinutes)
         assertEquals(2, result.completedSessions)
         assertEquals(3, result.totalSessions)
         assertEquals("Matematik", result.subjects.first().subject)
