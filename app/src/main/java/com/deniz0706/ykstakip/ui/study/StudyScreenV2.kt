@@ -41,7 +41,6 @@ import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.StudyPlanAnalytics
 import com.deniz0706.ykstakip.util.StudyPlanConflicts
 import com.deniz0706.ykstakip.util.StudyActivityAnalytics
-import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric

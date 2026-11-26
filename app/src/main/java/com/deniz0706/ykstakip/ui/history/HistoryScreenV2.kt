@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.components.ExamTypeTabs
-import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
