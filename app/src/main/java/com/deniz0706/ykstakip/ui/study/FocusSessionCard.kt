@@ -73,6 +73,11 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
             FilterChip(selected = showExamTimer, onClick = {
                 state = store.snapshot()
                 examState = examStore.snapshot()
+                if (!state.running && state.elapsedMs == 0L &&
+                    (state.stopwatch || state.durationMinutes != examState.durationMinutes)) {
+                    examState = examStore.configure(examState.examType)
+                    state = store.snapshot()
+                }
                 showExamTimer = true
             }, label = { Text("Sınav / Branş") }, modifier = Modifier.weight(1f))
         }
