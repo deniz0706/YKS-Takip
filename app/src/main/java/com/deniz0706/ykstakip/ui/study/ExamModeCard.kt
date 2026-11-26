@@ -27,7 +27,6 @@ import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.model.SubjectConfigs
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.ExamSessionMath
-import kotlinx.coroutines.delay
 
 /**
  * Exam metadata only. The timer display, start/pause, save and reset controls
@@ -38,6 +37,8 @@ import kotlinx.coroutines.delay
 fun ExamModeCard(
     modifier: Modifier = Modifier,
     embedded: Boolean = false,
+    timerRunning: Boolean,
+    timerElapsedMs: Long,
     onTimerChanged: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -49,13 +50,6 @@ fun ExamModeCard(
     var durationError by remember { mutableStateOf<String?>(null) }
     var aytField by remember { mutableStateOf(AytField.SAYISAL) }
     val colors = MaterialTheme.colorScheme
-
-    LaunchedEffect(state.running) {
-        while (state.running) {
-            delay(1000L)
-            state = repository.snapshot()
-        }
-    }
 
     val subjects = when (state.examType) {
         "TYT" -> listOf("Türkçe", "Sosyal Bilimler", "Matematik", "Fen Bilimleri")
@@ -73,7 +67,7 @@ fun ExamModeCard(
             listOf("TYT", "AYT", "BRANŞ").forEach { type ->
                 FilterChip(
                     selected = state.examType == type,
-                    enabled = !state.running && state.elapsedMs == 0L,
+                    enabled = !timerRunning && timerElapsedMs == 0L,
                     onClick = {
                         state = repository.configure(type)
                         onTimerChanged()
@@ -127,7 +121,7 @@ fun ExamModeCard(
             subjects.forEach { subject ->
                 FilterChip(
                     selected = false,
-                    enabled = state.elapsedMs > 0L,
+                    enabled = timerElapsedMs > 0L,
                     onClick = { state = repository.recordSplit(subject) },
                     label = { Text(subject, maxLines = 1) }
                 )
