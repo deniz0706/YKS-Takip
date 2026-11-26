@@ -41,7 +41,10 @@ fun SettingsScreenV2(
     onUndoStudyImport: () -> Unit,
     learningZipBusy: Boolean,
     onExportLearningZip: () -> Unit,
-    onImportLearningZip: () -> Unit
+    onImportLearningZip: () -> Unit,
+    fullBackupBusy: Boolean,
+    onExportFullBackup: () -> Unit,
+    onImportFullBackup: () -> Unit
 ) {
     var tytValue by remember { mutableStateOf(tyt) }
     var aytValue by remember { mutableStateOf(ayt) }
@@ -176,6 +179,32 @@ fun SettingsScreenV2(
             Text("04  /  VERİ YÖNETİMİ", style = MaterialTheme.typography.labelSmall, color = colors.secondary, letterSpacing = 1.sp)
             Spacer(Modifier.height(8.dp))
             DashboardSectionHeading("Verilerin", detail = "Yedekleme ve geri yükleme araçları.")
+            Text("Tam yedek · ZIP", color = colors.onSurface,
+                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("Denemeler, çalışma geçmişi, kazanımlar ve soru fotoğrafları tek dosyada. İçe aktarma mevcut kayıtları silmez; eksikleri birleştirir. API anahtarı dahil edilmez.",
+                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = onExportFullBackup, enabled = !fullBackupBusy,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(16.dp)) { Text("Tüm verileri yedekle · ZIP") }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onImportFullBackup, enabled = !fullBackupBusy,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(16.dp)) { Text("Tam yedeği güvenli biçimde birleştir") }
+            if (fullBackupBusy) {
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Text("Tam yedek hazırlanıyor…", color = colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall)
+            }
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = colors.outlineVariant)
+            Spacer(Modifier.height(12.dp))
+            Text("Ayrı yedekler", color = colors.onSurface,
+                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("İstersen yalnızca tek bir veri grubunu da dışa aktarabilirsin.",
+                color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(8.dp))
             Text("Deneme arşivini JSON dosyası olarak yedekle veya geri yükle.",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(16.dp))

@@ -10,6 +10,12 @@ import java.time.LocalDate
 class StudyBackupManagerTest {
     private val asOf = LocalDate.parse("2026-10-17")
 
+    @Test fun emptyStudyHistoryIsAValidBackupSection() {
+        val parsed = StudyBackupManager.parseJson(StudyBackupManager.exportJson(emptyList()), asOf)
+        assertTrue(parsed.days.isEmpty())
+        assertEquals(0, parsed.estimatedDays)
+    }
+
     @Test fun estimatedDaysSurviveExportAndImport() {
         val source = listOf(StudyDay("2026-08-18", 366, 598, true),
             StudyDay("2026-08-19", 341, 573, false))
