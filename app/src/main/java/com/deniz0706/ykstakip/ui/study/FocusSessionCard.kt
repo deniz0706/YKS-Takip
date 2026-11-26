@@ -190,7 +190,8 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
         }
         if (state.elapsedMs > 0L) {
             TextButton(onClick = {
-                state = store.discard()
+                if (showExamTimer) examStore.reset() else store.discard()
+                state = store.snapshot()
                 examState = examStore.snapshot()
                 message = null; savedSuccessfully = false
             }, modifier = Modifier.align(Alignment.End)) {
