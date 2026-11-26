@@ -711,7 +711,7 @@ fun StudyScreenV2(
         }
         if (section == "plan") {
         items(selectedPlans, key = { it.id }) { item ->
-            YksCard(Modifier.fillMaxWidth()) {
+            DashboardPanel(Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = item.completed, onCheckedChange = { onTogglePlan(item.id) })
                     Column(Modifier.weight(1f)

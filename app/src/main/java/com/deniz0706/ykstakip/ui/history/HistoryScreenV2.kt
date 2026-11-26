@@ -168,13 +168,7 @@ fun HistoryScreenV2(
             val comparisonIndex = if (newestFirst) index + 1 else index - 1
             val previousExam = filtered.getOrNull(comparisonIndex)
             val netChange = previousExam?.let { exam.totalNet - it.totalNet }
-            val shape = RoundedCornerShape(22.dp)
-            Column(
-                Modifier.fillMaxWidth()
-                    .background(c.surfaceContainerLow, shape)
-                    .clickable { onExamClick(exam.id) }
-                    .padding(horizontal = 16.dp, vertical = 15.dp)
-            ) {
+            DashboardPanel(Modifier.fillMaxWidth().clickable { onExamClick(exam.id) }) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(exam.title, fontWeight = FontWeight.SemiBold, color = c.onSurface,
