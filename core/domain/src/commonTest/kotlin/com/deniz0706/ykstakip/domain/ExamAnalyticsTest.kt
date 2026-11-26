@@ -9,7 +9,7 @@ class ExamAnalyticsTest {
     private fun exam(day: Int, correct: Int, wrong: Int = 0) = Exam(
         id = day.toLong(),
         title = "Deneme $day",
-        date = "2026-11-%02d".format(day),
+        date = "2026-11-${day.toString().padStart(2, '0')}",
         type = ExamType.TYT,
         subjects = listOf(SubjectResult("Türkçe", 40, correct, wrong, 30))
     )
@@ -50,11 +50,11 @@ class ExamAnalyticsTest {
         val ten = (1..10).map { exam(it, 20 + it) }
         val summary = ExamAnalytics.summarize(ten)
         assertEquals(5, summary.recentCount)
-        assertEquals(28.0, summary.previousFiveAverage)
-        assertEquals(33.0, summary.recentFiveAverage)
+        assertEquals(23.0, summary.previousFiveAverage)
+        assertEquals(28.0, summary.recentFiveAverage)
 
         val nine = ExamAnalytics.summarize(ten.dropLast(1))
-        assertEquals(4, nine.recentCount)
+        assertEquals(5, nine.recentCount)
         assertNull(nine.previousFiveAverage)
     }
 
