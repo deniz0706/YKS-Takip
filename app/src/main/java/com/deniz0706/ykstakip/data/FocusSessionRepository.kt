@@ -128,11 +128,13 @@ class FocusSessionRepository(context: Context) {
         val remainder = if (prefs.getString("carry_date", null) == date) {
             prefs.getLong("carry_ms", 0L).coerceIn(0L, 59_999L)
         } else 0L
-        val combinedMs = session.elapsedMs + remainder
-        val wholeMinutes = (combinedMs / 60_000L).toInt()
-        val remainingMs = combinedMs % 60_000L
+        val breakdown = FocusSessionSaveMath.split(session.elapsedMs, remainder)
+        val wholeMinutes = breakdown.loggedMinutes
+        val remainingMs = breakdown.remainingMs
         val previous = studyRepository.get(date) ?: StudyDay(date, 0, 0)
-        if (previous.studyMinutes + wholeMinutes > 1440) return SaveResult.DailyLimit
+        if (!FocusSessionSaveMath.fitsDailyLimit(previous.studyMinutes, wholeMinutes)) {
+            return SaveResult.DailyLimit
+        }
         if (wholeMinutes > 0) {
             studyRepository.save(previous.copy(
                 studyMinutes = previous.studyMinutes + wholeMinutes
