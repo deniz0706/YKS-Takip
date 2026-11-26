@@ -37,6 +37,7 @@ import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.model.QuestionCard
 import com.deniz0706.ykstakip.model.QuestionStatus
 import com.deniz0706.ykstakip.util.ReviewAdvisor
+import com.deniz0706.ykstakip.util.StudyPlanConflicts
 import com.deniz0706.ykstakip.ui.components.YksCard
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
@@ -140,6 +141,9 @@ fun StudyScreenV2(
     }
     val selectedPlans = remember(plan, selectedDay) {
         plan.filter { it.dayOfWeek == selectedDay }.sortedBy { it.startTime }
+    }
+    val conflictingPlanIds = remember(selectedPlans) {
+        StudyPlanConflicts.findConflictingIds(selectedPlans)
     }
     val estimatedDays = remember(sorted) { sorted.count { it.estimated } }
     val totalQuestions = remember(sorted) { sorted.sumOf { it.questionCount } }
@@ -594,6 +598,11 @@ fun StudyScreenV2(
                 Spacer(Modifier.height(12.dp))
                 Text("${selectedPlans.count { it.completed }} / ${selectedPlans.size} tamamlandı",
                     color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                if (conflictingPlanIds.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text("${conflictingPlanIds.size} derste saat çakışması var. Saatleri düzenleyerek planını netleştir.",
+                        color = colors.error, style = MaterialTheme.typography.bodySmall)
+                }
                 if (selectedPlans.isEmpty()) {
                     Spacer(Modifier.height(12.dp))
                     Text("Bu güne henüz ders eklenmedi.", color = colors.onSurfaceVariant)
@@ -615,6 +624,10 @@ fun StudyScreenV2(
                             style = MaterialTheme.typography.bodySmall)
                         Text("${item.startTime} – ${item.endTime}", color = colors.secondary,
                             style = MaterialTheme.typography.labelMedium)
+                        if (item.id in conflictingPlanIds) {
+                            Text("Saat çakışması · Düzenle", color = colors.error,
+                                style = MaterialTheme.typography.labelSmall)
+                        }
                         Spacer(Modifier.height(3.dp))
                         Text("Düzenle ›", color = colors.secondary,
                             style = MaterialTheme.typography.labelSmall)
