@@ -1,6 +1,8 @@
 package com.deniz0706.ykstakip.ui.ai
 
 import android.content.Context
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -27,12 +29,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import com.deniz0706.ykstakip.data.AiContextBuilder
+import com.deniz0706.ykstakip.data.AiImageEncoder
+import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.AiMemoryRepository
 import com.deniz0706.ykstakip.data.AiSecretStore
 import com.deniz0706.ykstakip.data.NvidiaAiService
 import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.util.PlanActionParser
+import com.deniz0706.ykstakip.util.AiVisionCapabilities
 import com.deniz0706.ykstakip.util.StudyPlanConflicts
 import com.deniz0706.ykstakip.ui.theme.YksTheme
 import com.deniz0706.ykstakip.ui.theme.activeDarkTheme
@@ -45,17 +50,47 @@ import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 import org.json.JSONObject
 
-private data class CoachLine(val role: String, val text: String)
+private data class CoachLine(val role: String, val text: String, val imageDataUrl: String? = null, val imageAttached: Boolean = false)
 
 class AiCoachFragment : Fragment() {
     private val lines = mutableStateListOf<CoachLine>()
     private val draft = mutableStateOf("")
     private val sending = mutableStateOf(false)
+    private val pendingImageData = mutableStateOf<String?>(null)
+    private val imageLoading = mutableStateOf(false)
+    private val currentAiModel = mutableStateOf("")
+
+    private val pickAiImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null && isAdded) {
+            val appContext = requireContext().applicationContext
+            imageLoading.value = true
+            (requireActivity().application as com.deniz0706.ykstakip.YksApp).applicationScope.launch {
+                val result = runCatching {
+                    withContext(Dispatchers.IO) { AiImageEncoder.encodeJpegDataUrl(appContext, uri) }
+                }
+                if (isAdded) {
+                    imageLoading.value = false
+                    result.onSuccess { pendingImageData.value = it }
+                        .onFailure {
+                            Toast.makeText(requireContext(),
+                                "Görsel hazırlanamadı: ${it.message ?: "Dosya hatası"}",
+                                Toast.LENGTH_LONG).show()
+                        }
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lines.clear()
         lines.addAll(loadConversation(requireContext()))
+        currentAiModel.value = AppSettings.getAiModel(requireContext())
+    }
+
+    override fun onResume() {
+        super.onResume()
+        currentAiModel.value = AppSettings.getAiModel(requireContext())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
@@ -66,6 +101,7 @@ class AiCoachFragment : Fragment() {
                     val listState = rememberLazyListState()
                     val appContext = LocalContext.current.applicationContext
                     val studyPlanRepository = remember(appContext) { StudyPlanRepository(appContext) }
+                    val visionSupported = AiVisionCapabilities.supportsImages(currentAiModel.value)
                     var pendingPlanDraft by remember { mutableStateOf<PlanActionParser.Draft?>(null) }
                     LaunchedEffect(lines.size, sending.value) {
                         val count = lines.size + if (sending.value) 1 else 0
@@ -158,6 +194,11 @@ class AiCoachFragment : Fragment() {
                                         )
                                     ) {
                                         Column(Modifier.padding(horizontal = 15.dp, vertical = 12.dp)) {
+                                            if (line.imageAttached || line.imageDataUrl != null) {
+                                                Text("📎 Görsel eklendi · bu istek için gönderildi",
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    style = MaterialTheme.typography.labelSmall)
+                                            }
                                             MarkdownMessage(
                                                 text = if (line.role == "assistant") PlanActionParser.visibleText(line.text) else line.text,
                                                 modifier = Modifier,
@@ -251,6 +292,32 @@ class AiCoachFragment : Fragment() {
                                 AssistChip(onClick = { draft.value = prompt }, label = { Text(label, maxLines = 1) })
                             }
                         }
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            TextButton(
+                                onClick = { pickAiImage.launch("image/*") },
+                                enabled = !sending.value && !imageLoading.value && visionSupported
+                            ) { Text(if (imageLoading.value) "Görsel hazırlanıyor…" else "＋ Görsel ekle") }
+                            if (pendingImageData.value != null) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Görsel hazır", color = MaterialTheme.colorScheme.primary,
+                                        style = MaterialTheme.typography.labelSmall)
+                                    TextButton(onClick = { pendingImageData.value = null }) {
+                                        Text("Kaldır")
+                                    }
+                                }
+                            }
+                        }
+                        Text(
+                            if (visionSupported) "Görsel NVIDIA’nın deneme API’sine gönderilir; hizmet girdileri kaydedebilir. Kişisel bilgi içeren görsel yükleme. Dosya yerel sohbet geçmişine kaydedilmez."
+                            else "Görsel analizi için Ayarlar’dan Mistral Large 4 modelini seç.",
+
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall
+                        )
                         Spacer(Modifier.height(8.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -274,7 +341,7 @@ class AiCoachFragment : Fragment() {
                                 )
                                 FilledIconButton(
                                     onClick = { sendMessage() },
-                                    enabled = !sending.value && draft.value.isNotBlank(),
+                                    enabled = !sending.value && !imageLoading.value && (draft.value.isNotBlank() || pendingImageData.value != null),
                                     modifier = Modifier.size(50.dp)
                                 ) {
                                     Text("➤", style = MaterialTheme.typography.titleLarge)
@@ -352,20 +419,29 @@ class AiCoachFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        val question = draft.value.trim()
-        if (question.isEmpty() || sending.value) return
-        draft.value = ""
-        lines.add(CoachLine("user", question))
+        if (sending.value || imageLoading.value) return
+        val imageData = pendingImageData.value
+        val question = draft.value.trim().ifBlank {
+            if (imageData != null) "Bu görseldeki YKS sorusunu çöz ve çözümünü adım adım açıkla." else return
+        }
         val appContext = requireContext().applicationContext
-        persistConversation(appContext)
-        val memoryReply = handleMemoryCommand(question)
-        if (memoryReply != null) {
-            lines.add(CoachLine("assistant", memoryReply))
-            persistConversation(requireContext().applicationContext)
+        if (imageData != null && !AiVisionCapabilities.supportsImages(AppSettings.getAiModel(appContext))) {
+            lines.add(CoachLine("error", "Görsel analizi için Mistral Large 4 modelini seçmelisin."))
+            persistConversation(appContext)
             return
         }
-        if (!AiSecretStore.hasApiKey(appContext)) {
-            lines.add(CoachLine("error", "Normal sohbet için Ayarlar bölümüne NVIDIA API anahtarı eklemelisin. Hafıza komutları çevrimdışı da çalışır."))
+        val memoryReply = if (imageData == null) handleMemoryCommand(question) else null
+        if (memoryReply == null && !AiSecretStore.hasApiKey(appContext)) {
+            lines.add(CoachLine("error", "Görsel analizi ve normal sohbet için Ayarlar bölümünden NVIDIA API anahtarını eklemelisin."))
+            persistConversation(appContext)
+            return
+        }
+        draft.value = ""
+        pendingImageData.value = null
+        lines.add(CoachLine("user", question, imageData, imageAttached = imageData != null))
+        persistConversation(appContext)
+        if (memoryReply != null) {
+            lines.add(CoachLine("assistant", memoryReply))
             persistConversation(appContext)
             return
         }
@@ -377,7 +453,7 @@ class AiCoachFragment : Fragment() {
                 answer = withTimeout(80_000) {
                     val contextText = withContext(Dispatchers.IO) { AiContextBuilder.build(appContext) }
                     val messages = mutableListOf(NvidiaAiService.Message("system",
-                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Her zaman Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir ve önceliklendirilmiş öneriler sun. Performans özetinde son 5 denemeyi önceki 5 denemeyle karşılaştır; veri azsa bunu açıkça söyle. Branş önceliğini yalnızca nete göre değil doğru oranı, değişkenlik, süre ve öğrencinin etiketlediği tekrar konularına göre değerlendir. Net verisinden dikkat hatası veya bilgi eksiği teşhisi koyma; kullanıcıdan hata türü verisi yoksa bunu bilmediğini söyle. Tekrar zamanı gelen kazanımları ve çözülmemiş soru kayıtlarını önceliklendir. Günlük/haftalık plan önerirken mevcut programı dikkate al; uygulamada kaydetmediğin bir görevi kaydedilmiş gibi sunma. Kalıcı öğrenci hafızasındaki isimleri, tercihleri, kaynakları ve kararları sonraki konuşmalarda hatırla; bunları güncel uygulama verileriyle karıştırma. Hafızadaki bilgi ile yeni söylenen bilgi çelişirse bunu belirt ve netleştir. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al. Haftalık plan için somut ve saatli bir görev önerdiğinde yanıtın sonuna yalnızca tek bir makine-okunur blok ekle: [[YKS_PLAN_ACTION]]{\"type\":\"add_plan\",\"dayOfWeek\":2,\"startTime\":\"09:00\",\"endTime\":\"10:00\",\"subject\":\"Matematik\",\"topic\":\"Fonksiyonlar\"}[[/YKS_PLAN_ACTION]]. dayOfWeek uygulamanın takvim düzeniyle aynıdır: 2 Pazartesi, 3 Salı, 4 Çarşamba, 5 Perşembe, 6 Cuma, 7 Cumartesi, 1 Pazar. Saatler 24 saat biçiminde ve bitiş başlangıçtan sonra olmalı. Birden fazla görev için blok üretme; belirsiz önerilerde blok ekleme. Bu blok yalnızca kullanıcı açıkça onaylarsa kaydedilir.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
+                        "Sen YKS-Takip uygulamasının gerçekçi, veri odaklı çalışma koçusun. Her zaman Türkçe yanıt ver. Öğrencinin verilerinde olmayan bilgileri uydurma. Kısa, uygulanabilir ve önceliklendirilmiş öneriler sun. Performans özetinde son 5 denemeyi önceki 5 denemeyle karşılaştır; veri azsa bunu açıkça söyle. Branş önceliğini yalnızca nete göre değil doğru oranı, değişkenlik, süre ve öğrencinin etiketlediği tekrar konularına göre değerlendir. Net verisinden dikkat hatası veya bilgi eksiği teşhisi koyma; kullanıcıdan hata türü verisi yoksa bunu bilmediğini söyle. Tekrar zamanı gelen kazanımları ve çözülmemiş soru kayıtlarını önceliklendir. Günlük/haftalık plan önerirken mevcut programı dikkate al; uygulamada kaydetmediğin bir görevi kaydedilmiş gibi sunma. Kalıcı öğrenci hafızasındaki isimleri, tercihleri, kaynakları ve kararları sonraki konuşmalarda hatırla; bunları güncel uygulama verileriyle karıştırma. Hafızadaki bilgi ile yeni söylenen bilgi çelişirse bunu belirt ve netleştir. Güncel öğrenci özeti her yanıtta yenilenir; önceki konuşmayı da dikkate al. Kullanıcı görsel eklediyse soruyu, şekli ve verilenleri dikkatle incele; okunmayan kısmı uydurma, eksikse netleştirme iste ve çözümü adım adım açıkla. Haftalık plan için somut ve saatli bir görev önerdiğinde yanıtın sonuna yalnızca tek bir makine-okunur blok ekle: [[YKS_PLAN_ACTION]]{\"type\":\"add_plan\",\"dayOfWeek\":2,\"startTime\":\"09:00\",\"endTime\":\"10:00\",\"subject\":\"Matematik\",\"topic\":\"Fonksiyonlar\"}[[/YKS_PLAN_ACTION]]. dayOfWeek uygulamanın takvim düzeniyle aynıdır: 2 Pazartesi, 3 Salı, 4 Çarşamba, 5 Perşembe, 6 Cuma, 7 Cumartesi, 1 Pazar. Saatler 24 saat biçiminde ve bitiş başlangıçtan sonra olmalı. Birden fazla görev için blok üretme; belirsiz önerilerde blok ekleme. Bu blok yalnızca kullanıcı açıkça onaylarsa kaydedilir.\n\nÖĞRENCİ ÖZETİ:\n$contextText"))
                     lines.asSequence()
                         .filter { it.role == "user" || it.role == "assistant" }
                         .toList()
@@ -385,13 +461,23 @@ class AiCoachFragment : Fragment() {
                         .dropWhile { it.role != "user" }
                         .forEach { line ->
                             val last = messages.last()
+                            val imageParts = line.imageDataUrl?.let { listOf(it) }.orEmpty()
                             if (messages.size > 1 && last.role == line.role) {
-                                messages[messages.lastIndex] = last.copy(content = last.content + "\n\n" + line.text)
+                                messages[messages.lastIndex] = last.copy(
+                                    content = last.content + "\n\n" + line.text,
+                                    imageDataUrls = last.imageDataUrls + imageParts
+                                )
                             } else {
-                                messages.add(NvidiaAiService.Message(line.role, line.text))
+                                messages.add(NvidiaAiService.Message(line.role, line.text, imageParts))
                             }
                         }
-                    NvidiaAiService(appContext).chat(messages)
+                    NvidiaAiService(appContext).chat(messages).also {
+                        for (index in lines.indices) {
+                            if (lines[index].imageDataUrl != null) {
+                                lines[index] = lines[index].copy(imageDataUrl = null, imageAttached = true)
+                            }
+                        }
+                    }
                 }
             } catch (e: TimeoutCancellationException) {
                 failure = "Yanıt 80 saniyede tamamlanmadı. Tekrar deneyebilirsin."
