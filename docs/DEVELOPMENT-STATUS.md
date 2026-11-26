@@ -76,6 +76,14 @@ Updated: 2026-11-26
 - Latest documentation/code commit in this continuation: `a5390dea6243e1f9497972c36f1aef698e73c51e`.
 - CI status for that exact commit: no workflow runs were returned. No build/test success is claimed.
 
+## Latest continuation work — shared serialization
+- Added Kotlin Serialization plugin (aligned to Kotlin 2.0.21) and `kotlinx-serialization-json:1.7.3` to the shared domain module.
+- Marked shared exam, subject, study-day, exam-type, AYT-field, subject-rule, and validation-result models serializable. No Android JSON dependency was introduced into `commonMain`.
+- Added common tests for nested exam round trips with Turkish text, legacy-shaped input with omitted optional fields, polymorphic validation results, and study-day/AYT-field serialization.
+- Kept the existing Android exam JSON adapter and backup formats unchanged. This is a new shared serialization capability, not a data migration.
+- Added ADR 0003 to document this boundary and compatibility policy.
+- Latest source commit: `d05f07f8f8b6c84a5a646e1383118e7db0ace945`. No Gradle build has been run from the GitHub connector; CI must validate plugin resolution and compilation.
+
 ## Immediate next steps
 1. Add the next pure shared-domain slice (exam validation and time/net primitives) with characterization tests before moving repositories.
 2. Introduce Compose Multiplatform UI only after shared domain and persistence boundaries are stable; do not rewrite screens in one pass.
