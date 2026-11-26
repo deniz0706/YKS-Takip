@@ -75,7 +75,7 @@ jobs:
           fi
           SIGNER_REPORT="$("$APK_SIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk)"
           printf '%s\n' "$SIGNER_REPORT" | grep -Ei 'SHA-256|SHA256'
-          EXPECTED="00cd083532461daf80c7c381e016c6f183970fe9d62f320abfda9969a3b22b46"
+          EXPECTED="de8b0df1be51947b5c0afe7a19a5bfe4e8bfc5f3cf923f4cb4c493e423ab3f69"
           CERT="$(printf '%s\n' "$SIGNER_REPORT" | sed -nE 's/^.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' | tr '[:upper:]' '[:lower:]' | tr -d '\r')"
           if [ -z "$CERT" ] || [ "$CERT" != "$EXPECTED" ]; then
             echo "::error::Preview signing certificate changed or could not be read. Expected: $EXPECTED. Got: ${CERT:-missing}. Refusing to publish an incompatible APK."
