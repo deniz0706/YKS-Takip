@@ -14,7 +14,8 @@ data class SubjectResult(
     val blank: Int get() = (questionCount - correct - wrong).coerceAtLeast(0)
     val net: Double get() = NetScore.calculate(correct, wrong)
     val minutesPerQuestion: Double?
-        get() = if (timeMinutes > 0) round2(timeMinutes.toDouble() / questionCount) else null
+        get() = if (timeMinutes > 0 && questionCount > 0)
+            round2(timeMinutes.toDouble() / questionCount) else null
 
     companion object {}
 
