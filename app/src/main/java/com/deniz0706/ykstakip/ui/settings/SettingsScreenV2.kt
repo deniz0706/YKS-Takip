@@ -113,7 +113,7 @@ fun SettingsScreenV2(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
-            Text("Açık, sıcak ve ferah bir yüzey kullanır. Koyu daha nötr grafit; Aurora ise yumuşak petrol ve adaçayı tonlarıyla hazırlanmıştır.",
+            Text("Açık, sıcak ve ferah bir yüzey kullanır. Koyu nötr grafit; Aurora ise derin lacivert, canlı mint, lila ve elektrik mavisi vurgularıyla hazırlanmıştır.",
                 color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
         }

@@ -43,8 +43,9 @@ fun DashboardPageHeader(eyebrow: String, title: String, subtitle: String, modifi
 fun DashboardPanel(modifier: Modifier = Modifier, accent: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     val c = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(YksShape.panel)
-    val fill = if (accent) Brush.linearGradient(listOf(c.primary.copy(alpha = 0.075f), c.surfaceContainerHigh, c.surfaceContainerHigh))
-        else Brush.linearGradient(listOf(c.surfaceContainerLow, c.surfaceContainerLow))
+    val fill = if (accent) Brush.linearGradient(
+        listOf(c.primary.copy(alpha = 0.14f), c.secondary.copy(alpha = 0.045f), c.surfaceContainerHigh)
+    ) else Brush.linearGradient(listOf(c.surfaceContainerLow, c.surfaceContainerLow))
     Column(modifier.background(fill, shape).padding(YksSpacing.cardContent),
         content = { CompositionLocalProvider(LocalContentColor provides c.onSurface) { content() } })
 }

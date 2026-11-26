@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -167,6 +169,20 @@ class AiCoachFragment : Fragment() {
                                 }
                             }
                         }
+                        Row(
+                            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            listOf(
+                                "Son 5 denememi karşılaştır" to "Son 5 denememi önceki 5 denememle karşılaştır; net, doğru oranı ve değişkenliği değerlendir.",
+                                "Önceliğim ne?" to "Mevcut verilerime göre bu hafta en yüksek getirili üç çalışma önceliğimi sırala.",
+                                "AYT analizi" to "AYT denemelerimde branş bazında güçlü ve gelişmesi gereken alanları analiz et.",
+                                "Planımı düzenle" to "Mevcut çalışma düzenimi dikkate alarak gerçekçi bir haftalık plan öner."
+                            ).forEach { (label, prompt) ->
+                                AssistChip(onClick = { draft.value = prompt }, label = { Text(label, maxLines = 1) })
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             shape = RoundedCornerShape(24.dp),
