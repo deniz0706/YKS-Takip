@@ -5,7 +5,6 @@ import android.net.Uri
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.StudyDay
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.time.Instant
@@ -67,6 +66,7 @@ object FullBackupManager {
 
         val learningFile = File(app.cacheDir, "full-backup-learning-${UUID.randomUUID()}.zip")
         try {
+            learningFile.createNewFile()
             val learningResult = LearningArchiveManager(app).exportTo(Uri.fromFile(learningFile))
             val manifest = JSONObject().apply {
                 put("schema", SCHEMA)
@@ -158,6 +158,7 @@ object FullBackupManager {
                 ?: throw IOException((examResult as? BackupManager.ImportResult.Error)?.message ?: "Deneme bölümü okunamadı.")
             val study = StudyBackupManager.parseJson(extracted.getValue("study.json").readText())
             val learning = LearningArchiveManager(app).prepareImport(Uri.fromFile(extracted.getValue("learning.zip")))
+            extracted.getValue("learning.zip").delete()
 
             if (manifest.optInt("examCount", -1) != exams.size ||
                 manifest.optInt("studyDayCount", -1) != study.days.size ||
