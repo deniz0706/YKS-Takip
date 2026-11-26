@@ -75,8 +75,12 @@ class SqlDelightExamStore(
 
     fun save(exam: Exam) {
         database.transaction {
-            upsertParent(exam)
             database.examQueries.deleteSubjectsForExam(exam.id)
+            if (database.examQueries.selectExamById(exam.id).executeAsOneOrNull() == null) {
+                insertParent(exam)
+            } else {
+                updateParent(exam)
+            }
             insertSubjects(exam)
         }
     }
@@ -89,7 +93,7 @@ class SqlDelightExamStore(
             database.examQueries.deleteAllSubjectResults()
             database.examQueries.deleteAllExams()
             exams.forEach { exam ->
-                upsertParent(exam)
+                insertParent(exam)
                 insertSubjects(exam)
             }
         }
@@ -102,8 +106,8 @@ class SqlDelightExamStore(
         }
     }
 
-    private fun upsertParent(exam: Exam) {
-        database.examQueries.upsertExam(
+    private fun insertParent(exam: Exam) {
+        database.examQueries.insertExam(
             id = exam.id,
             title = exam.title,
             examDate = exam.date,
@@ -111,6 +115,18 @@ class SqlDelightExamStore(
             aytField = exam.aytField?.name,
             notes = exam.notes,
             publisher = exam.publisher
+        )
+    }
+
+    private fun updateParent(exam: Exam) {
+        database.examQueries.updateExam(
+            title = exam.title,
+            examDate = exam.date,
+            examType = exam.type.name,
+            aytField = exam.aytField?.name,
+            notes = exam.notes,
+            publisher = exam.publisher,
+            id = exam.id
         )
     }
 
