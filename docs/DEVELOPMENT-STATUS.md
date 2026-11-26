@@ -250,3 +250,10 @@ Updated: 2026-11-26
 - Corrected the shared dashboard state contract to allow negative net values. A negative net is a valid exam outcome when wrong answers outweigh correct answers; only NaN and infinite values are rejected.
 - Net-goal values must be finite and non-negative. Goal progress labels are clamped to the same display range as the ring.
 - Added common tests for negative net acceptance and non-finite trend/goal rejection.
+
+
+## Android Lint / Kotlin Analysis API compatibility repair — 2026-11-26
+- Inspected the failed APK workflow logs. Android debug/release Kotlin compilation and APK packaging completed, but `:app:lintVitalAnalyzeRelease` crashed inside `androidx.lifecycle.lint.NonNullableMutableLiveDataDetector` with `IncompatibleClassChangeError` for `KaCallableMemberCall`. This is the exact Lifecycle lint API compatibility issue documented in the official Lifecycle 2.9.0 release notes; it is not an application source-code error.
+- Updated AGP from 8.7.3 to 8.10.1. Kotlin 2.2.21's supported AGP range includes 8.10.1, and AGP 8.10 requires Gradle 8.11.1, which remains the CI version.
+- Updated Android Lifecycle ViewModel/Runtime dependencies to 2.9.4 and aligned all resolved `androidx.lifecycle` artifacts to 2.9.4 to avoid an older transitive lint detector re-entering the graph.
+- Lint has not been disabled or suppressed. The repair remains unverified until the latest Android APK workflow completes successfully.
