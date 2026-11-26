@@ -133,6 +133,7 @@ class StudyFragment : Fragment() {
     private val days = mutableStateOf<List<StudyDay>>(emptyList())
     private val plan = mutableStateOf<List<StudyPlanItem>>(emptyList())
     private val goal = mutableStateOf<Int?>(null)
+    private val dataReady = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,7 +152,7 @@ class StudyFragment : Fragment() {
             setContent {
                 val dark = activeDarkTheme(context)
                 YksTheme(darkTheme = dark) {
-                    if (::learningRepository.isInitialized) {
+                    if (dataReady.value) {
                     StudyScreenV2(
                         days = days.value,
                         plan = plan.value,
@@ -349,6 +350,7 @@ class StudyFragment : Fragment() {
                 days.value = snapshot.days
                 plan.value = snapshot.plan
                 goal.value = snapshot.goal
+                dataReady.value = true
             }
         }
     }
