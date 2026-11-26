@@ -63,8 +63,10 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
     val comparisonExams = remember(all, type, field) {
         if (type == ExamType.AYT) all.filter { it.aytField == field } else all
     }
-    val series = remember(all, branchMode, selectedBranch, metric, range) {
-        val raw = all.mapNotNull { exam ->
+    // AYT statistics must stay within the selected field; mixing Sayısal,
+    // Eşit Ağırlık and Sözel exams makes the trend mathematically misleading.
+    val series = remember(comparisonExams, branchMode, selectedBranch, metric, range) {
+        val raw = comparisonExams.mapNotNull { exam ->
             val subject = if (branchMode) exam.subject(selectedBranch) else null
             val value = if (branchMode) {
                 when (metric) {
@@ -87,8 +89,8 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
         }
         if (range == "all") raw else raw.takeLast(range.toInt())
     }
-    val weak = remember(all, section) {
-        if (section == "branches") WeakTopicAnalyzer.findWeakSpots(all, sampleSize = 5, top = 3)
+    val weak = remember(comparisonExams, section) {
+        if (section == "branches") WeakTopicAnalyzer.findWeakSpots(comparisonExams, sampleSize = 5, top = 3)
         else emptyList()
     }
     val ranking = remember(exams, type, field, obp, section) {
