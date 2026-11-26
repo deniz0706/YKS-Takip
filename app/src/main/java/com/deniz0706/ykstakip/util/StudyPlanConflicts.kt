@@ -4,6 +4,8 @@ import com.deniz0706.ykstakip.model.StudyPlanItem
 
 /** Finds every scheduled item that overlaps another item on the same day. */
 object StudyPlanConflicts {
+    private val TIME_PATTERN = Regex("""^(?:[01][0-9]|2[0-3]):[0-5][0-9]$""")
+
     fun findConflictingIds(items: List<StudyPlanItem>): Set<Long> {
         val ranges = items.mapNotNull { item ->
             val start = parseMinutes(item.startTime) ?: return@mapNotNull null
@@ -29,11 +31,9 @@ object StudyPlanConflicts {
     }
 
     private fun parseMinutes(value: String): Int? {
-        val parts = value.split(":")
-        if (parts.size != 2) return null
-        val hour = parts[0].toIntOrNull() ?: return null
-        val minute = parts[1].toIntOrNull() ?: return null
-        if (hour !in 0..23 || minute !in 0..59) return null
+        if (!TIME_PATTERN.matches(value)) return null
+        val hour = value.substring(0, 2).toInt()
+        val minute = value.substring(3, 5).toInt()
         return hour * 60 + minute
     }
 }
