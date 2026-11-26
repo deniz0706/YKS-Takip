@@ -64,7 +64,7 @@ jobs:
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - name: Build APK
-        run: gradle --no-daemon :core:domain:jvmTest testDebugUnitTest assembleDebug assembleRelease
+        run: gradle --no-daemon :core:domain:jvmTest :core:database:compileKotlinJvm testDebugUnitTest assembleDebug assembleRelease
 
       - name: Verify in-place update identity and version
         run: |
