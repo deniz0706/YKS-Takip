@@ -37,6 +37,7 @@ import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.data.StudyRepository
 import com.deniz0706.ykstakip.data.ThemeManager
+import com.deniz0706.ykstakip.util.ExamErrorNotebook
 import com.deniz0706.ykstakip.model.StudyDay
 import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.ui.theme.YksTheme
@@ -173,6 +174,33 @@ class StudyFragment : Fragment() {
                         onQuestionGallery = { openGallery(it) },
                         onQuestionPhotoRemove = { id,name ->
                             learningRepository.removePhoto(id,name); refresh()
+                        },
+                        onImportExamTopic = { suggestion ->
+                            val marker = "[deneme-kaynak:${suggestion.sourceKey}]"
+                            val alreadyImported = learningRepository.questions().any {
+                                it.notes.contains(marker)
+                            }
+                            if (!alreadyImported && !suggestion.ambiguousMatch) {
+                                val existingOutcome = suggestion.linkedOutcomeId?.let { id ->
+                                    learningRepository.outcomes().find { it.id == id }
+                                }
+                                val targetOutcome = existingOutcome ?: learningRepository.addOutcome(
+                                    suggestion.examType, suggestion.examSubject,
+                                    suggestion.topic, suggestion.topic
+                                )
+                                val notes = marker + "\n" +
+                                    "Deneme: ${suggestion.examTitle} · ${suggestion.examDate}\n" +
+                                    "Ders: ${suggestion.examSubject}\n" +
+                                    "Ders toplamı: ${suggestion.wrongCount} yanlış, ${suggestion.blankCount} boş. " +
+                                    "Bu sayılar konuya özel değildir; yalnızca deneme ders toplamını gösterir."
+                                learningRepository.addQuestion(
+                                    targetOutcome.id,
+                                    "Deneme: ${suggestion.examTitle}",
+                                    notes,
+                                    QuestionStatus.GERI_DON
+                                )
+                            }
+                            refresh()
                         },
                         onEditToday = { editDay(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())) },
                         onFocusSaved = { refresh() },
