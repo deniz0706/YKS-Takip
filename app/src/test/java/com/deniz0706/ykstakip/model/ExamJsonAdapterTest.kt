@@ -25,7 +25,7 @@ class ExamJsonAdapterTest {
         assertEquals("Süre yönetimi", json.getString("notes"))
         assertEquals("Paragraf", json.getJSONArray("subjects").getJSONObject(0)
             .getJSONArray("weakTopics").getString(0))
-        assertEquals(original, Exam.fromJson(json))
+        assertEquals(original, examFromJson(json))
     }
 
     @Test
@@ -42,7 +42,7 @@ class ExamJsonAdapterTest {
             .put("type", "TYT")
             .put("subjects", JSONArray().put(legacySubject))
 
-        val restored = Exam.fromJson(legacyExam)
+        val restored = examFromJson(legacyExam)
         assertNull(restored.aytField)
         assertEquals("", restored.notes)
         assertEquals("", restored.publisher)
