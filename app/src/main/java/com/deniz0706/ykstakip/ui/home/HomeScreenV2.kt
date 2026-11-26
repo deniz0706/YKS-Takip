@@ -195,10 +195,27 @@ fun HomeScreenV2(
                             Text(value, fontSize = 52.sp, lineHeight = 60.sp,
                                 fontWeight = FontWeight.Bold, color = c.onSurface)
                         }
-                        Text(if (change == null) "Önceki deneme yok"
-                            else "${if (change >= 0) "↗ +" else "↘ "}${Fmt.net(change)} net / önceki",
-                            color = if (change != null && change >= 0) c.primary else c.secondary,
-                            style = MaterialTheme.typography.bodySmall)
+                        Surface(
+                            shape = RoundedCornerShape(YksShape.pill),
+                            color = when {
+                                change == null -> c.surfaceVariant
+                                change >= 0 -> c.primary.copy(alpha = .13f)
+                                else -> c.error.copy(alpha = .13f)
+                            }
+                        ) {
+                            Text(
+                                if (change == null) "İlk deneme"
+                                else "${if (change >= 0) "↗ +" else "↘ "}${Fmt.net(change)} net",
+                                Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                color = when {
+                                    change == null -> c.onSurfaceVariant
+                                    change >= 0 -> c.primary
+                                    else -> c.error
+                                },
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                     if (goal != null && goal > 0f && latest != null) {
                         DashboardRing((latest / goal).toFloat(),

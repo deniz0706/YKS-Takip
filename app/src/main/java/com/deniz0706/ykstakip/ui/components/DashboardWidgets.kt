@@ -38,13 +38,18 @@ fun DashboardPanel(
 ) {
     val c = MaterialTheme.colorScheme
     val shape = remember { RoundedCornerShape(YksShape.panel) }
-    val fill = androidx.compose.runtime.remember(c.surface, c.surfaceVariant, accent) {
-        if (accent) Brush.linearGradient(listOf(c.surfaceVariant, c.surface, c.surface))
-        else Brush.linearGradient(listOf(c.surface, c.surface))
+    val fill = androidx.compose.runtime.remember(
+        c.surface, c.surfaceVariant, c.primary, accent
+    ) {
+        if (accent) Brush.linearGradient(
+            listOf(c.primary.copy(alpha = .11f), c.surfaceVariant.copy(alpha = .72f), c.surface)
+        ) else Brush.linearGradient(listOf(c.surface, c.surface))
     }
+    val borderColor = if (accent) c.primary.copy(alpha = .30f)
+        else c.outline.copy(alpha = .38f)
     Column(
         modifier.background(fill, shape)
-            .border(1.dp, c.outline.copy(alpha = .38f), shape)
+            .border(1.dp, borderColor, shape)
             .padding(YksSpacing.cardContent),
         content = { CompositionLocalProvider(LocalContentColor provides c.onSurface) { content() } }
     )
@@ -60,13 +65,23 @@ fun DashboardMetric(
 ) {
     val c = MaterialTheme.colorScheme
     DashboardPanel(modifier) {
-        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall,
-            color = c.onSurfaceVariant, letterSpacing = 1.sp)
-        Spacer(Modifier.height(9.dp))
-        Text(value, fontSize = 27.sp, lineHeight = 32.sp, fontWeight = FontWeight.Bold,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(7.dp).background(color.copy(alpha = .85f), RoundedCornerShape(50))
+            )
+            Spacer(Modifier.width(7.dp))
+            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall,
+                color = c.onSurfaceVariant, letterSpacing = 1.sp)
+        }
+        Spacer(Modifier.height(11.dp))
+        Text(value, fontSize = 28.sp, lineHeight = 33.sp, fontWeight = FontWeight.Bold,
             color = color, maxLines = 1)
+        Box(
+            Modifier.padding(top = 10.dp).width(30.dp).height(3.dp)
+                .clip(RoundedCornerShape(2.dp)).background(color.copy(alpha = .72f))
+        )
         if (detail != null) {
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(7.dp))
             Text(detail, style = MaterialTheme.typography.labelSmall,
                 color = c.onSurfaceVariant, maxLines = 1)
         }
