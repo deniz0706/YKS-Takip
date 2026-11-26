@@ -109,7 +109,7 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
         }
 
         if (showExamTimer) {
-            ExamModeCard(embedded = true, onTimerChanged = {
+            ExamModeCard(embedded = true, timerRunning = state.running, timerElapsedMs = state.elapsedMs, onTimerChanged = {
                 state = store.snapshot()
                 examState = examStore.snapshot()
                 message = null
