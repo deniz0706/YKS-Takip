@@ -86,6 +86,7 @@ fun StudyScreenV2(
     onQuestionGallery: (String) -> Unit,
     onQuestionPhotoRemove: (String, String) -> Unit,
     onImportExamTopic: (ExamErrorNotebook.Suggestion) -> Unit,
+    onRequestReviewNotifications: () -> Unit,
     onEditToday: () -> Unit,
     onFocusSaved: () -> Unit,
     onEditDay: (String) -> Unit,
@@ -221,6 +222,10 @@ fun StudyScreenV2(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+            TextButton(
+                onClick = onRequestReviewNotifications,
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Tekrar bildirimlerini aç / yönet") }
             LearningHubPanel(
                 outcomes = learningOutcomes,
                 questions = learningQuestions,

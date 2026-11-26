@@ -1,11 +1,17 @@
 package com.deniz0706.ykstakip.ui.study
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.provider.Settings
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import com.deniz0706.ykstakip.data.LearningRepository
+import com.deniz0706.ykstakip.data.ReviewReminderScheduler
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.LearningOutcome
@@ -88,6 +94,15 @@ class StudyFragment : Fragment() {
             refresh()
         }
     }
+
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted && isAdded && ::learningRepository.isInitialized) {
+                ReviewReminderScheduler.rescheduleAll(
+                    requireContext(), learningRepository.outcomes()
+                )
+            }
+        }
 
     private val pickPhoto = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         val q = galleryQuestionId
@@ -175,6 +190,7 @@ class StudyFragment : Fragment() {
                         onQuestionPhotoRemove = { id,name ->
                             learningRepository.removePhoto(id,name); refresh()
                         },
+                        onRequestReviewNotifications = { requestReviewNotifications() },
                         onImportExamTopic = { suggestion ->
                             val marker = "[deneme-kaynak:${suggestion.sourceKey}]"
                             val alreadyImported = learningRepository.questions().any {
@@ -228,7 +244,25 @@ class StudyFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        if (::learningRepository.isInitialized) {
+            ReviewReminderScheduler.rescheduleAll(requireContext(), learningRepository.outcomes())
+        }
         refresh()
+    }
+
+    private fun requestReviewNotifications() {
+        if (!isAdded) return
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+            })
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
