@@ -107,7 +107,7 @@ fun ExamModeCard(
                     durationError = null
                     showDurationDialog = true
                 },
-                enabled = !state.running && state.elapsedMs == 0L,
+                enabled = !timerRunning && timerElapsedMs == 0L,
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Branş süresini ayarla · ${state.durationMinutes} dk") }
         }
