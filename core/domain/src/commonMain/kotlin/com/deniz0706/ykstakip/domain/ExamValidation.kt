@@ -24,6 +24,12 @@ sealed interface ExamValidationResult {
     data object IncompleteSubjects : ExamValidationResult
     @Serializable
     data object NegativeTime : ExamValidationResult
+    @Serializable
+    data class SubjectQuestionCountMismatch(
+        val subject: String,
+        val expected: Int,
+        val actual: Int
+    ) : ExamValidationResult
 }
 
 /**

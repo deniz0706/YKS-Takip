@@ -227,3 +227,12 @@ Updated: 2026-11-26
 - Connected the existing Android `NewExamScreenV2` save path to `ExamEntryRules.validate/create`. The screen now uses the common validator as its final gate and passes the validated shared `Exam` aggregate to the existing repository callback. The SharedPreferences JSON adapter and persistence contract are unchanged.
 - No ranking files, signing material, application ID, existing exam JSON format, or production database writes were changed.
 - CI for the repair commit is pending; no build or test success is claimed until the new workflows complete.
+
+
+## Shared domain analytics hardening — 2026-11-26
+- Opened isolated branch `4.0/shared-domain-analytics` from `4.0/compose-multiplatform-shell` checkpoint `6b95aec27eddac18e1362f57bc4f659675695562`; it is intentionally separate so the active APK/KMP validation on the parent branch is not cancelled.
+- Added `ExamAnalytics` and `ExamTrendSummary` to commonMain. Latest/previous net, delta, average, best, rolling five-exam averages, and chronological sparkline values now have one platform-independent implementation.
+- Connected the existing Android HomeScreenV2 performance metrics and shared Compose Multiplatform trend card to the common analytics contract. Existing UI sections and navigation remain in place.
+- Hardened exam validation to reject subject records whose stored question count does not match the official TYT/selected AYT subject configuration.
+- Added common tests for empty history, date ordering, trend limits, latest/change/average/best values, complete five-exam comparison windows, AYT subject sets, negative time, combined answer limits, and question-count mismatch.
+- This branch is not merged. Its own CI must pass before opening an integration PR to the CMP shell branch.
