@@ -34,6 +34,7 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
     var savedSuccessfully by remember { mutableStateOf(false) }
     var customDurationDialog by remember { mutableStateOf(false) }
     var manualTimeDialog by remember { mutableStateOf(false) }
+    var showExamTimer by remember { mutableStateOf(false) }
     val owner = LocalLifecycleOwner.current
     DisposableEffect(owner, store) {
         val observer = LifecycleEventObserver { _, event ->
@@ -61,6 +62,21 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
     val canChangeDuration = state.elapsedMs == 0L && !state.running
 
     DashboardPanel(modifier, accent = true) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = !showExamTimer,
+                onClick = { showExamTimer = false },
+                label = { Text("Odak") },
+                modifier = Modifier.weight(1f)
+            )
+            FilterChip(
+                selected = showExamTimer,
+                onClick = { showExamTimer = true },
+                label = { Text("TYT · AYT · Branş") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        if (!showExamTimer) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -208,8 +224,10 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
                 color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.labelSmall)
         }
-        HorizontalDivider(color = colors.outlineVariant)
-        ExamModeCard(embedded = true)
+        }
+        if (showExamTimer) {
+            ExamModeCard(embedded = true)
+        }
     }
 
     if (customDurationDialog) {
