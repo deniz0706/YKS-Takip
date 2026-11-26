@@ -10,11 +10,11 @@ The app currently stores exams and study days in Android SharedPreferences JSON.
 ## Decision
 
 - Add an isolated Kotlin Multiplatform module `:core:database` using SQLDelight 2.0.2.
-- Declare JVM and iOS device/simulator targets, matching the shared domain module.
+- Declare an Android library target and iOS device/simulator targets, matching the shared app architecture. The Android app consumes the Android variant rather than a generic JVM artifact.
 - Create normalized tables for exam metadata, ordered subject results, and daily study records.
 - Keep weak-topic lists as JSON text at the schema boundary for now; do not invent a premature topic relational model.
 - Keep the module unreferenced by production app repositories until platform driver factories, transactional import, rollback, and migration verification are implemented.
-- Add CI compilation tasks for the database module on JVM and iOS. Android APK CI also compiles its JVM target.
+- Add CI compilation tasks for the Android and iOS database targets. Android APK CI also compiles the Android database target.
 
 ## Initial schema mapping
 
