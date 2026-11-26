@@ -54,9 +54,18 @@ class DashboardUiStateTest {
     }
 
     @Test
-    fun rejectsInvalidExamTrendValues() {
-        assertFailsWith<IllegalArgumentException> { DashboardUiState(tytTrend = listOf(12.0, Double.NaN)) }
-        assertFailsWith<IllegalArgumentException> { DashboardUiState(aytTrend = listOf(-0.25)) }
+    fun acceptsNegativeNetButRejectsNonFiniteValues() {
+        val state = DashboardUiState(tytTrend = listOf(-2.5, 0.0, 12.0))
+        assertEquals(listOf(-2.5, 0.0, 12.0), state.tytTrend)
+        assertFailsWith<IllegalArgumentException> {
+            DashboardUiState(tytTrend = listOf(12.0, Double.NaN))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            DashboardUiState(aytTrend = listOf(Double.POSITIVE_INFINITY))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            DashboardUiState(tytGoal = Float.POSITIVE_INFINITY)
+        }
     }
 
     private fun exam(id: Long, date: String, type: ExamType, correct: Int) = Exam(

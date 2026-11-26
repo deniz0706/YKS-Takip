@@ -51,11 +51,15 @@ data class DashboardUiState(
         require(todayQuestionCount >= 0) { "Bugünkü soru sayısı negatif olamaz." }
         require(dailyQuestionGoal == null || dailyQuestionGoal >= 0) { "Günlük hedef negatif olamaz." }
         require(daysUntilExam == null || daysUntilExam >= 0) { "Sınava kalan gün negatif olamaz." }
-        require((tytGoal == null || tytGoal >= 0f) && (aytGoal == null || aytGoal >= 0f)) {
-            "Net hedefi negatif olamaz."
+        require(
+            (tytGoal == null || (tytGoal.isFinite() && tytGoal >= 0f)) &&
+                (aytGoal == null || (aytGoal.isFinite() && aytGoal >= 0f))
+        ) {
+            "Net hedefi geçersiz."
         }
-        require((tytTrend + aytTrend).all { it.isFinite() && it >= 0.0 }) {
-            "Net geçmişi geçersiz değer içeriyor."
+        // Negative net values are legitimate when wrong answers exceed correct answers.
+        require((tytTrend + aytTrend).all { it.isFinite() }) {
+            "Net geçmişi sonlu olmayan değer içeriyor."
         }
     }
 
@@ -108,7 +112,7 @@ fun YksTakipApp(
     val trend = if (selectedExam == "TYT") dashboard.tytTrend else dashboard.aytTrend
     val change = if (latest != null && previous != null) latest - previous else null
     val progress = if (latest != null && goal != null && goal > 0f) {
-        "${((latest / goal) * 100.0).toInt()}%"
+        "${((latest / goal) * 100.0).toInt().coerceIn(0, 999)}%"
     } else null
 
     MaterialTheme(

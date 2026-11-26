@@ -244,3 +244,9 @@ Updated: 2026-11-26
 - Added common tests proving real TYT/AYT records and goals/countdown/study counters map into the shared UI state.
 - This remains a data-contract bridge, not a claim that iOS persistence or the complete app navigation has shipped. Android's current HomeScreenV2 remains the production home while migration proceeds incrementally.
 - Updated branch: `4.0/shared-domain-analytics`; integration PR #53 remains draft and awaits both Android and KMP/iOS-target CI workflows.
+
+
+## Dashboard net-range correctness — 2026-11-26
+- Corrected the shared dashboard state contract to allow negative net values. A negative net is a valid exam outcome when wrong answers outweigh correct answers; only NaN and infinite values are rejected.
+- Net-goal values must be finite and non-negative. Goal progress labels are clamped to the same display range as the ring.
+- Added common tests for negative net acceptance and non-finite trend/goal rejection.
