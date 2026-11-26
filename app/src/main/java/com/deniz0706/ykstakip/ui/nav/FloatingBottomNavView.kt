@@ -77,8 +77,8 @@ class FloatingBottomNavView @JvmOverloads constructor(
 
     private fun symbol(id: Int) = when (id) {
         1 -> "⌂"
-        2 -> "▤"
-        3 -> "✎"
+        2 -> "▦"
+        3 -> "◷"
         4 -> "▥"
         5 -> "⚙"
         else -> "•"
@@ -121,13 +121,14 @@ class FloatingBottomNavView @JvmOverloads constructor(
             val icon = TextView(context).apply {
                 text = symbol(item.id)
                 gravity = Gravity.CENTER
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 23f)
                 includeFontPadding = false
             }
             val title = TextView(context).apply {
                 text = item.label
                 gravity = Gravity.CENTER
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+                alpha = if (item.id == selectedId) 1f else 0f
                 maxLines = 1
                 includeFontPadding = false
             }
@@ -156,7 +157,11 @@ class FloatingBottomNavView @JvmOverloads constructor(
             val title = titles[item.id] ?: return@forEach
             val icon = icons[item.id] ?: return@forEach
             val end = if (selected) active else muted
+            title.alpha = if (selected) 1f else 0f
             title.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
+            icon.setTextSize(TypedValue.COMPLEX_UNIT_SP, if (selected) 24f else 22f)
+            cell.isSelected = selected
+            cell.contentDescription = if (selected) item.label + ", seçili" else item.label
             val targetBackground = if (selected) palette.selected
                 else Color.TRANSPARENT
             selectionAnimators.remove(item.id)?.cancel()
