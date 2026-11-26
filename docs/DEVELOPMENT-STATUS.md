@@ -181,3 +181,14 @@ Updated: 2026-11-26
 - A focused guard is staged for both repositories: parse failures mark the store unreadable; exam saves/replacements and study saves/deletes/imports/undo are blocked before any SharedPreferences write. Read paths keep their existing fallback contract, and the original raw preference remains untouched.
 - The repositories expose `hasUnreadableLegacyData()` for a future recovery UI. The guard and its state transitions have focused JVM tests.
 - This slice is staged for integration only after the currently running KMP validation is checked; no production data has been read, migrated, or modified by CI.
+
+
+## Verified foundation CI checkpoint — 2026-11-26
+- Commit `d3999f7d229bd07b8a635ba15b943ddcf33958d1` passed Android APK workflow run `45872229685`: APK build, in-place update identity/version verification, signing fingerprint report, and debug/unsigned-release artifact uploads succeeded. Preview release publication was skipped by workflow conditions.
+- The same commit passed Kotlin Multiplatform workflow run `45872229533`: commonMain platform-boundary enforcement, shared domain/database JVM tests, and iOS device/simulator target compilation succeeded.
+- These results validate the existing foundation and data write-protection slice. They do not validate the next Compose Multiplatform toolchain/module work or production database migration.
+
+## Backup export safety follow-up — integrated
+- During review, found that standalone study JSON export and full ZIP export read guarded repositories but did not check their unreadable flags. Both export paths now stop before opening/writing the destination if their source data is unreadable.
+- The original SharedPreferences values remain untouched and backup schemas are unchanged. This prevents a corrupt legacy store from being silently exported as an apparently valid empty backup.
+- This follow-up is committed separately and requires its own APK/KMP CI validation.

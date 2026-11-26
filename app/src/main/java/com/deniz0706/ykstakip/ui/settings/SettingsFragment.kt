@@ -40,7 +40,11 @@ class SettingsFragment : Fragment() {
         lifecycleScope.launch {
             val saved = withContext(Dispatchers.IO) {
                 runCatching {
-                    val json = StudyBackupManager.exportJson(studyRepository.getAll())
+                    val days = studyRepository.getAll()
+                    check(!studyRepository.hasUnreadableLegacyData()) {
+                        "Çalışma geçmişi okunamadı. Veri kaybını önlemek için yedek oluşturma durduruldu."
+                    }
+                    val json = StudyBackupManager.exportJson(days)
                     val out = requireContext().contentResolver.openOutputStream(uri)
                         ?: error("Dosya yazılamadı.")
                     out.use { it.write(json.toByteArray(Charsets.UTF_8)) }
