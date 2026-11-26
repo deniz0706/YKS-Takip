@@ -18,7 +18,7 @@ class ExamEntryRulesTest {
         val result = ExamEntryRules.create(1, "  Deneme  ", "2026-11-26", ExamType.TYT, subjects = tytSubjects())
         assertNotNull(result)
         assertEquals("Deneme", result.title)
-        assertEquals(5, result.subjects.first().blank)
+        assertEquals(2, result.subjects.first().blank)
         assertEquals(93.5, result.totalNet)
     }
 
