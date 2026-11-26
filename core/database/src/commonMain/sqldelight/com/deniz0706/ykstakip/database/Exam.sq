@@ -21,6 +21,9 @@ CREATE TABLE SubjectResultRecord (
     FOREIGN KEY (examId) REFERENCES ExamRecord(id) ON DELETE CASCADE
 );
 
+CREATE INDEX SubjectResultRecord_examId_subjectOrder
+ON SubjectResultRecord(examId, subjectOrder);
+
 selectAllExams:
 SELECT * FROM ExamRecord
 ORDER BY examDate DESC, id DESC;
@@ -34,9 +37,18 @@ SELECT * FROM SubjectResultRecord
 WHERE examId = ?
 ORDER BY subjectOrder ASC;
 
-insertExam:
+-- Upsert updates the parent row in place. Avoid INSERT OR REPLACE here:
+-- SQLite REPLACE deletes the old row first and can cascade-delete child subjects.
+upsertExam:
 INSERT INTO ExamRecord(id, title, examDate, examType, aytField, notes, publisher)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    title = excluded.title,
+    examDate = excluded.examDate,
+    examType = excluded.examType,
+    aytField = excluded.aytField,
+    notes = excluded.notes,
+    publisher = excluded.publisher;
 
 updateExam:
 UPDATE ExamRecord
@@ -46,6 +58,9 @@ WHERE id = ?;
 deleteExamById:
 DELETE FROM ExamRecord
 WHERE id = ?;
+
+deleteAllExams:
+DELETE FROM ExamRecord;
 
 insertSubjectResult:
 INSERT INTO SubjectResultRecord(
