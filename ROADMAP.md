@@ -19,12 +19,19 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 
 ## Öncelikli geliştirme sırası
 
-### 0. Kronometre ve sınav modu düzeltmeleri — PR #47\n- [x] Odak ve TYT/AYT/branş modlarının aynı süre sayacını kullanması; ayrı elapsed/running depolarını kaldır.\n- [x] Sınav/branş oturumunu da aynı günlük çalışma kaydı kaydetme akışına bağla.\n- [x] Önceki sürümdeki sınav sayacı verisini mevcut odak oturumunu ezmeden tek seferlik taşı.\n- [ ] CI, eski oturum migrasyonu ve cihazda kayıt doğrulaması.\n\n### 0a. Önceki sınav modu düzeltmeleri — PR #44
+### 0. Kronometre ve sınav modu düzeltmeleri — PR #47
+- [x] Odak ve TYT/AYT/branş modlarının aynı süre sayacını kullanması; ayrı elapsed/running depolarını kaldır.
+- [x] Sınav/branş oturumunu da aynı günlük çalışma kaydı kaydetme akışına bağla.
+- [x] Önceki sürümdeki sınav sayacı verisini mevcut odak oturumunu ezmeden tek seferlik taşı.
+- [ ] CI, eski oturum migrasyonu ve cihazda kayıt doğrulaması.
+
+### 0a. Önceki sınav modu düzeltmeleri — PR #44
 - [x] Branş süresini 60 dakikaya sabitleme; 1–600 dakika arasında kullanıcı tanımlı süre.
 - [x] TYT ve AYT için sayısal dışındaki dersleri de ders geçişi listesine ekle.
 - [x] Ayrı sınav modu kartını kaldırıp sınav/branş zamanlayıcısını mevcut odak kronometresi paneline yerleştir.
 - [x] Duraklatma/devam etme akışını koru; sıfırlama yalnızca duraklatılmış oturumda kullanılabilsin.
-- [x] CI başarılı; PR #44 main dalına alındı.\n- [ ] Tek sayaç ve çalışma günlüğü kaydı için PR #47 doğrulaması.
+- [x] CI başarılı; PR #44 main dalına alındı.
+- [ ] Tek sayaç ve çalışma günlüğü kaydı için PR #47 doğrulaması.
 
 
 ### 1. Deneme hata defteri ve konu bağlantısı — tamamlandı (PR #33)
@@ -45,7 +52,12 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [x] Widget verisini mevcut repository’lerden oku; ikinci bir veri kaynağı oluşturma.
 - [x] Widget güncellemesini çalışma kayıtları ve günlük hedef değişiklikleriyle eşleştir.
 
-### 4. Performans ve kullanılabilirlik\n- [x] Deneme detayları ve istatistik ekranlarında ağır veri yüklemelerini UI iş parçacığından çıkar (PR #46; CI başarılı).\n- [ ] Kalan Compose ekranlarını ortak tasarım sistemine taşı; eski ekranları yalnızca navigasyon ve derin bağlantılar doğrulandıktan sonra kaldır.\n- [ ] Gerçek cihazda açılış, ekran geçişi, liste kaydırma ve uzun deneme geçmişi performansını ölç.\n\n### 4a. Arayüz ve kullanılabilirlik
+### 4. Performans ve kullanılabilirlik
+- [x] Deneme detayları ve istatistik ekranlarında ağır veri yüklemelerini UI iş parçacığından çıkar (PR #46; CI başarılı).
+- [ ] Kalan Compose ekranlarını ortak tasarım sistemine taşı; eski ekranları yalnızca navigasyon ve derin bağlantılar doğrulandıktan sonra kaldır.
+- [ ] Gerçek cihazda açılış, ekran geçişi, liste kaydırma ve uzun deneme geçmişi performansını ölç.
+
+### 4a. Arayüz ve kullanılabilirlik
 - [ ] Compose ekranlarını ortak tasarım sistemine taşı; eski ekranları yalnızca tüm navigasyon ve derin bağlantılar doğrulandıktan sonra kaldır.
 - [ ] Erişilebilirlik, küçük ekran, büyük yazı, koyu/açık tema ve performans kontrolleri.
 - [ ] Gereksiz büyük kartları ve tekrarlanan aksiyonları azalt; ana akışları daha hızlı hale getir.
