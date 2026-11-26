@@ -21,6 +21,9 @@ import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.ui.components.*
 import com.deniz0706.ykstakip.util.Fmt
+import com.deniz0706.ykstakip.ui.theme.YksSpacing
+import com.deniz0706.ykstakip.ui.theme.YksShape
+import com.deniz0706.ykstakip.ui.theme.YksMotion
 
 @Composable
 fun HomeScreenV2(
@@ -76,8 +79,8 @@ fun HomeScreenV2(
 
     LazyColumn(
         modifier.fillMaxSize().background(c.background),
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 22.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        contentPadding = PaddingValues(horizontal = YksSpacing.pageHorizontal, vertical = YksSpacing.pageVertical),
+        verticalArrangement = Arrangement.spacedBy(YksSpacing.section)
     ) {
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
@@ -89,7 +92,7 @@ fun HomeScreenV2(
                     Text("Genel Bakış", fontSize = 31.sp, fontWeight = FontWeight.Bold,
                         color = c.onBackground)
                 }
-                Surface(shape = RoundedCornerShape(15.dp), color = c.surfaceVariant) {
+                Surface(shape = RoundedCornerShape(YksShape.input), color = c.surfaceVariant) {
                     Text("${all.size} deneme", Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
                         color = c.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                 }
@@ -144,7 +147,7 @@ fun HomeScreenV2(
                             style = MaterialTheme.typography.labelSmall, letterSpacing = 1.3.sp)
                         Spacer(Modifier.height(7.dp))
                         AnimatedContent(latest?.let(Fmt::net) ?: "—",
-                            transitionSpec = { androidx.compose.animation.fadeIn(tween(220)) togetherWith androidx.compose.animation.fadeOut(tween(150)) },
+                            transitionSpec = { androidx.compose.animation.fadeIn(tween(YksMotion.standardMs)) togetherWith androidx.compose.animation.fadeOut(tween(YksMotion.quickMs)) },
                             label = "hero-net") { value ->
                             Text(value, fontSize = 52.sp, lineHeight = 60.sp,
                                 fontWeight = FontWeight.Bold, color = c.onSurface)
@@ -177,7 +180,7 @@ fun HomeScreenV2(
                         val active = period == index
                         Text(label, Modifier.weight(1f)
                             .background(if (active) c.secondary.copy(alpha = .17f)
-                                else c.surfaceVariant.copy(alpha = .35f), RoundedCornerShape(12.dp))
+                                else c.surfaceVariant.copy(alpha = .35f), RoundedCornerShape(YksShape.control))
                             .clickable { period = index }
                             .padding(vertical = 10.dp),
                             textAlign = TextAlign.Center,
@@ -300,7 +303,7 @@ fun HomeScreenV2(
         item {
             Button(onClick = { onNewExam(type) },
                 modifier = Modifier.fillMaxWidth().height(58.dp),
-                shape = RoundedCornerShape(19.dp)) {
+                shape = RoundedCornerShape(YksShape.card)) {
                 Text("+  Yeni ${type.name} Denemesi", fontWeight = FontWeight.SemiBold)
             }
         }
