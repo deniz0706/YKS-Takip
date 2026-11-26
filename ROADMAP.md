@@ -19,6 +19,14 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 
 ## Öncelikli geliştirme sırası
 
+### 0. Kronometre ve sınav modu düzeltmeleri — geliştirme dalında
+- [x] Branş süresini 60 dakikaya sabitleme; 1–600 dakika arasında kullanıcı tanımlı süre.
+- [x] TYT ve AYT için sayısal dışındaki dersleri de ders geçişi listesine ekle.
+- [x] Ayrı sınav modu kartını kaldırıp sınav/branş zamanlayıcısını mevcut odak kronometresi paneline yerleştir.
+- [x] Duraklatma/devam etme akışını koru; sıfırlama yalnızca duraklatılmış oturumda kullanılabilsin.
+- [ ] CI ve cihaz arayüz kontrolü sonrası birleştir.
+
+
 ### 1. Deneme hata defteri ve konu bağlantısı — tamamlandı (PR #33)
 - [x] Denemede etiketlenen zayıf konuları mevcut öğrenme kazanımlarıyla eşleştir.
 - [x] Eşleşmeyen etiketleri kullanıcıya göster; doğru ders/kazanım seçilmeden otomatik kayıt yapma.
