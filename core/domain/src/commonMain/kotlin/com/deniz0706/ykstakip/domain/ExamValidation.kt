@@ -34,7 +34,7 @@ object ExamValidation {
     fun validateAnswers(
         correct: Int,
         wrong: Int,
-        subject: SubjectRule
+        subject: SubjectConfig
     ): ExamValidationResult {
         if (correct < 0 || wrong < 0) return ExamValidationResult.NegativeAnswers
         if (correct > subject.questionCount || wrong > subject.questionCount) {

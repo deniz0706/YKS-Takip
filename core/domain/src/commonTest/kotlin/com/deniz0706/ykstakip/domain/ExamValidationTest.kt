@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class ExamValidationTest {
-    private val tytTurkish = SubjectRule("Türkçe", 40)
+    private val tytTurkish = SubjectConfig("Türkçe", 40)
 
     @Test
     fun acceptsAnswersWithinSubjectLimit() {

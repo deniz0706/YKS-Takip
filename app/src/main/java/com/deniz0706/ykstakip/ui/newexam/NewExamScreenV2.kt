@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.model.*
 import com.deniz0706.ykstakip.data.ExamValidator
+import com.deniz0706.ykstakip.domain.ExamEntryRules
+import com.deniz0706.ykstakip.domain.ExamValidationResult
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
@@ -83,8 +85,25 @@ fun NewExamScreenV2(
     val totalWrong = rows.sumOf { it.w }
     val totalTime = rows.sumOf { it.time }
     val totalNet = rows.sumOf { it.net }
-    val valid = title.isNotBlank() && rows.all { it.error == null && it.time >= 0 } &&
-        totalTime <= type.totalTimeMinutes
+    val sharedSubjects = rows.map { row ->
+        SubjectResult(
+            subject = row.config.name,
+            questionCount = row.config.questionCount,
+            correct = row.c,
+            wrong = row.w,
+            timeMinutes = row.time,
+            weakTopics = row.topics.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        )
+    }
+    val sharedValidation = ExamEntryRules.validate(
+        type = type,
+        aytField = if (type == ExamType.AYT) field else null,
+        subjects = sharedSubjects
+    )
+    val valid = title.isNotBlank() &&
+        rows.all { it.error == null && it.time >= 0 } &&
+        totalTime <= type.totalTimeMinutes &&
+        sharedValidation == ExamValidationResult.Valid
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(colors.background),
         contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 20.dp, bottom = 130.dp),
@@ -308,18 +327,21 @@ fun NewExamScreenV2(
                 if (title.isBlank()) {
                     error = "Deneme adı gir."
                 } else {
-                    val draft = Exam(
-                        id = existing?.id ?: 0L, title = title.trim(), date = date.toString(),
-                        type = type, aytField = if (type == ExamType.AYT) field else null,
-                        subjects = rows.map { row ->
-                            SubjectResult(subject = row.config.name,
-                                questionCount = row.config.questionCount,
-                                correct = row.c, wrong = row.w, timeMinutes = row.time,
-                                weakTopics = row.topics.split(",").map { it.trim() }
-                                    .filter { it.isNotEmpty() })
-                        }, notes = notes.trim(), publisher = publisher.trim()
+                    val validatedExam = ExamEntryRules.create(
+                        id = existing?.id ?: 0L,
+                        title = title,
+                        date = date.toString(),
+                        type = type,
+                        aytField = if (type == ExamType.AYT) field else null,
+                        subjects = sharedSubjects,
+                        notes = notes,
+                        publisher = publisher
                     )
-                    error = onSave(draft)
+                    error = if (validatedExam == null) {
+                        "Deneme bilgileri doğrulanamadı. Girdiğin sonuçları kontrol et."
+                    } else {
+                        onSave(validatedExam)
+                    }
                 }
             }, enabled = valid,
                 modifier = Modifier.fillMaxWidth().height(56.dp),

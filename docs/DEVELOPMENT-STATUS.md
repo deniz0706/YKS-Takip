@@ -218,3 +218,12 @@ Updated: 2026-11-26
 - Extended the shared validation result model and added common tests for valid TYT construction, blanks/net calculation, incomplete/duplicate subjects, AYT field requirements, duration limits, and invalid metadata/answer counts.
 - Existing Android `ExamRepository` and legacy JSON format were not changed; this is a shared domain layer step, not yet a production repository migration.
 - Branch: `4.0/compose-multiplatform-shell`; pending verification on commit `18c710850ad3bdbcef90273b59107096cb94bfe3` remains separate from this new change.
+
+
+## Latest continuation — shared exam-entry CI repair and Android integration
+- Current feature branch: `4.0/compose-multiplatform-shell`; checkpoint before this repair: `d57791370495621a163823ac4c25e6ffd1191540`.
+- Both latest CI workflows failed at `:core:domain:compileKotlinJvm`, not at lint. The concrete cause was a stale `SubjectRule` type reference: the shared subject catalogue had already standardized on serializable `SubjectConfig`.
+- Replaced the missing type with the existing common `SubjectConfig` in shared validation and the Android message adapter; updated the common validation test fixture accordingly.
+- Connected the existing Android `NewExamScreenV2` save path to `ExamEntryRules.validate/create`. The screen now uses the common validator as its final gate and passes the validated shared `Exam` aggregate to the existing repository callback. The SharedPreferences JSON adapter and persistence contract are unchanged.
+- No ranking files, signing material, application ID, existing exam JSON format, or production database writes were changed.
+- CI for the repair commit is pending; no build or test success is claimed until the new workflows complete.

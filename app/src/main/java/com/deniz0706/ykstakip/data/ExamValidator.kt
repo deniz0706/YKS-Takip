@@ -2,7 +2,6 @@ package com.deniz0706.ykstakip.data
 
 import com.deniz0706.ykstakip.domain.ExamValidation
 import com.deniz0706.ykstakip.domain.ExamValidationResult
-import com.deniz0706.ykstakip.domain.SubjectRule
 import com.deniz0706.ykstakip.model.ExamType
 import com.deniz0706.ykstakip.model.SubjectConfig
 
@@ -19,7 +18,7 @@ object ExamValidator {
         when (ExamValidation.validateAnswers(
             correct = correct,
             wrong = wrong,
-            subject = SubjectRule(config.name, config.questionCount)
+            subject = config
         )) {
             ExamValidationResult.Valid -> FieldResult.Valid
             ExamValidationResult.NegativeAnswers ->

@@ -28,7 +28,7 @@ object ExamEntryRules {
             val answerResult = ExamValidation.validateAnswers(
                 correct = subject.correct,
                 wrong = subject.wrong,
-                subject = SubjectRule(rule.name, rule.questionCount)
+                subject = rule
             )
             if (answerResult != ExamValidationResult.Valid) return answerResult
             if (subject.timeMinutes < 0) return ExamValidationResult.NegativeTime
