@@ -87,8 +87,8 @@ object ThemeManager {
         "#5D6B65", "#28685D", "#D2DAD4", "#D9EBE3"
     )
     private val auroraPalette = palette(
-        "#10171B", "#192227", "#232F35", "#F0F4F2",
-        "#A5B3B5", "#9BCBBE", "#39474B", "#29413D"
+        "#0B1220", "#172337", "#22334A", "#F3F8FF",
+        "#9AAFC5", "#57D6C1", "#30445C", "#174A49"
     )
     private val darkPalette = palette(
         "#0D1012", "#171B1D", "#252C2F", "#F0F2EF",
