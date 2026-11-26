@@ -37,6 +37,13 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [x] Widget verisini mevcut repository’lerden oku; ikinci bir veri kaynağı oluşturma.
 - [x] Widget güncellemesini çalışma kayıtları ve günlük hedef değişiklikleriyle eşleştir.
 
+### 4. Performans ve akıcılık — geliştirme dalında
+- [x] İstatistik ve geçmiş ekranlarında deneme JSON yüklemesini ana iş parçacığından çıkar.
+- [x] Yeni deneme formunda öğrenme müfredatı migrasyonunu ve kayıt yüklemesini arka planda yap.
+- [x] Öğrenme deposunu süreç içinde paylaş; aynı ağır ilk migrasyonları ekran geçişlerinde tekrar çalıştırma.
+- [x] Ana ekran ve çalışma ekranında öğrenme deposunu arka planda başlat.
+- [ ] CI, yaşam döngüsü ve gerçek cihaz akıcılık kontrolü.
+
 ### 4. Arayüz ve kullanılabilirlik
 - [ ] Compose ekranlarını ortak tasarım sistemine taşı; eski ekranları yalnızca tüm navigasyon ve derin bağlantılar doğrulandıktan sonra kaldır.
 - [ ] Erişilebilirlik, küçük ekran, büyük yazı, koyu/açık tema ve performans kontrolleri.
