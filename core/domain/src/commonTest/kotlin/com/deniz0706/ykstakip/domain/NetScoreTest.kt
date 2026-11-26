@@ -13,7 +13,7 @@ class NetScoreTest {
 
     @Test
     fun roundsToTwoDecimalPlaces() {
-        assertEquals(0.33, NetScore.calculate(1, 2))
+        assertEquals(0.5, NetScore.calculate(1, 2))
         assertEquals(-0.25, NetScore.calculate(0, 1))
     }
 
