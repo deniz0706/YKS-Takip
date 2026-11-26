@@ -81,7 +81,7 @@ class AiMemoryRepository(context: Context) {
 
     private fun readAll(): List<Memory> {
         val raw = prefs.getString(KEY_MEMORIES, null) ?: return emptyList()
-        return runCatching {
+        val loaded = runCatching {
             val array = JSONArray(raw)
             (0 until array.length()).mapNotNull { index ->
                 val item = array.optJSONObject(index) ?: return@mapNotNull null
@@ -97,6 +97,10 @@ class AiMemoryRepository(context: Context) {
                 )
             }
         }.getOrDefault(emptyList())
+        // Drop facts produced by the old heuristic auto-capture; only explicit Hatırla entries remain.
+        val safe = loaded.filterNot { it.source == "explicit_self_description" }
+        if (safe.size != loaded.size) persist(safe)
+        return safe
     }
 
     private fun persist(memories: List<Memory>) {
