@@ -56,6 +56,7 @@ Updated: 2026-11-26
 - Compared the full-backup and AI image-input branch files against main; their inspected implementation, UI, and test files are byte-identical to main, avoiding duplicate integration.
 - Added the first real Kotlin Multiplatform domain module (`:core:domain`) with JVM + iOS targets; Android app consumes its JVM variant.
 - Extracted the canonical correct-minus-wrong/4 net calculation into `commonMain` and added shared common tests for quarter-net and rounding behavior.
+- Moved exam answer-count and TYT/AYT total-duration validation rules into `commonMain`; the Android adapter preserves the existing Turkish validation messages and public API. Added common tests for negative answers, subject limits, combined limits, and 165/180-minute boundaries.
 - Ranking estimator, lookup tables, ranking fixtures, persistence formats, signing configuration, and application ID remain untouched.
 - No build or test has been run from the GitHub connector; do not infer a green build from this audit.
 
