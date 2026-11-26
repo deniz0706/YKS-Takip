@@ -21,7 +21,7 @@ class NvidiaAiService(private val context: Context) {
     private class HttpFailure(val status: Int, message: String) : IOException(message)
 
     suspend fun testConnection(): String =
-        chat(listOf(Message("user", "Reply briefly with exactly: bağlantı başarılı")), 256)
+        chat(listOf(Message("user", "Reply briefly with exactly: bağlantı başarılı")), 1024)
 
     suspend fun chat(messages: List<Message>, maxTokens: Int = 2048): String = withContext(Dispatchers.IO) {
         val key = AiSecretStore.readApiKey(context)
@@ -132,10 +132,15 @@ class NvidiaAiService(private val context: Context) {
             val (answer, finishReason) =
                 if (isEventStream) readStream(connection) else readJson(connection)
 
-            answer.takeIf { it.isNotBlank() } ?: error(
+            val nonBlankAnswer = answer.takeIf { it.isNotBlank() } ?: error(
                 "Model cevap metni üretmedi (finish_reason=${finishReason ?: "bilinmiyor"}). " +
                     "${diagnostic()} model=$model stream=$stream effort=${effort ?: "yok"}"
             )
+            if (finishReason == "length") {
+                nonBlankAnswer + "\n\n⚠️ (Yanıt, modelin çıktı uzunluğu sınırına ulaştığı için kesildi.)"
+            } else {
+                nonBlankAnswer
+            }
         } catch (e: IOException) {
             if (!currentCoroutineContext().isActive) {
                 throw CancellationException("AI isteği iptal edildi", e)
