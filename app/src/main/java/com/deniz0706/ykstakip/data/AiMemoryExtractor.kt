@@ -15,7 +15,7 @@ internal object AiMemoryExtractor {
         Regex("""(?iu)^\s*ismim\s+((?-i:[\p{Lu}][\p{Ll}]+(?:\s+[\p{Lu}][\p{Ll}]+){0,2}))\s*[.!]?$"""),
         Regex("""(?iu)^\s*adım\s+((?-i:[\p{Lu}][\p{Ll}]+(?:\s+[\p{Lu}][\p{Ll}]+){0,2}))\s*[.!]?$""")
     )
-    private val goalPattern = Regex("""(?iu)^\s*hedefim\s+(?!için\b)(.{4,120}?)\s*[.!]?$""")
+    private val goalPattern = Regex("""(?iu)^\s*hedefim\s+(?!için\b|yok\b)(.{4,120}?)\s*[.!]?$""")
     private val preferencePattern = Regex("""(?iu)^\s*tercihim\s+(.{3,120}?)\s*[.!]?$""")
     // Intentionally strict: a short imperative must be at the very end.
     private val futurePreferencePattern = Regex(
