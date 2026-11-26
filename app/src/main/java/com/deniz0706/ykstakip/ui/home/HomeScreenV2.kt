@@ -86,7 +86,7 @@ fun HomeScreenV2(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(YksShape.panel),
-                color = c.primaryContainer
+                color = c.surfaceContainerHigh
             ) {
                 Row(
                     Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 19.dp),
@@ -97,7 +97,7 @@ fun HomeScreenV2(
                         Text(
                             "YKS 2027  /  KONTROL MERKEZİ",
                             style = MaterialTheme.typography.labelSmall,
-                            color = c.onPrimaryContainer.copy(alpha = .76f),
+                            color = c.onSurfaceVariant,
                             letterSpacing = 1.35.sp
                         )
                         Spacer(Modifier.height(7.dp))
@@ -106,19 +106,19 @@ fun HomeScreenV2(
                             fontSize = 30.sp,
                             lineHeight = 35.sp,
                             fontWeight = FontWeight.Bold,
-                            color = c.onPrimaryContainer
+                            color = c.onSurface
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             "Hazırlığını verilerle takip et.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = c.onPrimaryContainer.copy(alpha = .78f)
+                            color = c.onSurfaceVariant
                         )
                     }
                     Spacer(Modifier.width(10.dp))
                     Surface(
                         shape = RoundedCornerShape(YksShape.input),
-                        color = c.onPrimaryContainer.copy(alpha = .12f)
+                        color = c.surfaceContainer
                     ) {
                         Column(
                             Modifier.padding(horizontal = 13.dp, vertical = 10.dp),
@@ -128,7 +128,7 @@ fun HomeScreenV2(
                                 all.size.toString(),
                                 fontSize = 21.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = c.onPrimaryContainer
+                                color = c.onSurface
                             )
                             Text(
                                 "DENEME",

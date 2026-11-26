@@ -39,6 +39,19 @@ class YksRankingEstimatorTest {
         subj("Biyoloji", 13, 11, 2)
     )
 
+    @Test fun highNetTytRegressionRemainsInTopFewHundred() {
+        val highTyt = tyt(
+            subj("Türkçe", 40, 38, 0),
+            subj("Sosyal Bilimler", 20, 18, 0),
+            subj("Matematik", 40, 38, 0),
+            subj("Fen Bilimleri", 20, 20, 0)
+        )
+        val result = YksRankingEstimator.estimateTyt(highTyt, diploma)
+        assertNotNull(result)
+        assertTrue("center ${result!!.center}", result.center in 200..300)
+        assertTrue(result.lower < result.center && result.center < result.upper)
+    }
+
     @Test fun realTytCalibrationRegression() {
         val result = YksRankingEstimator.estimateTyt(realTyt, diploma)
         assertNotNull(result)

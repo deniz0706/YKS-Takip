@@ -175,8 +175,7 @@ fun HistoryScreenV2(
             val shape = RoundedCornerShape(22.dp)
             Column(
                 Modifier.fillMaxWidth()
-                    .background(c.surface, shape)
-                    .border(1.dp, c.outline.copy(alpha = .4f), shape)
+                    .background(c.surfaceContainerLow, shape)
                     .clickable { onExamClick(exam.id) }
                     .padding(horizontal = 16.dp, vertical = 15.dp)
             ) {
