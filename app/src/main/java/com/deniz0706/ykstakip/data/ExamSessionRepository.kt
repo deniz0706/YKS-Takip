@@ -31,17 +31,20 @@ class ExamSessionRepository(context: Context) {
 
     private fun migrateLegacyTimerOnce() {
         if (prefs.getBoolean("shared_timer_migrated", false)) return
-        val focus = timer.snapshot()
         val oldElapsed = prefs.getLong("elapsed", 0L).coerceAtLeast(0L)
         val oldStarted = prefs.getLong("started_at", 0L)
         val oldDuration = prefs.getInt("duration", ExamSessionMath.TYT_MINUTES)
             .coerceIn(ExamSessionMath.MIN_DURATION_MINUTES, ExamSessionMath.MAX_DURATION_MINUTES)
         val elapsed = oldElapsed + if (oldStarted > 0L)
             (System.currentTimeMillis() - oldStarted).coerceAtLeast(0L) else 0L
-        // Never overwrite an existing focus session with legacy exam data.
-        if (focus.elapsedMs == 0L && !focus.running && elapsed > 0L) {
-            timer.restoreSession(oldDuration, elapsed, oldStarted > 0L)
+        if (elapsed == 0L) {
+            prefs.edit().putBoolean("shared_timer_migrated", true).commit()
+            return
         }
+        val focus = timer.snapshot()
+        // Keep migration pending while a focus session exists; never discard either session.
+        if (focus.elapsedMs > 0L || focus.running) return
+        timer.restoreSession(oldDuration, elapsed, oldStarted > 0L)
         prefs.edit().putBoolean("shared_timer_migrated", true).commit()
     }
 
