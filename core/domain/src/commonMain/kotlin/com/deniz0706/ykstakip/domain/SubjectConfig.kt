@@ -1,7 +1,11 @@
 package com.deniz0706.ykstakip.domain
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class SubjectConfig(val name: String, val questionCount: Int)
 
+@Serializable
 enum class AytField {
     SAYISAL,
     ESIT_AGIRLIK,
