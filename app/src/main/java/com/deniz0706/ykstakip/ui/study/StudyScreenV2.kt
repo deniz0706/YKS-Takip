@@ -86,6 +86,7 @@ fun StudyScreenV2(
     onAddSuggestedPlan: (Int, String, String) -> Unit,
     onEditPlan: (StudyPlanItem) -> Unit,
     onTogglePlan: (Long) -> Unit,
+    onOpenLearningFromPlan: (StudyPlanItem) -> Unit,
     onDeletePlan: (StudyPlanItem) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -721,6 +722,12 @@ fun StudyScreenV2(
                         Spacer(Modifier.height(3.dp))
                         Text("Düzenle ›", color = colors.secondary,
                             style = MaterialTheme.typography.labelSmall)
+                        TextButton(
+                            onClick = { onOpenLearningFromPlan(item) },
+                            contentPadding = PaddingValues(horizontal = 0.dp, vertical = 2.dp)
+                        ) {
+                            Text("Konu takibini aç", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                     TextButton(onClick = { onDeletePlan(item) }) { Text("Sil", color = colors.error) }
                 }

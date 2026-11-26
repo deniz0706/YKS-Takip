@@ -184,6 +184,14 @@ class StudyFragment : Fragment() {
                         },
                         onEditPlan = { editPlan(it) },
                         onTogglePlan = { planRepository.toggleCompleted(it); refresh() },
+                        onOpenLearningFromPlan = { item ->
+                            val subject = item.subject.trim()
+                            val isAyt = subject.startsWith("AYT", ignoreCase = true)
+                            val normalizedSubject = subject
+                                .replace(Regex("^(TYT|AYT)\\s*", RegexOption.IGNORE_CASE), "")
+                                .trim()
+                            openLearning(if (isAyt) "AYT" else "TYT", normalizedSubject)
+                        },
                         onDeletePlan = { deletePlan(it) }
                     )
                 }
