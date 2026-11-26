@@ -42,3 +42,6 @@ jobs:
           :core:domain:jvmTest
           :core:domain:compileKotlinIosArm64
           :core:domain:compileKotlinIosSimulatorArm64
+          :core:database:compileKotlinJvm
+          :core:database:compileKotlinIosArm64
+          :core:database:compileKotlinIosSimulatorArm64
