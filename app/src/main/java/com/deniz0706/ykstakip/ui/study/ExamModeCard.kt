@@ -25,7 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.deniz0706.ykstakip.data.ExamSessionRepository\nimport com.deniz0706.ykstakip.data.FocusSessionRepository
+import com.deniz0706.ykstakip.data.ExamSessionRepository
+import com.deniz0706.ykstakip.data.FocusSessionRepository
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.ExamSessionMath
 import com.deniz0706.ykstakip.model.AytField
@@ -42,7 +43,8 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSav
     var showDurationDialog by remember { mutableStateOf(false) }
     var hours by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes / 60).toString()) }
     var minutes by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes % 60).toString()) }
-    var durationError by remember { mutableStateOf<String?>(null) }\n    var saveMessage by remember { mutableStateOf<String?>(null) }
+    var durationError by remember { mutableStateOf<String?>(null) }
+    var saveMessage by remember { mutableStateOf<String?>(null) }
     var aytField by remember { mutableStateOf(AytField.SAYISAL) }
 
     LaunchedEffect(state.running) {
