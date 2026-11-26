@@ -41,6 +41,7 @@ import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.StudyPlanAnalytics
 import com.deniz0706.ykstakip.util.StudyPlanConflicts
 import com.deniz0706.ykstakip.util.StudyActivityAnalytics
+import com.deniz0706.ykstakip.util.ExamErrorNotebook
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardPageHeader
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
@@ -84,6 +85,7 @@ fun StudyScreenV2(
     onQuestionCapture: (String) -> Unit,
     onQuestionGallery: (String) -> Unit,
     onQuestionPhotoRemove: (String, String) -> Unit,
+    onImportExamTopic: (ExamErrorNotebook.Suggestion) -> Unit,
     onEditToday: () -> Unit,
     onFocusSaved: () -> Unit,
     onEditDay: (String) -> Unit,
@@ -98,6 +100,9 @@ fun StudyScreenV2(
     val colors = MaterialTheme.colorScheme
     val reviewSignals = remember(learningOutcomes, learningQuestions, exams) {
         ReviewAdvisor.recommendations(learningOutcomes, learningQuestions, exams)
+    }
+    val examTopicSuggestions = remember(exams, learningOutcomes, learningQuestions) {
+        ExamErrorNotebook.suggestions(exams, learningOutcomes, learningQuestions)
     }
     // Daily repeat reminders cover every course, including other AYT tracks.
     val urgentReviews = reviewSignals.count { it.urgent }
@@ -208,6 +213,13 @@ fun StudyScreenV2(
                     openRepeatInbox = false
                     section = it
                 }
+            }
+            if (examTopicSuggestions.isNotEmpty()) {
+                ExamErrorNotebookPanel(
+                    suggestions = examTopicSuggestions,
+                    onImport = onImportExamTopic,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
             LearningHubPanel(
                 outcomes = learningOutcomes,
