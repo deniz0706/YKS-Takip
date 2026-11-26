@@ -1,3 +1,7 @@
+val ciRunNumber = providers.environmentVariable("GITHUB_RUN_NUMBER").orNull?.toIntOrNull()
+val appVersionCode = 1000 + (ciRunNumber ?: 0)
+val appVersionName = ciRunNumber?.let { "4.0.$it" } ?: "4.0-dev"
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -12,8 +16,8 @@ android {
         applicationId = "com.deniz0706.ykstakip"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3"
+        versionCode = appVersionCode
+        versionName = appVersionName
     }
 
     // Android Studio retains its normal debug configuration.
