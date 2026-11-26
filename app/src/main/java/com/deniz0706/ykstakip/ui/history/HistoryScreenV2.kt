@@ -55,7 +55,9 @@ fun HistoryScreenV2(
     }
     val average = remember(filtered) { filtered.takeIf { it.isNotEmpty() }?.map { it.totalNet }?.average() }
     val best = remember(filtered) { filtered.maxOfOrNull { it.totalNet } }
-    val latest = filtered.firstOrNull()?.totalNet
+    // Dashboard summaries always follow chronology, independent of the user's list sort preference.
+    val chronological = remember(filtered) { filtered.sortedByDescending { it.date } }
+    val latest = chronological.firstOrNull()?.totalNet
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 42.dp),
@@ -78,11 +80,12 @@ fun HistoryScreenV2(
         }
         item {
             val c = MaterialTheme.colorScheme
-            val recent = filtered.take(5)
-            val previous = filtered.drop(5).take(5)
+            val recent = chronological.take(5)
+            val previous = chronological.drop(5).take(5)
             val recentAverage = recent.takeIf { it.isNotEmpty() }
                 ?.map { it.totalNet }?.average()
-            val previousAverage = previous.takeIf { it.isNotEmpty() }
+            // Compare two complete five-exam windows; a partial earlier window is misleading.
+            val previousAverage = previous.takeIf { it.size == 5 }
                 ?.map { it.totalNet }?.average()
             val delta = if (recentAverage != null && previousAverage != null)
                 recentAverage - previousAverage else null
@@ -96,13 +99,13 @@ fun HistoryScreenV2(
                     DashboardRing(((latest ?: 0.0) / maximum).toFloat(),
                         latest?.let(Fmt::net) ?: "—", caption = "son net")
                     Column(Modifier.weight(1f)) {
-                        Text("SON 5 DENEME", color = c.onSurfaceVariant,
+                        Text("SON ${recent.size} DENEME", color = c.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
                         Text(recentAverage?.let(Fmt::net) ?: "—",
                             color = c.onSurface, fontSize = 28.sp,
                             fontWeight = FontWeight.Bold)
                         Text(when {
-                            delta == null -> "Karşılaştırma için 6+ deneme gerekli"
+                            delta == null -> "Karşılaştırma için 10 deneme gerekli"
                             delta > 0.5 -> "↗ +${Fmt.net(delta)} net yükseliş"
                             delta < -0.5 -> "↘ ${Fmt.net(delta)} net gerileme"
                             else -> "→ Ortalama dengeli"
