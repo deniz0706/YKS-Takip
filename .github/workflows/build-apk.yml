@@ -108,7 +108,7 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "YKS Takip 4.0 · Önizleme" --prerelease --latest=false
           else
-            gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 2.0 · Önizleme" --notes "YKS Takip 4.0 Android geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "YKS Takip 4.0 · Önizleme" --notes "YKS Takip 4.0 Android geliştirme önizlemesi. Hatalar ve performans sorunları olabilir. Mevcut kayıtlarınızı yedekleyin." --prerelease --latest=false
           fi
           gh release upload "$TAG" "$APK" --clobber
           gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fx 'app-debug.apk'
