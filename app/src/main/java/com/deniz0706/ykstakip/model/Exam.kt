@@ -1,5 +1,7 @@
 package com.deniz0706.ykstakip.model
 
+import com.deniz0706.ykstakip.domain.AytField
+import com.deniz0706.ykstakip.domain.ExamType
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -17,9 +19,9 @@ fun Exam.toJson(): JSONObject = JSONObject().apply {
     put("subjects", JSONArray(subjects.map { it.toJson() }))
 }
 
-fun Exam.Companion.fromJson(json: JSONObject): Exam {
+fun examFromJson(json: JSONObject): Exam {
     val arr = json.getJSONArray("subjects")
-    val subjects = (0 until arr.length()).map { SubjectResult.fromJson(arr.getJSONObject(it)) }
+    val subjects = (0 until arr.length()).map { subjectResultFromJson(arr.getJSONObject(it)) }
     return Exam(
         id = json.getLong("id"),
         title = json.getString("title"),
