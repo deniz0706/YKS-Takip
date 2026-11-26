@@ -28,6 +28,13 @@ Bu dosya, uygulamayı geliştirirken kapsamın ve teknik kararların kaybolmamas
 - [x] Duraklatma, kaldığı yerden devam etme ve sıfırlama; mod değiştirirken diğer sayacı duraklatma.
 
 
+### 0b. Tek kronometre ve günlük çalışma kaydı — PR #50
+- [x] Odak, TYT, AYT ve branş modlarını aynı elapsed/running sayacına bağla; tek saat ve tek kontrol seti kullan.
+- [x] Her moddan aynı günlük çalışma günlüğüne kaydet; saniye artığını kaybetme ve günlük 24 saat sınırını koru.
+- [x] Eski sınav sayacı verisini açık odak oturumunu ezmeden taşı; odak oturumu bitince bekleyen migrasyonu yeniden dene.
+- [x] Kayıt sonrası sınav ders geçişlerini temizle; eski sayaç migrasyonu ve kayıt aritmetiği için birim testleri ekle.
+- [ ] CI ve gerçek cihazda mod değiştirme, eski oturum migrasyonu ve günlük toplam kontrolü.
+
 ### 1. Deneme hata defteri ve konu bağlantısı — tamamlandı (PR #33)
 - [x] Denemede etiketlenen zayıf konuları mevcut öğrenme kazanımlarıyla eşleştir.
 - [x] Eşleşmeyen etiketleri kullanıcıya göster; doğru ders/kazanım seçilmeden otomatik kayıt yapma.
