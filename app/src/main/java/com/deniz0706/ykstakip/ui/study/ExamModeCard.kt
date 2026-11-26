@@ -2,16 +2,14 @@ package com.deniz0706.ykstakip.ui.study
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -24,19 +22,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.data.ExamSessionRepository
-import com.deniz0706.ykstakip.data.FocusSessionRepository
-import com.deniz0706.ykstakip.ui.components.DashboardPanel
-import com.deniz0706.ykstakip.util.ExamSessionMath
 import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.model.SubjectConfigs
+import com.deniz0706.ykstakip.ui.components.DashboardPanel
+import com.deniz0706.ykstakip.util.ExamSessionMath
 import kotlinx.coroutines.delay
 
-/** Exam and branch timing controls embedded in the existing focus timer panel. */
+/**
+ * Exam metadata only. The timer display, start/pause, save and reset controls
+ * live exclusively in FocusSessionCard and use the shared FocusSessionRepository.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSaved: () -> Unit = {}) {
+fun ExamModeCard(
+    modifier: Modifier = Modifier,
+    embedded: Boolean = false,
+    onTimerChanged: () -> Unit = {}
+) {
     val context = LocalContext.current
     val repository = remember(context) { ExamSessionRepository(context) }
     var state by remember(repository) { mutableStateOf(repository.snapshot()) }
@@ -44,8 +47,8 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSav
     var hours by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes / 60).toString()) }
     var minutes by remember(state.durationMinutes) { mutableStateOf((state.durationMinutes % 60).toString()) }
     var durationError by remember { mutableStateOf<String?>(null) }
-    var saveMessage by remember { mutableStateOf<String?>(null) }
     var aytField by remember { mutableStateOf(AytField.SAYISAL) }
+    val colors = MaterialTheme.colorScheme
 
     LaunchedEffect(state.running) {
         while (state.running) {
@@ -61,15 +64,11 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSav
             "Edebiyat", "Tarih-1", "Coğrafya-1", "Tarih-2", "Coğrafya-2",
             "Felsefe Grubu", "Din Kültürü / Ek Felsefe")
     }
-    val elapsedSeconds = state.elapsedMs / 1000L
-    val clock = ExamSessionMath.formatClock(ExamSessionMath.displaySeconds(state.remainingMs))
-    val progress = (state.elapsedMs.toFloat() / (state.durationMinutes * 60_000L)).coerceIn(0f, 1f)
-    val colors = MaterialTheme.colorScheme
 
     val content: @Composable () -> Unit = {
-        Text("SINAV / BRANŞ ZAMANLAYICISI", color = colors.secondary,
-            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1.sp)
-        Spacer(Modifier.height(8.dp))
+        Text("SINAV TÜRÜ", color = colors.secondary,
+            style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1f)
+        Spacer(Modifier.height(6.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("TYT", "AYT", "BRANŞ").forEach { type ->
                 FilterChip(
@@ -77,6 +76,7 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSav
                     enabled = !state.running && state.elapsedMs == 0L,
                     onClick = {
                         state = repository.configure(type)
+                        onTimerChanged()
                         if (type == "BRANŞ") showDurationDialog = true
                     },
                     label = { Text(type) },
@@ -117,52 +117,6 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSav
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Branş süresini ayarla · ${state.durationMinutes} dk") }
         }
-        Text(clock, color = if (state.finished) colors.error else colors.onSurface,
-            style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-        Text("${state.durationMinutes} dakika · geçen ${ExamSessionMath.formatClock(elapsedSeconds)}",
-            color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
-        LinearProgressIndicator(
-            progress = { progress }, modifier = Modifier.fillMaxWidth(),
-            color = colors.primary, trackColor = colors.surfaceVariant
-        )
-        Spacer(Modifier.height(9.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = {
-                    state = if (state.running) repository.pause() else repository.start()
-                    saveMessage = null
-                },
-                enabled = !state.finished,
-                modifier = Modifier.weight(1f)
-            ) { Text(if (state.running) "Ⅱ Duraklat" else if (state.elapsedMs > 0L) "▶ Devam et" else "▶ Başlat") }
-            OutlinedButton(
-                onClick = {
-                    val result = repository.saveToToday()
-                    state = repository.snapshot()
-                    when (result) {
-                        is FocusSessionRepository.SaveResult.Saved -> {
-                            onSaved()
-                            saveMessage = if (result.loggedMinutes > 0)
-                                "${result.loggedMinutes} dk bugünkü çalışma sürene eklendi."
-                            else "Saniyeler sonraki seansa aktarılmak üzere saklandı."
-                        }
-                        FocusSessionRepository.SaveResult.NoTime -> saveMessage = "Kaydedilecek süre yok."
-                        FocusSessionRepository.SaveResult.DailyLimit -> saveMessage = "Günlük 24 saat sınırına ulaşıldı."
-                    }
-                },
-                enabled = !state.running && state.elapsedMs > 0L,
-                modifier = Modifier.weight(1f)
-            ) { Text("✓ Kaydet") }
-            OutlinedButton(
-                onClick = { state = repository.reset(); saveMessage = null },
-                enabled = !state.running && state.elapsedMs > 0L,
-                modifier = Modifier.weight(1f)
-            ) { Text("Sıfırla") }
-        }
-        if (saveMessage != null) {
-            Text(saveMessage.orEmpty(), color = colors.primary,
-                style = MaterialTheme.typography.bodySmall)
-        }
         Text("Ders geçişi işaretle", color = colors.onSurface,
             style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
         FlowRow(
@@ -183,8 +137,6 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSav
             Text("${split.label} · ${ExamSessionMath.formatClock(split.elapsedMs / 1000L)}",
                 color = colors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
         }
-        if (state.finished) Text("Sınav süresi tamamlandı.",
-            color = colors.error, fontWeight = FontWeight.SemiBold)
     }
 
     if (embedded) {
@@ -223,6 +175,7 @@ fun ExamModeCard(modifier: Modifier = Modifier, embedded: Boolean = false, onSav
                         durationError = "1–600 dakika arasında geçerli bir süre gir."
                     } else {
                         state = repository.configure("BRANŞ", total)
+                        onTimerChanged()
                         showDurationDialog = false
                     }
                 }) { Text("Süreyi uygula") }
