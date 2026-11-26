@@ -209,5 +209,9 @@ private fun TrendLine(
     }
 }
 
-internal fun formatNet(value: Double): String =
-    ((value * 100.0).roundToInt() / 100.0).toString().replace('.', ',')
+internal fun formatNet(value: Double): String {
+    val rounded = (value * 100.0).roundToInt() / 100.0
+    val normalized = if (rounded == 0.0) 0.0 else rounded
+    val text = if (normalized % 1.0 == 0.0) normalized.toLong().toString() else normalized.toString()
+    return text.replace('.', ',')
+}
