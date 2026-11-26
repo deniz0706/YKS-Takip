@@ -33,7 +33,7 @@ fun YksCard(
     Column(
         modifier = modifier
             .background(background, shape)
-            .border(BorderStroke(1.dp, colors.outline.copy(alpha = 0.75f)), shape)
+            .border(BorderStroke(1.dp, colors.outline.copy(alpha = 0.42f)), shape)
             .padding(YksSpacing.cardContent),
         content = { CompositionLocalProvider(LocalContentColor provides colors.onSurface) { content() } }
     )
