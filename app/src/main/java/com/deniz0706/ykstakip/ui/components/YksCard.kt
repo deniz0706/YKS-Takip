@@ -11,27 +11,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.ui.theme.YksSpacing
 import com.deniz0706.ykstakip.ui.theme.YksShape
 
+/** Compact card primitive sharing the same quiet, borderless surface language. */
 @Composable
-fun YksCard(
-    modifier: Modifier = Modifier,
-    highlighted: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit
-) {
+fun YksCard(modifier: Modifier = Modifier, highlighted: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     val colors = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(YksShape.card)
-    val background = if (highlighted) {
-        Brush.linearGradient(listOf(colors.surfaceContainer, colors.surfaceContainer))
-    } else {
-        Brush.linearGradient(listOf(colors.surfaceContainerLow, colors.surfaceContainerLow))
-    }
-    Column(
-        modifier = modifier
-            .background(background, shape)
-            .padding(YksSpacing.cardContent),
-        content = { CompositionLocalProvider(LocalContentColor provides colors.onSurface) { content() } }
-    )
+    val fill = if (highlighted) Brush.linearGradient(listOf(colors.primary.copy(alpha = 0.07f), colors.surfaceContainerHigh))
+        else Brush.linearGradient(listOf(colors.surfaceContainerLow, colors.surfaceContainerLow))
+    Column(modifier.background(fill, shape).padding(YksSpacing.cardContent),
+        content = { CompositionLocalProvider(LocalContentColor provides colors.onSurface) { content() } })
 }

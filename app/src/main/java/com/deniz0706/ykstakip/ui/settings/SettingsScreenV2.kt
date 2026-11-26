@@ -113,7 +113,7 @@ fun SettingsScreenV2(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
-            Text("Açık özgün görünümünü korur. Aurora önceki lacivert–mint temamız; Koyu ise yeni grafit tasarım.",
+            Text("Açık, sıcak ve ferah bir yüzey kullanır. Koyu daha nötr grafit; Aurora ise yumuşak petrol ve adaçayı tonlarıyla hazırlanmıştır.",
                 color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall)
         }

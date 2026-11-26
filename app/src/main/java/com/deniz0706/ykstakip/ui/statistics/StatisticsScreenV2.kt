@@ -111,6 +111,7 @@ fun StatisticsScreenV2(exams: List<Exam>, obp: Double?, targetTyt: Float?, targe
                 "Grafik, branş gelişimi ve sıralamanı ayrı ayrı keşfet."
             )
         }
+        item { PerformanceInsightsPanel(exams, type, field, if (type == ExamType.TYT) targetTyt else targetAyt) }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(ExamType.TYT, ExamType.AYT).forEach { t ->

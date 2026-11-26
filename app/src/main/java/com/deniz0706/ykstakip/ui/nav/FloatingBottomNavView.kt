@@ -36,8 +36,8 @@ class FloatingBottomNavView @JvmOverloads constructor(
     init {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(dp(6), dp(5), dp(6), dp(5))
-        elevation = dp(10).toFloat()
+        setPadding(dp(7), dp(6), dp(7), dp(6))
+        elevation = dp(7).toFloat()
         updateBackground()
     }
 
@@ -52,7 +52,6 @@ class FloatingBottomNavView @JvmOverloads constructor(
             shape = GradientDrawable.RECTANGLE
             cornerRadius = dp(28).toFloat()
             setColor(palette.surface)
-            setStroke(dp(1), palette.border)
         }
     }
 
