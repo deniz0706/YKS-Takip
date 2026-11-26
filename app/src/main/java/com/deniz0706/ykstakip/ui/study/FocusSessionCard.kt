@@ -71,8 +71,8 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
                 showExamTimer = false
             }, label = { Text("Odak") }, modifier = Modifier.weight(1f))
             FilterChip(selected = showExamTimer, onClick = {
-                state = store.snapshot()
                 examState = examStore.snapshot()
+                state = store.snapshot()
                 if (!state.running && state.elapsedMs == 0L &&
                     (state.stopwatch || state.durationMinutes != examState.durationMinutes)) {
                     examState = examStore.configure(examState.examType)
@@ -167,8 +167,8 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
             }
             OutlinedButton(onClick = {
                 val result = examStore.saveToToday()
-                state = store.snapshot()
                 examState = examStore.snapshot()
+                state = store.snapshot()
                 when (result) {
                     is FocusSessionRepository.SaveResult.Saved -> {
                         onSaved(); savedSuccessfully = true
