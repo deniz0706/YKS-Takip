@@ -236,3 +236,11 @@ Updated: 2026-11-26
 - Hardened exam validation to reject subject records whose stored question count does not match the official TYT/selected AYT subject configuration.
 - Added common tests for empty history, date ordering, trend limits, latest/change/average/best values, complete five-exam comparison windows, AYT subject sets, negative time, combined answer limits, and question-count mismatch.
 - This branch is not merged. Its own CI must pass before opening an integration PR to the CMP shell branch.
+
+
+## Shared dashboard data bridge — 2026-11-26
+- Extended the common Compose dashboard contract with `DashboardUiState.fromExams`, which derives TYT/AYT latest net, previous net, and the latest ten chronological attempts from the shared domain analytics engine.
+- Added a direct commonMain dependency from `:composeApp` to `:core:domain`; platform repositories can now provide the same shared Exam aggregates and platform-owned settings to the common dashboard without duplicating score/trend calculations.
+- Added common tests proving real TYT/AYT records and goals/countdown/study counters map into the shared UI state.
+- This remains a data-contract bridge, not a claim that iOS persistence or the complete app navigation has shipped. Android's current HomeScreenV2 remains the production home while migration proceeds incrementally.
+- Updated branch: `4.0/shared-domain-analytics`; integration PR #53 remains draft and awaits both Android and KMP/iOS-target CI workflows.

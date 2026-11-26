@@ -25,6 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.deniz0706.ykstakip.domain.Exam
+import com.deniz0706.ykstakip.domain.ExamAnalytics
+import com.deniz0706.ykstakip.domain.ExamType
 
 private val GraphiteBackground = Color(0xFF0F1115)
 private val GraphiteSurface = Color(0xFF181B20)
@@ -53,6 +56,39 @@ data class DashboardUiState(
         }
         require((tytTrend + aytTrend).all { it.isFinite() && it >= 0.0 }) {
             "Net geçmişi geçersiz değer içeriyor."
+        }
+    }
+
+    companion object {
+        /**
+         * Builds the shared dashboard contract from persisted domain records.
+         * Platform repositories only need to supply exams and platform-owned settings.
+         */
+        fun fromExams(
+            exams: List<Exam>,
+            tytGoal: Float? = null,
+            aytGoal: Float? = null,
+            daysUntilExam: Long? = null,
+            todayQuestionCount: Int = 0,
+            dailyQuestionGoal: Int? = null
+        ): DashboardUiState {
+            val tytExams = exams.filter { it.type == ExamType.TYT }
+            val aytExams = exams.filter { it.type == ExamType.AYT }
+            val tyt = ExamAnalytics.summarize(tytExams)
+            val ayt = ExamAnalytics.summarize(aytExams)
+            return DashboardUiState(
+                tytLatestNet = tyt.latestNet,
+                tytPreviousNet = tyt.previousNet,
+                tytGoal = tytGoal,
+                tytTrend = ExamAnalytics.trend(tytExams, limit = 10),
+                aytLatestNet = ayt.latestNet,
+                aytPreviousNet = ayt.previousNet,
+                aytGoal = aytGoal,
+                aytTrend = ExamAnalytics.trend(aytExams, limit = 10),
+                daysUntilExam = daysUntilExam,
+                todayQuestionCount = todayQuestionCount,
+                dailyQuestionGoal = dailyQuestionGoal
+            )
         }
     }
 }
