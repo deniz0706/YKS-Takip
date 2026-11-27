@@ -15,10 +15,9 @@ android {
         targetSdk = 35
         versionCode = 4
         versionName = "4.0.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // Android Studio retains its normal debug configuration.
-    // Only CI explicitly supplies this stable preview development keystore.
     signingConfigs {
         getByName("debug") {
             val ciPreviewKeystore = System.getenv("YKS_PREVIEW_DEBUG_KEYSTORE")
@@ -88,7 +87,6 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("androidx.activity:activity-ktx:1.9.1")
 
-    // Navigation Compose for typed, deep-linkable navigation
     implementation("androidx.navigation:navigation-compose:2.8.2")
     implementation("androidx.navigation:navigation-fragment-ktx:2.8.2")
 
@@ -103,9 +101,10 @@ dependencies {
     testImplementation("org.json:json:20240303")
     testImplementation("com.squareup.sqldelight:sqlite-driver:1.5.5")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation("androidx.navigation:navigation-testing:2.8.2")
 
-    // Compose UI testing
     debugImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-    testImplementation("androidx.navigation:navigation-testing:2.8.2")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
