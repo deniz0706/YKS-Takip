@@ -14,11 +14,18 @@ class YksApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        ThemeManager.applySavedTheme(this)
 
-        // A failed legacy migration must never prevent the app from opening.
-        // The migration flag is written only after all steps succeed, so a later
-        // launch can safely retry the idempotent migration.
+        // Appearance is non-critical: a bad preference or delegate failure must
+        // not prevent the launcher Activity from starting with the system theme.
+        try {
+            ThemeManager.applySavedTheme(this)
+        } catch (error: Exception) {
+            Log.e("YksApp", "Saved theme could not be applied; using system appearance.", error)
+        }
+
+        // Migration is also non-critical for rendering the first screen. The
+        // migration marker is committed only after every step succeeds, allowing
+        // a later launch to retry without silently marking partial data as done.
         try {
             LegacyDataMigrator.migrateIfNeeded(this)
         } catch (error: Exception) {
