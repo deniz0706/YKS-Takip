@@ -9,7 +9,7 @@ INSERT INTO learning_outcomes (id, exam_type, subject, topic, title, completed, 
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 insertLearningOutcomeBulk:
-INSERT OR REPLACE INTO learning_outcomes (id, exam_type, subject, topic, title, completed, review_requested, wrong_count, acknowledged_wrong_count, next_review_date, review_level, last_reviewed_date, custom, completed_date, completed_subtopics)
+INSERT OR IGNORE INTO learning_outcomes (id, exam_type, subject, topic, title, completed, review_requested, wrong_count, acknowledged_wrong_count, next_review_date, review_level, last_reviewed_date, custom, completed_date, completed_subtopics)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteLearningOutcome:
@@ -26,7 +26,7 @@ INSERT INTO question_cards (id, outcome_id, title, notes, status, created_at, du
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 insertQuestionCardBulk:
-INSERT OR REPLACE INTO question_cards (id, outcome_id, title, notes, status, created_at, due_date, review_count, photos)
+INSERT OR IGNORE INTO question_cards (id, outcome_id, title, notes, status, created_at, due_date, review_count, photos)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteQuestionCard:
