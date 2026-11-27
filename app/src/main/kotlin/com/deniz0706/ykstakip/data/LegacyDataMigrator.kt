@@ -10,7 +10,7 @@ import com.deniz0706.ykstakip.domain.model.QuestionCard
 import com.deniz0706.ykstakip.domain.model.QuestionStatus
 import com.deniz0706.ykstakip.domain.model.StudyDay
 import com.deniz0706.ykstakip.domain.model.SubjectResult
-import com.deniz0706.ykstakip.data.repository.SqlExamRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
@@ -28,7 +28,7 @@ object LegacyDataMigrator {
         val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (prefs.getBoolean(KEY_MIGRATED_TO_SQL, false)) return
 
-        runBlocking {
+        runBlocking(Dispatchers.IO) {
             migrateExams(app, prefs)
             migrateStudyDays(app)
             migrateStudyPlan(app)
@@ -54,8 +54,23 @@ object LegacyDataMigrator {
             return
         }
         if (exams.isEmpty()) return
-        val repository = SqlExamRepository(app)
-        runBlocking { repository.replaceAll(exams) }
+        val queries = DatabaseHolder.get(app).examQueriesQueries
+        exams.forEach { exam ->
+            // Ignore existing rows so a retry cannot overwrite edits made after
+            // an interrupted migration. A missing subject set is filled once.
+            queries.insertExamBulk(
+                exam.id, exam.title, exam.date, exam.type.name,
+                exam.aytField?.name, exam.notes, exam.publisher
+            )
+            if (queries.selectSubjectsForExam(exam.id).executeAsList().isEmpty()) {
+                exam.subjects.forEach { subject ->
+                    queries.insertExamSubjects(
+                        exam.id, subject.subject, subject.correct.toLong(),
+                        subject.wrong.toLong(), subject.blank.toLong(), subject.timeMinutes.toLong()
+                    )
+                }
+            }
+        }
     }
 
     private fun parseExam(json: JSONObject): Exam {
