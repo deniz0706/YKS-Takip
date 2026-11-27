@@ -19,6 +19,10 @@ class DatabasePersistenceSmokeTest {
         val firstDatabase = DatabaseHolder.get(context)
         val secondDatabase = DatabaseHolder.get(context)
 
+        val learningRepository = SqlLearningRepository(context)
+        learningRepository.getOutcomes().first()
+        learningRepository.getQuestions().first()
+
         assertSame(firstDatabase, secondDatabase)
         assertTrue(context.getDatabasePath("yks_takip.db").exists())
 
