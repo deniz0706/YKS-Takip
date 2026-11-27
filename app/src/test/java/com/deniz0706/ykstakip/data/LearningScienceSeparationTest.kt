@@ -1,8 +1,8 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.LearningOutcome
-import com.deniz0706.ykstakip.model.QuestionCard
-import com.deniz0706.ykstakip.model.QuestionStatus
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.QuestionCard
+import com.deniz0706.ykstakip.domain.model.QuestionStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

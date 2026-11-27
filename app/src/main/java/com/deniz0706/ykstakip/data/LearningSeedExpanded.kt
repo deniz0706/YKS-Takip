@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
 
 /**
  * Extended YKS topic/skill tracker, NOT verbatim MEB/ÖSYM learning outcomes.

@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.StudyDay
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDate

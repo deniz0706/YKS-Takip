@@ -1,7 +1,8 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
-import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.widget.StudySummaryWidgetProvider
 
 object AppSettings {
@@ -42,14 +43,14 @@ object AppSettings {
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    fun getTargetNet(context: Context, type: com.deniz0706.ykstakip.model.ExamType): Float? {
-        val key = if (type == com.deniz0706.ykstakip.model.ExamType.TYT) KEY_TARGET_TYT else KEY_TARGET_AYT
+    fun getTargetNet(context: Context, type: ExamType): Float? {
+        val key = if (type == ExamType.TYT) KEY_TARGET_TYT else KEY_TARGET_AYT
         val v = prefs(context).getFloat(key, -1f)
         return if (v < 0f) null else v
     }
 
-    fun setTargetNet(context: Context, type: com.deniz0706.ykstakip.model.ExamType, value: Float?) {
-        val key = if (type == com.deniz0706.ykstakip.model.ExamType.TYT) KEY_TARGET_TYT else KEY_TARGET_AYT
+    fun setTargetNet(context: Context, type: ExamType, value: Float?) {
+        val key = if (type == ExamType.TYT) KEY_TARGET_TYT else KEY_TARGET_AYT
         prefs(context).edit().apply {
             if (value == null) remove(key) else putFloat(key, value)
         }.apply()

@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.util
 
-import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.domain.model.StudyPlanItem
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

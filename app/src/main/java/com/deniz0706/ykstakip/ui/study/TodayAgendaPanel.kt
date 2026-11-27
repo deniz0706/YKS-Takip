@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.domain.model.StudyPlanItem
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardRing
 

@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.util
 
-import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.domain.model.AytField
 
 /** Only show the subjects belonging to the selected AYT track. */
 object LearningFields {

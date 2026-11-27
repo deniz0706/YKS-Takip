@@ -1,7 +1,7 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.LearningOutcome
-import com.deniz0706.ykstakip.model.QuestionCard
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.QuestionCard
 import java.text.Normalizer
 import java.util.Locale
 

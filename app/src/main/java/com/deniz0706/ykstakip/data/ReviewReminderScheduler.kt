@@ -17,7 +17,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
 import com.deniz0706.ykstakip.ui.MainActivity
 import java.time.LocalDate
 import java.time.ZoneId
