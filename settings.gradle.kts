@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "YKS-Takip"
 include(":app")
+include(":domain")

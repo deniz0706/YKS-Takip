@@ -1,0 +1,15 @@
+selectAllStudyPlanItems:
+SELECT * FROM study_plan_items ORDER BY day_of_week, start_time ASC;
+
+selectStudyPlanItemsForDay:
+SELECT * FROM study_plan_items WHERE day_of_week = ? ORDER BY start_time ASC;
+
+insertStudyPlanItem:
+INSERT INTO study_plan_items (id, day_of_week, start_time, end_time, subject, topic, completed, completed_week)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteStudyPlanItem:
+DELETE FROM study_plan_items WHERE id = ?;
+
+replaceAllStudyPlanItems:
+DELETE FROM study_plan_items;
