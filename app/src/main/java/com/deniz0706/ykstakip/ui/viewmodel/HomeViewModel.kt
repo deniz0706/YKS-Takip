@@ -40,19 +40,22 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private var selectedType = ExamType.TYT
+    // Keep selection in the reactive pipeline: changing TYT/AYT must immediately
+    // re-filter the already-loaded exam list, even when repositories emit nothing.
+    private val selectedType = MutableStateFlow(ExamType.TYT)
 
     init {
         viewModelScope.launch {
             try {
                 combine(
                     examRepository.getAllExams(),
-                    learningRepository.getOutcomes()
-                ) { exams, outcomes ->
-                    exams to outcomes
-                }.collect { (exams, outcomes) ->
-                    val filtered = exams
-                        .filter { it.type == selectedType }
+                    learningRepository.getOutcomes(),
+                    selectedType
+                ) { exams, outcomes, type ->
+                    Triple(exams, outcomes, type)
+                }.collect { (allExams, outcomes, type) ->
+                    val filtered = allExams
+                        .filter { it.type == type }
                         .sortedBy { it.date }
                     val latest = filtered.lastOrNull()?.totalNet
                     val previous = filtered.getOrNull(filtered.lastIndex - 1)?.totalNet
@@ -60,7 +63,7 @@ class HomeViewModel(
 
                     _uiState.value = _uiState.value.copy(
                         exams = filtered,
-                        selectedType = selectedType,
+                        selectedType = type,
                         latestNet = latest,
                         netChange = change,
                         learningDoneCount = outcomes.count { it.completed },
@@ -78,8 +81,7 @@ class HomeViewModel(
     }
 
     fun selectExamType(type: ExamType) {
-        selectedType = type
-        _uiState.value = _uiState.value.copy(selectedType = type)
+        selectedType.value = type
     }
 
     fun refresh() {
