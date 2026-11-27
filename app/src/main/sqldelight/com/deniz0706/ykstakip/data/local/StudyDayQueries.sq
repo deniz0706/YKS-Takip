@@ -15,5 +15,5 @@ replaceAllStudyDays:
 DELETE FROM study_days;
 
 insertStudyDayBulk:
-INSERT OR REPLACE INTO study_days (date, question_count, study_minutes, estimated)
+INSERT OR IGNORE INTO study_days (date, question_count, study_minutes, estimated)
 VALUES (?, ?, ?, ?);
