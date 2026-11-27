@@ -1,8 +1,7 @@
 package com.deniz0706.ykstakip.data.repository
 
 import android.content.Context
-import com.deniz0706.ykstakip.data.local.YksDatabase
-import com.squareup.sqldelight.android.AndroidSqliteDriver
+import com.deniz0706.ykstakip.data.local.DatabaseHolder
 import com.deniz0706.ykstakip.domain.model.QuestionCard
 import com.deniz0706.ykstakip.domain.model.QuestionStatus
 import com.deniz0706.ykstakip.domain.model.LearningOutcome
@@ -17,7 +16,7 @@ import org.json.JSONObject
 
 class SqlLearningRepository(private val context: Context) : LearningRepository {
     private val writeGuard = LegacyDataWriteGuard("Öğrenme kayıtları")
-    private val database = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, context.applicationContext))
+    private val database = DatabaseHolder.get(context)
 
     override fun getOutcomes(): Flow<List<LearningOutcome>> = flow {
         withContext(Dispatchers.IO) {
