@@ -1,27 +1,27 @@
 package com.deniz0706.ykstakip.data.repository
 
 import android.content.Context
+import com.deniz0706.ykstakip.data.LegacyDataWriteGuard
 import com.deniz0706.ykstakip.data.local.DatabaseHolder
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
 import com.deniz0706.ykstakip.domain.model.QuestionCard
 import com.deniz0706.ykstakip.domain.model.QuestionStatus
-import com.deniz0706.ykstakip.domain.model.LearningOutcome
 import com.deniz0706.ykstakip.domain.repository.LearningRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
-import com.deniz0706.ykstakip.data.LegacyDataWriteGuard
 import org.json.JSONArray
-import org.json.JSONObject
 
 class SqlLearningRepository(private val context: Context) : LearningRepository {
     private val writeGuard = LegacyDataWriteGuard("Öğrenme kayıtları")
     private val database = DatabaseHolder.get(context)
 
     override fun getOutcomes(): Flow<List<LearningOutcome>> = flow {
-        withContext(Dispatchers.IO) {
-            val queries = database.learningQueriesQueries
-            emit(queries.selectAllLearningOutcomes().executeAsList().map { row ->
+        // Do the blocking query on IO, then emit back in the collector context.
+        // Emitting from inside withContext(IO) violates Flow's context invariant.
+        val outcomes = withContext(Dispatchers.IO) {
+            database.learningQueriesQueries.selectAllLearningOutcomes().executeAsList().map { row ->
                 LearningOutcome(
                     id = row.id,
                     examType = row.exam_type,
@@ -47,14 +47,15 @@ class SqlLearningRepository(private val context: Context) : LearningRepository {
                     } ?: emptyList(),
                     completedDate = row.completed_date ?: ""
                 )
-            })
+            }
         }
+        emit(outcomes)
     }
 
     override fun getQuestions(): Flow<List<QuestionCard>> = flow {
-        withContext(Dispatchers.IO) {
-            val queries = database.learningQueriesQueries
-            emit(queries.selectAllQuestionCards().executeAsList().map { row ->
+        // Keep Flow emission in the collector context for the same reason as above.
+        val questions = withContext(Dispatchers.IO) {
+            database.learningQueriesQueries.selectAllQuestionCards().executeAsList().map { row ->
                 QuestionCard(
                     id = row.id,
                     outcomeId = row.outcome_id,
@@ -74,8 +75,9 @@ class SqlLearningRepository(private val context: Context) : LearningRepository {
                         }
                     } ?: emptyList()
                 )
-            })
+            }
         }
+        emit(questions)
     }
 
     override suspend fun saveOutcome(outcome: LearningOutcome) = withContext(Dispatchers.IO) {
@@ -94,14 +96,12 @@ class SqlLearningRepository(private val context: Context) : LearningRepository {
 
     override suspend fun deleteOutcome(id: String) = withContext(Dispatchers.IO) {
         writeGuard.requireWritable()
-        val queries = database.learningQueriesQueries
-        queries.deleteLearningOutcome(id)
+        database.learningQueriesQueries.deleteLearningOutcome(id)
     }
 
     override suspend fun saveQuestion(question: QuestionCard) = withContext(Dispatchers.IO) {
         writeGuard.requireWritable()
-        val queries = database.learningQueriesQueries
-        queries.insertQuestionCard(
+        database.learningQueriesQueries.insertQuestionCard(
             question.id, question.outcomeId, question.title, question.notes,
             question.status.name, question.createdAt, question.dueDate,
             question.reviewCount.toLong(),
@@ -111,7 +111,6 @@ class SqlLearningRepository(private val context: Context) : LearningRepository {
 
     override suspend fun deleteQuestion(id: String) = withContext(Dispatchers.IO) {
         writeGuard.requireWritable()
-        val queries = database.learningQueriesQueries
-        queries.deleteQuestionCard(id)
+        database.learningQueriesQueries.deleteQuestionCard(id)
     }
 }
