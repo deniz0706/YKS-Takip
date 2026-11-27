@@ -1,10 +1,22 @@
 package com.deniz0706.ykstakip.ui.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -13,7 +25,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -49,38 +63,165 @@ fun YksShell(
     onDestinationChange?.invoke(currentDestination)
 
     YksTheme {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                YksBottomNavigation(
-                    currentDestination = currentDestination,
-                    navController = navController,
-                    onDestinationSelected = { destination ->
-                        currentDestination = destination
-                        if (destination !is YksNavDestination.ExamDetail) {
-                            navController.navigate(destination.route) {
-                                popUpTo(YksNavDestination.Home.route) {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
+        val configuration = LocalConfiguration.current
+        val isTablet = configuration.screenWidthDp >= 600
+        if (isTablet) {
+            YksTabletShell(
+                navController = navController,
+                currentDestination = currentDestination,
+                onDestinationSelected = { destination ->
+                    currentDestination = destination
+                    if (destination !is YksNavDestination.ExamDetail) {
+                        navController.navigate(destination.route) {
+                            popUpTo(YksNavDestination.Home.route) {
+                                inclusive = true
                             }
+                            launchSingleTop = true
                         }
                     }
+                },
+                context = context,
+                onDestinationChange = onDestinationChange
+            )
+        } else {
+            YksPhoneShell(
+                navController = navController,
+                currentDestination = currentDestination,
+                onDestinationSelected = { destination ->
+                    currentDestination = destination
+                    if (destination !is YksNavDestination.ExamDetail) {
+                        navController.navigate(destination.route) {
+                            popUpTo(YksNavDestination.Home.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                context = context,
+                onDestinationChange = onDestinationChange
+            )
+        }
+    }
+}
+
+/** Phone shell with bottom NavigationBar. */
+@Composable
+private fun YksPhoneShell(
+    navController: NavHostController,
+    currentDestination: YksNavDestination,
+    onDestinationSelected: (YksNavDestination) -> Unit,
+    context: Context,
+    onDestinationChange: ((YksNavDestination) -> Unit)?
+) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            YksBottomNavigation(
+                currentDestination = currentDestination,
+                navController = navController,
+                onDestinationSelected = onDestinationSelected
+            )
+        }
+    ) { innerPadding ->
+        Surface(
+            modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding()),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            YksNavHost(
+                navController = navController,
+                onDestinationChange = onDestinationChange,
+                context = context
+            )
+        }
+    }
+}
+
+/** Tablet shell with left NavigationRail and content area. */
+@Composable
+private fun YksTabletShell(
+    navController: NavHostController,
+    currentDestination: YksNavDestination,
+    onDestinationSelected: (YksNavDestination) -> Unit,
+    context: Context,
+    onDestinationChange: ((YksNavDestination) -> Unit)?
+) {
+    val c = MaterialTheme.colorScheme
+    Scaffold(
+        modifier = Modifier.fillMaxSize()
+    ) { innerPadding ->
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // NavigationRail column
+            Column(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(48.dp)
+                    .padding(bottom = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                YksTabletRail(
+                    currentDestination = currentDestination,
+                    onDestinationSelected = onDestinationSelected
                 )
             }
-        ) { innerPadding ->
+
+            // Divider
+            androidx.compose.foundation.layout.Spacer(
+                modifier = Modifier
+                    .width(1.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.outlineVariant)
+            )
+
+            // Content area
             Surface(
-                modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding()),
-                color = MaterialTheme.colorScheme.surface
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
+                color = c.surface
             ) {
                 YksNavHost(
                     navController = navController,
-                    onDestinationChange = { destination ->
-                        currentDestination = destination
-                    },
+                    onDestinationChange = onDestinationChange,
                     context = context
                 )
             }
+        }
+    }
+}
+
+/** Tablet navigation rail (compact icon-only). */
+@Composable
+fun YksTabletRail(
+    currentDestination: YksNavDestination,
+    onDestinationSelected: (YksNavDestination) -> Unit
+) {
+    val c = MaterialTheme.colorScheme
+
+    NavigationRail(
+        modifier = Modifier.fillMaxHeight()
+    ) {
+        BOTTOM_NAV_DESTINATIONS.forEach { destination ->
+            val selected = currentDestination == destination ||
+                (currentDestination is YksNavDestination.ExamDetail && destination == YksNavDestination.Exams)
+            NavigationRailItem(
+                icon = {
+                    Text(
+                        text = destinationIcon(destination),
+                        fontSize = 24.sp,
+                        color = if (selected) c.primary else c.onSurfaceVariant
+                    )
+                },
+                label = {},
+                selected = selected,
+                onClick = { onDestinationSelected(destination) }
+            )
         }
     }
 }
