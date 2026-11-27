@@ -3,16 +3,21 @@ package com.deniz0706.ykstakip.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
-import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.repository.ExamRepository
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.viewModelScope
 
 class ExamViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: ExamRepository = SqlExamRepository.getInstance(application.applicationContext)
+    private val repository: ExamRepository = SqlExamRepository(application.applicationContext)
     private val _exams = MutableLiveData<List<Exam>>(emptyList())
     val exams: MutableLiveData<List<Exam>> = _exams
 
     init {
-        _exams.value = repository.getAllExams()
+        viewModelScope.launch {
+            repository.getAllExams().collect { _exams.value = it }
+        }
     }
 }

@@ -6,13 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.deniz0706.ykstakip.data.ExamRepository
-import com.deniz0706.ykstakip.data.LearningRepository
-import com.deniz0706.ykstakip.data.StudyRepository
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
 import com.deniz0706.ykstakip.data.repository.SqlLearningRepository
 import com.deniz0706.ykstakip.data.repository.SqlStudyRepository
 import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.repository.ExamRepository
+import com.deniz0706.ykstakip.domain.repository.LearningRepository
 import com.deniz0706.ykstakip.ui.ai.NewAiCoachScreen
 import com.deniz0706.ykstakip.ui.ai.CoachLine
 import com.deniz0706.ykstakip.ui.history.NewExamsScreen
