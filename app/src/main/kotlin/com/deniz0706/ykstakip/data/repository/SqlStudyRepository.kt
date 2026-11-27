@@ -1,15 +1,14 @@
 package com.deniz0706.ykstakip.data.repository
 
 import android.content.Context
-import com.deniz0706.ykstakip.data.local.YksDatabase
-import com.squareup.sqldelight.android.AndroidSqliteDriver
+import com.deniz0706.ykstakip.data.local.DatabaseHolder
 import com.deniz0706.ykstakip.domain.model.StudyDay
 import com.deniz0706.ykstakip.widget.StudySummaryWidgetProvider
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 
 class SqlStudyRepository(private val context: Context) {
-    private val database = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, context.applicationContext))
+    private val database = DatabaseHolder.get(context)
 
     suspend fun getAll(): List<StudyDay> = withContext(Dispatchers.IO) {
         val queries = database.studyDayQueriesQueries
