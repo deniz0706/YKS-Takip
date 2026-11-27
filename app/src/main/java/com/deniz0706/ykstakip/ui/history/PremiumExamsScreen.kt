@@ -65,7 +65,7 @@ fun PremiumExamsScreen(
                 icon = "📝",
                 accent = c.primary,
                 onClick = onNewExam,
-                color = c,
+                colorScheme = c,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -77,7 +77,7 @@ fun PremiumExamsScreen(
                 PremiumEmptyState(
                     title = "Henüz deneme kaydı yok",
                     subtitle = "İlk denemenizi ekleyerek performansınızı takip etmeye başlayın.",
-                    color = c
+                    colorScheme = c
                 )
             }
         } else {
@@ -88,7 +88,7 @@ fun PremiumExamsScreen(
                 PremiumExamCard(
                     exam = exam,
                     onClick = { onExamClick(exam.id) },
-                    color = c
+                    colorScheme = c
                 )
             }
         }

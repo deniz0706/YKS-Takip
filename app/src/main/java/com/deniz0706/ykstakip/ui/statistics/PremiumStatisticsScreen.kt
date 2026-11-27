@@ -363,7 +363,7 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                     items(items = exams, key = { it.id }) { exam ->
                         PremiumTrendRow(
                             exam = exam,
-                            color = c
+                            colorScheme = c
                         )
                     }
                 }

@@ -19,8 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.ColorSchemeButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -105,7 +103,7 @@ fun PremiumExamDetailScreen(
             value = Fmt.net(exam.totalNet),
             detail = "${exam.totalCorrect} doğru · ${exam.totalWrong} yanlış · ${exam.totalBlank} boş",
             accent = c.primary,
-            color = c
+            colorScheme = c
         )
 
         Spacer(modifier = Modifier.height(YksTokens.Space.sm))
@@ -117,7 +115,7 @@ fun PremiumExamDetailScreen(
                 value = "${exam.totalTimeMinutes} dakika",
                 detail = exam.overallMinutesPerQuestion?.let { "· ${Fmt.minutesPerQuestion(it)} dk/soru" } ?: "",
                 accent = c.secondary,
-                color = c
+                colorScheme = c
             )
             Spacer(modifier = Modifier.height(YksTokens.Space.sm))
         }
@@ -127,7 +125,7 @@ fun PremiumExamDetailScreen(
             PremiumNotesCard(
                 title = "Deneme Notu",
                 content = exam.notes,
-                color = c
+                colorScheme = c
             )
             Spacer(modifier = Modifier.height(YksTokens.Space.sm))
         }
@@ -144,7 +142,7 @@ fun PremiumExamDetailScreen(
         exam.subjects.forEachIndexed { index, subject ->
             PremiumSubjectRow(
                 subject = subject,
-                color = c,
+                colorScheme = c,
                 onTopicClick = { topic -> onOpenLearning(exam.type.name, subject.subject, topic) }
             )
             if (index < exam.subjects.lastIndex) {
@@ -163,7 +161,7 @@ fun PremiumExamDetailScreen(
                 onDelete()
             },
             examTitle = exam.title,
-            color = c
+            colorScheme = c
         )
     }
 }

@@ -83,12 +83,12 @@ fun PremiumSettingsScreen(
             PremiumSettingsCard(
                 title = "Görünüm",
                 subtitle = "Uygulama renk temasını seçin.",
-                color = c
+                colorScheme = c
             ) {
                 PremiumThemeRow(
                     selected = selectedTheme,
                     onSelect = onThemeChange,
-                    color = c
+                    colorScheme = c
                 )
             }
         }
@@ -100,7 +100,7 @@ fun PremiumSettingsScreen(
             PremiumSettingsCard(
                 title = "Hedefler",
                 subtitle = "Sınav ve günlük çalışma hedeflerinizi ayarlayın.",
-                color = c
+                colorScheme = c
             ) {
                 PremiumGoalRow(
                     tyt = tyt,
@@ -108,7 +108,7 @@ fun PremiumSettingsScreen(
                     obp = obp,
                     daily = daily,
                     onSave = onSave,
-                    color = c
+                    colorScheme = c
                 )
             }
         }
@@ -120,7 +120,7 @@ fun PremiumSettingsScreen(
             PremiumSettingsCard(
                 title = "AI Koç Ayarları",
                 subtitle = "NVIDIA AI bağlantınızı yapılandırın.",
-                color = c
+                colorScheme = c
             ) {
                 PremiumAiRow(
                     aiBaseUrl = aiBaseUrl,
@@ -128,7 +128,7 @@ fun PremiumSettingsScreen(
                     hasAiKey = hasAiKey,
                     onSaveAi = onSaveAi,
                     onTestAi = onTestAi,
-                    color = c
+                    colorScheme = c
                 )
             }
         }
@@ -140,7 +140,7 @@ fun PremiumSettingsScreen(
             PremiumSettingsCard(
                 title = "Veri Yönetimi",
                 subtitle = "Yedekleme ve geri yükleme araçları.",
-                color = c
+                colorScheme = c
             ) {
                 PremiumDataRow(
                     onExport = onExport,
@@ -154,7 +154,7 @@ fun PremiumSettingsScreen(
                     fullBackupBusy = fullBackupBusy,
                     onExportFullBackup = onExportFullBackup,
                     onImportFullBackup = onImportFullBackup,
-                    color = c
+                    colorScheme = c
                 )
             }
         }
@@ -249,7 +249,7 @@ private fun PremiumThemeRow(
                     label = label,
                     isSelected = isSelected,
                     onSelect = { onSelect(id) },
-                    color = c
+                    colorScheme = c
                 )
             }
         }
@@ -304,7 +304,7 @@ private fun PremiumGoalRow(
             value = tytValue,
             onValueChange = { tytValue = it },
             placeholder = "TYT",
-            color = c
+            colorScheme = c
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -312,7 +312,7 @@ private fun PremiumGoalRow(
             value = aytValue,
             onValueChange = { aytValue = it },
             placeholder = "AYT",
-            color = c
+            colorScheme = c
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -320,7 +320,7 @@ private fun PremiumGoalRow(
             value = obpValue,
             onValueChange = { obpValue = it },
             placeholder = "OBP",
-            color = c
+            colorScheme = c
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -328,7 +328,7 @@ private fun PremiumGoalRow(
             value = dailyValue,
             onValueChange = { dailyValue = it },
             placeholder = "Günlük",
-            color = c
+            colorScheme = c
         )
         Spacer(modifier = Modifier.height(16.dp))
         androidx.compose.material3.Button(
@@ -387,7 +387,7 @@ private fun PremiumAiRow(
             value = baseUrlValue,
             onValueChange = { baseUrlValue = it },
             placeholder = "https://",
-            color = c
+            colorScheme = c
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -395,7 +395,7 @@ private fun PremiumAiRow(
             value = modelValue,
             onValueChange = { modelValue = it },
             placeholder = "Model",
-            color = c
+            colorScheme = c
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(

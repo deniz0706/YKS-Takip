@@ -340,7 +340,7 @@ private fun PremiumPlanSection(
                 PremiumDayCard(
                     label = label,
                     items = dayItems,
-                    color = c
+                    colorScheme = c
                 )
                 Spacer(modifier = Modifier.height(YksTokens.Space.sm))
             }
@@ -460,7 +460,7 @@ private fun PremiumLearningSection(
         outcomes.take(12).forEachIndexed { index, outcome ->
             PremiumLearningRow(
                 outcome = outcome,
-                color = c,
+                colorScheme = c,
                 onComplete = { onComplete(outcome.id, !outcome.completed) }
             )
             if (index < outcomes.take(12).lastIndex) {
