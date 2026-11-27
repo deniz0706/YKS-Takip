@@ -6,7 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.deniz0706.ykstakip.model.*
+import com.deniz0706.ykstakip.domain.model.*
 import com.deniz0706.ykstakip.ui.components.DashboardMetric
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.PerformanceIntelligence

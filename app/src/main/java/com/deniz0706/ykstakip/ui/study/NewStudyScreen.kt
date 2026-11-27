@@ -28,11 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.deniz0706.ykstakip.model.AytField
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.QuestionCard
-import com.deniz0706.ykstakip.model.QuestionStatus
-import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.QuestionCard
+import com.deniz0706.ykstakip.domain.model.QuestionStatus
+import com.deniz0706.ykstakip.domain.model.StudyDay
 import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.ui.components.YksSection
 import com.deniz0706.ykstakip.ui.components.YksStatTile
@@ -45,7 +46,7 @@ fun NewStudyScreen(
     plan: List<StudyPlanItem>,
     goal: Int?,
     exams: List<Exam>,
-    learningOutcomes: List<com.deniz0706.ykstakip.model.LearningOutcome>,
+    learningOutcomes: List<LearningOutcome>,
     learningQuestions: List<QuestionCard>,
     learningField: AytField,
     onLearningFieldChange: (AytField) -> Unit,
@@ -301,7 +302,7 @@ private fun PlanSection(
 
 @Composable
 private fun LearningSection(
-    outcomes: List<com.deniz0706.ykstakip.model.LearningOutcome>,
+    outcomes: List<LearningOutcome>,
     questions: List<QuestionCard>,
     field: AytField,
     onFieldChange: (AytField) -> Unit,
@@ -367,7 +368,7 @@ private fun LearningSection(
 private fun AnalysisSection(
     days: List<StudyDay>,
     goal: Int?,
-    exams: List<com.deniz0706.ykstakip.model.Exam>
+    exams: List<Exam>
 ) {
     val c = MaterialTheme.colorScheme
     YksSection(title = "Analiz", detail = "Çalışma alışkanlıklarınızın gözden geçirilməsi")

@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.ui.components.YksSection
 import com.deniz0706.ykstakip.ui.theme.YksSpacing
 

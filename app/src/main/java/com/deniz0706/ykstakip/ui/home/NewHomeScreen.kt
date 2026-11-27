@@ -36,8 +36,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.ui.components.YksButton
 import com.deniz0706.ykstakip.ui.components.YksSection
 import com.deniz0706.ykstakip.ui.components.YksStatTile

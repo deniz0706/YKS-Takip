@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.ui.components.YksSection
 import com.deniz0706.ykstakip.ui.components.YksStatTile
 import com.deniz0706.ykstakip.ui.theme.YksShape

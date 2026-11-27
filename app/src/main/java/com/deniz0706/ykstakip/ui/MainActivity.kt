@@ -12,7 +12,7 @@ import com.deniz0706.ykstakip.data.StudyRepository
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
 import com.deniz0706.ykstakip.data.repository.SqlLearningRepository
 import com.deniz0706.ykstakip.data.repository.SqlStudyRepository
-import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.domain.model.AytField
 import com.deniz0706.ykstakip.ui.ai.NewAiCoachScreen
 import com.deniz0706.ykstakip.ui.ai.CoachLine
 import com.deniz0706.ykstakip.ui.history.NewExamsScreen
@@ -23,7 +23,7 @@ import com.deniz0706.ykstakip.ui.settings.NewSettingsScreen
 import com.deniz0706.ykstakip.ui.statistics.NewStatisticsScreen
 import com.deniz0706.ykstakip.ui.study.NewStudyScreen
 import com.deniz0706.ykstakip.ui.theme.YksTheme
-import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.domain.model.Exam
 
 class MainActivity : ComponentActivity() {
 

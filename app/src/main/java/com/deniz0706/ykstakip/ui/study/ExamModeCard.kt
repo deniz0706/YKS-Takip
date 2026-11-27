@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.data.ExamSessionRepository
-import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.domain.model.AytField
 import com.deniz0706.ykstakip.model.SubjectConfigs
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.util.ExamSessionMath
