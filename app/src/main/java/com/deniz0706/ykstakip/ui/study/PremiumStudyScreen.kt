@@ -366,7 +366,7 @@ private fun PremiumDayCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
-                colorScheme = c.onSurface,
+                color = c.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -395,14 +395,14 @@ private fun PremiumPlanItemRow(
         Text(
             text = "${item.startTime} - ${item.endTime}",
             style = MaterialTheme.typography.labelMedium,
-            colorScheme = c.onSurfaceVariant,
+            color = c.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.width(110.dp)
         )
         Text(
             text = item.subject,
             style = MaterialTheme.typography.bodyMedium,
-            colorScheme = c.onSurface,
+            color = c.onSurface,
             modifier = Modifier.weight(1f)
         )
         if (item.topic.isNotBlank()) {
@@ -493,7 +493,7 @@ private fun PremiumLearningRow(
             Text(
                 text = "${outcome.subject} · ${outcome.topic}",
                 style = MaterialTheme.typography.bodyMedium,
-                colorScheme = c.onSurface,
+                color = c.onSurface,
                 fontWeight = FontWeight.Medium
             )
             Text(
@@ -593,7 +593,7 @@ private fun PremiumStatTile(
             .background(c.surfaceContainer)
             .padding(YksTokens.Space.cardContent)
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodySmall, colorScheme = c.onSurfaceVariant)
+        Text(text = label, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
@@ -603,7 +603,7 @@ private fun PremiumStatTile(
         )
         if (detail.isNotBlank()) {
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = detail, style = MaterialTheme.typography.labelSmall, colorScheme = c.onSurfaceVariant)
+            Text(text = detail, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
         }
     }
 }
@@ -635,7 +635,7 @@ private fun PremiumActionTile(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                colorScheme = c.onSurface,
+                color = c.onSurface,
                 fontWeight = FontWeight.Medium
             )
         }

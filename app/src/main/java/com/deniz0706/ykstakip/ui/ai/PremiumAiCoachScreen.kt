@@ -174,13 +174,13 @@ private fun PremiumAiHeader(colorScheme: ColorScheme) {
             Text(
                 text = "AI Koçun",
                 style = MaterialTheme.typography.labelMedium,
-                colorScheme = c.primary,
+                color = c.primary,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = "YKS sürecini birlikte yönetelim",
                 style = MaterialTheme.typography.headlineSmall,
-                colorScheme = c.onSurface,
+                color = c.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
             Text(

@@ -69,7 +69,7 @@ fun PremiumExamDetailScreen(
             Spacer(modifier = Modifier.weight(1f))
             OutlinedButton(onClick = onEdit) { Text("Düzenle") }
             TextButton(onClick = { confirmDelete = true }) {
-                Text("Sil", colorScheme = c.error)
+                Text("Sil", color = c.error)
             }
         }
 
@@ -82,19 +82,19 @@ fun PremiumExamDetailScreen(
         ) {
             Text(
                 text = exam.type.label.uppercase(),
-                colorScheme = c.primary,
+                color = c.primary,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = exam.title,
-                colorScheme = c.onSurface,
+                color = c.onSurface,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = displayDate + (exam.publisher.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
-                colorScheme = c.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -136,7 +136,7 @@ fun PremiumExamDetailScreen(
         Text(
             text = "Ders Kırılımı (${exam.subjects.size} ders)",
             style = MaterialTheme.typography.titleMedium,
-            colorScheme = c.onSurfaceVariant,
+            color = c.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -189,7 +189,7 @@ private fun PremiumMetricCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                colorScheme = c.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
@@ -226,7 +226,7 @@ private fun PremiumNotesCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelSmall,
-                colorScheme = c.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
@@ -262,19 +262,19 @@ private fun PremiumSubjectRow(
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
                         text = subject.subject,
-                        colorScheme = c.onSurface,
+                        color = c.onSurface,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = "${subject.questionCount} soru · ${subject.timeMinutes} dk",
-                        colorScheme = c.onSurfaceVariant,
+                        color = c.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
                 Text(
                     text = "${Fmt.net(subject.net)} net",
-                    colorScheme = c.primary,
+                    color = c.primary,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -283,7 +283,7 @@ private fun PremiumSubjectRow(
             Text(
                 text = "${subject.correct} doğru · ${subject.wrong} yanlış · ${subject.blank} boş" +
                     (subject.minutesPerQuestion?.let { " · ${Fmt.minutesPerQuestion(it)} dk/soru" } ?: ""),
-                colorScheme = c.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall
             )
 
@@ -291,7 +291,7 @@ private fun PremiumSubjectRow(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Zayıf Konular",
-                    colorScheme = c.onSurface,
+                    color = c.onSurface,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -309,7 +309,7 @@ private fun PremiumSubjectRow(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Bir konuya dokunarak öğrenme merkezinde aç.",
-                    colorScheme = c.onSurfaceVariant,
+                    color = c.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -330,7 +330,7 @@ private fun PremiumDeleteDialog(
         title = { Text("Deneme Silinsin mi?") },
         text = { Text("“$examTitle” denemesi kalıcı olarak silinecek. Bu işlem geri alınamaz.") },
         confirmButton = {
-            TextButton(onClick = { onConfirm() }) { Text("Sil", colorScheme = c.error) }
+            TextButton(onClick = { onConfirm() }) { Text("Sil", color = c.error) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Vazgeç") }

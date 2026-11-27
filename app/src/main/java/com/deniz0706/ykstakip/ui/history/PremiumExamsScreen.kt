@@ -153,7 +153,7 @@ private fun PremiumActionCard(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
-                    colorScheme = c.onSurface,
+                    color = c.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
@@ -194,14 +194,14 @@ private fun PremiumEmptyState(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                colorScheme = c.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                colorScheme = c.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
@@ -232,7 +232,7 @@ private fun PremiumExamCard(
                 Text(
                     text = "${exam.type.label} · ${exam.title}",
                     style = MaterialTheme.typography.bodyMedium,
-                    colorScheme = c.onSurface,
+                    color = c.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -245,7 +245,7 @@ private fun PremiumExamCard(
                 Text(
                     text = "Net: ${Fmt.net(exam.totalNet)}  •  ${exam.totalQuestions} soru",
                     style = MaterialTheme.typography.labelMedium,
-                    colorScheme = c.primary,
+                    color = c.primary,
                     fontWeight = FontWeight.Medium
                 )
             }

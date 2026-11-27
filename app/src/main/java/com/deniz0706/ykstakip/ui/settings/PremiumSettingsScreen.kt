@@ -210,7 +210,7 @@ private fun PremiumSettingsCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                colorScheme = c.onSurface,
+                color = c.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -278,7 +278,7 @@ private fun PremiumThemeChip(
         Text(
             text = if (isSelected) "✓ $label" else label,
             style = MaterialTheme.typography.titleMedium,
-            colorScheme = c.onSurface,
+            color = c.onSurface,
             fontWeight = FontWeight.SemiBold
         )
     }
@@ -440,7 +440,7 @@ private fun PremiumDataRow(
         Text(
             text = "Tam Yedek · ZIP",
             style = MaterialTheme.typography.titleMedium,
-            colorScheme = c.onSurface,
+            color = c.onSurface,
             fontWeight = FontWeight.SemiBold
         )
         Text(
@@ -475,7 +475,7 @@ private fun PremiumDataRow(
         Text(
             text = "Çalışma Geçmişi · JSON",
             style = MaterialTheme.typography.titleMedium,
-            colorScheme = c.onSurface,
+            color = c.onSurface,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(12.dp))
