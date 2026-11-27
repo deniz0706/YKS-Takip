@@ -22,6 +22,7 @@ import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.ui.components.YksSection
 import com.deniz0706.ykstakip.ui.components.YksStatTile
 import com.deniz0706.ykstakip.ui.theme.YksSpacing
+import com.deniz0706.ykstakip.util.Fmt
 
 @Composable
 fun NewStatisticsScreen(
@@ -120,7 +121,3 @@ fun NewStatisticsScreen(
     }
 }
 
-private object Fmt {
-    fun obp(value: Double?): String = value?.let { "%.2f".format(it) } ?: "—"
-    fun net(value: Double?): String = value?.let { "%.2f".format(it) } ?: "—"
-}

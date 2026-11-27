@@ -26,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icons
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -68,13 +70,13 @@ fun PremiumAiCoachScreen(
     ) {
         // Header
         item {
-            PremiumAiHeader(color = c)
+            PremiumAiHeader(colorScheme = c)
         }
 
         // API key missing state
         if (!uiState.hasApiKey) {
             item {
-                PremiumApiKeyMissingCard(color = c, onApiKeyMissing = onApiKeyMissing)
+                PremiumApiKeyMissingCard(colorScheme = c, onApiKeyMissing = onApiKeyMissing)
             }
         }
 
@@ -84,7 +86,7 @@ fun PremiumAiCoachScreen(
                 PremiumErrorCard(
                     message = error,
                     onDismiss = { viewModel.clearError() },
-                    color = c
+                    colorScheme = c
                 )
             }
         }
@@ -97,14 +99,14 @@ fun PremiumAiCoachScreen(
                 isUser = message.role == "user",
                 isError = message.isError,
                 isStreaming = message.isStreaming,
-                color = c
+                colorScheme = c
             )
         }
 
         // Streaming indicator
         if (uiState.isStreaming) {
             item {
-                PremiumStreamingIndicator(color = c)
+                PremiumStreamingIndicator(colorScheme = c)
             }
         }
     }
@@ -161,8 +163,8 @@ fun PremiumAiCoachScreen(
 }
 
 @Composable
-private fun PremiumAiHeader(color: Color) {
-    val c = MaterialTheme.colorScheme
+private fun PremiumAiHeader(colorScheme: ColorScheme) {
+    val c = colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -203,8 +205,8 @@ private fun PremiumAiHeader(color: Color) {
 }
 
 @Composable
-private fun PremiumApiKeyMissingCard(color: Color, onApiKeyMissing: () -> Unit) {
-    val c = MaterialTheme.colorScheme
+private fun PremiumApiKeyMissingCard(colorScheme: ColorScheme, onApiKeyMissing: () -> Unit) {
+    val c = colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.input),
@@ -238,9 +240,9 @@ private fun PremiumApiKeyMissingCard(color: Color, onApiKeyMissing: () -> Unit) 
 private fun PremiumErrorCard(
     message: String,
     onDismiss: () -> Unit,
-    color: Color
+    colorScheme: ColorScheme
 ) {
-    val c = MaterialTheme.colorScheme
+    val c = colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.input),
@@ -272,9 +274,9 @@ private fun PremiumMessageBubble(
     isUser: Boolean,
     isError: Boolean = false,
     isStreaming: Boolean = false,
-    color: Color
+    colorScheme: ColorScheme
 ) {
-    val c = MaterialTheme.colorScheme
+    val c = colorScheme
     val bg = if (isUser) c.primaryContainer else if (isError) c.errorContainer else c.surfaceContainer
     val fg = if (isUser) c.onPrimaryContainer else c.onSurface
 
@@ -316,8 +318,8 @@ private fun PremiumMessageBubble(
 }
 
 @Composable
-private fun PremiumStreamingIndicator(color: Color) {
-    val c = MaterialTheme.colorScheme
+private fun PremiumStreamingIndicator(colorScheme: ColorScheme) {
+    val c = colorScheme
     Row(
         Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

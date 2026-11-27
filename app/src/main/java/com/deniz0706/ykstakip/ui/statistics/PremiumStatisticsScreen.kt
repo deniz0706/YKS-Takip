@@ -22,12 +22,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -168,9 +170,9 @@ fun PremiumStatisticsScreen(
 private fun PremiumSectionHeader(
     title: String,
     subtitle: String,
-    color: Color
+    colorScheme: ColorScheme
 ) {
-    val c = MaterialTheme.colorScheme
+    val c = colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -320,7 +322,7 @@ private fun PremiumProgressTile(
         ) {
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier
-                    .width(progress * 1000.dp) // approximate visual width
+                    .width(progress.toFloat() * 1000.dp) // approximate visual width
                     .height(4.dp)
                     .background(accent)
                     .clip(RoundedCornerShape(YksTokens.Shape.pill))
@@ -371,7 +373,8 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
 }
 
 @Composable
-private fun PremiumTrendRow(exam: Exam, color: Color) {
+private fun PremiumTrendRow(exam: Exam, colorScheme: ColorScheme) {
+    val c = colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -380,26 +383,21 @@ private fun PremiumTrendRow(exam: Exam, color: Color) {
         Text(
             text = exam.date,
             style = MaterialTheme.typography.bodyMedium,
-            color = color.onSurfaceVariant,
+            color = c.onSurfaceVariant,
             modifier = Modifier.width(70.dp)
         )
         Text(
             text = "${exam.type.label} · ${exam.title}",
             style = MaterialTheme.typography.bodyMedium,
-            color = color.onSurface,
+            color = c.onSurface,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f)
         )
         Text(
             text = Fmt.net(exam.totalNet),
             style = MaterialTheme.typography.headlineMedium,
-            color = color.primary,
+            color = c.primary,
             fontWeight = FontWeight.Bold
         )
     }
-}
-
-private object Fmt {
-    fun obp(value: Double?): String = value?.let { "%.2f".format(it) } ?: "—"
-    fun net(value: Double?): String = value?.let { "%.2f".format(it) } ?: "—"
 }

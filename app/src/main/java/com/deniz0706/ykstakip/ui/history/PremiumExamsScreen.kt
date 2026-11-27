@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,11 +18,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.ui.theme.YksTokens
@@ -34,7 +38,7 @@ fun PremiumExamsScreen(
     onExamClick: (Long) -> Unit,
     onNewExam: () -> Unit
 ) {
-    val c = MaterialTheme.colorScheme
+    val c = colorScheme
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(c.background),
@@ -97,9 +101,9 @@ fun PremiumExamsScreen(
 private fun PremiumSectionHeader(
     title: String,
     subtitle: String,
-    color: Color
+    colorScheme: ColorScheme
 ) {
-    val c = MaterialTheme.colorScheme
+    val c = colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -127,7 +131,7 @@ private fun PremiumActionCard(
     icon: String,
     accent: Color,
     onClick: () -> Unit,
-    color: Color,
+    colorScheme: ColorScheme,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -136,7 +140,7 @@ private fun PremiumActionCard(
             .clip(RoundedCornerShape(YksTokens.Shape.panel))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surfaceContainer)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
     ) {
         Row(
             modifier = Modifier.padding(YksTokens.Space.cardContent),
@@ -148,13 +152,13 @@ private fun PremiumActionCard(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = color.onSurface,
+                    color = c.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = color.onSurfaceVariant
+                    color = c.onSurfaceVariant
                 )
             }
             Text(
@@ -170,12 +174,13 @@ private fun PremiumActionCard(
 private fun PremiumEmptyState(
     title: String,
     subtitle: String,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surfaceContainer)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
     ) {
         Column(
             modifier = Modifier
@@ -188,14 +193,14 @@ private fun PremiumEmptyState(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = color.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = color.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
@@ -206,15 +211,16 @@ private fun PremiumEmptyState(
 private fun PremiumExamCard(
     exam: Exam,
     onClick: () -> Unit,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(YksTokens.Shape.card))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(YksTokens.Shape.card),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surface)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
         Row(
             modifier = Modifier.padding(YksTokens.Space.cardContent),
@@ -225,32 +231,28 @@ private fun PremiumExamCard(
                 Text(
                     text = "${exam.type.label} · ${exam.title}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = color.onSurface,
+                    color = c.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = exam.date,
                     style = MaterialTheme.typography.bodySmall,
-                    color = color.onSurfaceVariant
+                    color = c.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Net: ${Fmt.net(exam.totalNet)}  •  ${exam.totalQuestions} soru",
                     style = MaterialTheme.typography.labelMedium,
-                    color = color.primary,
+                    color = c.primary,
                     fontWeight = FontWeight.Medium
                 )
             }
             Text(
                 text = "→",
                 style = MaterialTheme.typography.labelMedium,
-                color = color.onSurfaceVariant
+                color = c.onSurfaceVariant
             )
         }
     }
-}
-
-private object Fmt {
-    fun net(value: Double?): String = value?.let { "%.2f".format(it) } ?: "—"
 }

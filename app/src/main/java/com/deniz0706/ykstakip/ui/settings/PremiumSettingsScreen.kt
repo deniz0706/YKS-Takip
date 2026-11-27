@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -165,9 +167,9 @@ fun PremiumSettingsScreen(
 private fun PremiumSectionHeader(
     title: String,
     subtitle: String,
-    color: Color
+    colorScheme: ColorScheme
 ) {
-    val c = MaterialTheme.colorScheme
+    val c = colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -192,13 +194,14 @@ private fun PremiumSectionHeader(
 private fun PremiumSettingsCard(
     title: String,
     subtitle: String,
-    color: Color,
+    colorScheme: ColorScheme,
     content: @Composable () -> Unit
 ) {
+    val c = colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surface)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
         androidx.compose.foundation.layout.Column(
             modifier = Modifier.padding(YksTokens.Space.cardContent)
@@ -206,14 +209,14 @@ private fun PremiumSettingsCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = color.onSurface,
+                color = c.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = color.onSurfaceVariant
+                color = c.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(16.dp))
             content()
@@ -225,8 +228,9 @@ private fun PremiumSettingsCard(
 private fun PremiumThemeRow(
     selected: String,
     onSelect: (String) -> Unit,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     val options = listOf(
         "light" to "Açık",
         "dark" to "Koyu",
@@ -245,7 +249,7 @@ private fun PremiumThemeRow(
                     label = label,
                     isSelected = isSelected,
                     onSelect = { onSelect(id) },
-                    color = color
+                    color = c
                 )
             }
         }
@@ -258,13 +262,14 @@ private fun PremiumThemeChip(
     label: String,
     isSelected: Boolean,
     onSelect: () -> Unit,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     androidx.compose.foundation.layout.Column(
         modifier = Modifier
             .weight(1f)
             .clip(RoundedCornerShape(YksTokens.Shape.input))
-            .background(if (isSelected) color.primaryContainer else color.surfaceContainer)
+            .background(if (isSelected) c.primaryContainer else c.surfaceContainer)
             .clickable { onSelect() }
             .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -272,7 +277,7 @@ private fun PremiumThemeChip(
         Text(
             text = if (isSelected) "✓ $label" else label,
             style = MaterialTheme.typography.titleMedium,
-            color = color.onSurface,
+            color = c.onSurface,
             fontWeight = FontWeight.SemiBold
         )
     }
@@ -285,8 +290,9 @@ private fun PremiumGoalRow(
     obp: String,
     daily: String,
     onSave: (String, String, String, String) -> String?,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     var tytValue by remember { mutableStateOf(tyt) }
     var aytValue by remember { mutableStateOf(ayt) }
     var obpValue by remember { mutableStateOf(obp) }
@@ -298,7 +304,7 @@ private fun PremiumGoalRow(
             value = tytValue,
             onValueChange = { tytValue = it },
             placeholder = "TYT",
-            color = color
+            color = c
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -306,7 +312,7 @@ private fun PremiumGoalRow(
             value = aytValue,
             onValueChange = { aytValue = it },
             placeholder = "AYT",
-            color = color
+            color = c
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -314,7 +320,7 @@ private fun PremiumGoalRow(
             value = obpValue,
             onValueChange = { obpValue = it },
             placeholder = "OBP",
-            color = color
+            color = c
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -322,7 +328,7 @@ private fun PremiumGoalRow(
             value = dailyValue,
             onValueChange = { dailyValue = it },
             placeholder = "Günlük",
-            color = color
+            color = c
         )
         Spacer(modifier = Modifier.height(16.dp))
         androidx.compose.material3.Button(
@@ -340,12 +346,12 @@ private fun PremiumInputField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    color: Color
+    colorScheme: ColorScheme
 ) {
     Text(
         text = label,
         style = MaterialTheme.typography.labelSmall,
-        color = color.onSurfaceVariant
+        color = c.onSurfaceVariant
     )
     Spacer(modifier = Modifier.height(4.dp))
     OutlinedTextField(
@@ -363,8 +369,9 @@ private fun PremiumAiRow(
     hasAiKey: Boolean,
     onSaveAi: (String, String, String) -> String?,
     onTestAi: () -> Unit,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     var baseUrlValue by remember { mutableStateOf(aiBaseUrl) }
     var modelValue by remember { mutableStateOf(aiModel) }
 
@@ -372,7 +379,7 @@ private fun PremiumAiRow(
         Text(
             text = "API anahtarı ${if (hasAiKey) "bu cihazda kayıtlı." else "henüz eklenmedi."}",
             style = MaterialTheme.typography.bodySmall,
-            color = color.onSurfaceVariant
+            color = c.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -380,7 +387,7 @@ private fun PremiumAiRow(
             value = baseUrlValue,
             onValueChange = { baseUrlValue = it },
             placeholder = "https://",
-            color = color
+            color = c
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -388,7 +395,7 @@ private fun PremiumAiRow(
             value = modelValue,
             onValueChange = { modelValue = it },
             placeholder = "Model",
-            color = color
+            color = c
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -424,27 +431,28 @@ private fun PremiumDataRow(
     fullBackupBusy: Boolean,
     onExportFullBackup: () -> Unit,
     onImportFullBackup: () -> Unit,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     Column(modifier = Modifier.padding(horizontal = 12.dp)) {
         // Full backup section
         Text(
             text = "Tam Yedek · ZIP",
             style = MaterialTheme.typography.titleMedium,
-            color = color.onSurface,
+            color = c.onSurface,
             fontWeight = FontWeight.SemiBold
         )
         Text(
             text = "Denemeler, çalışma geçmişi, kazanımlar ve soru fotoğrafları tek dosyada.",
             style = MaterialTheme.typography.bodySmall,
-            color = color.onSurfaceVariant
+            color = c.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumActionButton(
             label = "Tüm verileri yedekle · ZIP",
             onClick = onExportFullBackup,
             enabled = !fullBackupBusy,
-            accent = color.primary,
+            accent = c.primary,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -452,13 +460,13 @@ private fun PremiumDataRow(
             label = "Tam yedeği birleştir",
             onClick = onImportFullBackup,
             enabled = !fullBackupBusy,
-            accent = color.primary,
+            accent = c.primary,
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(20.dp))
         androidx.compose.material3.HorizontalDivider(
-            color = color.outlineVariant
+            color = c.outlineVariant
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -466,21 +474,21 @@ private fun PremiumDataRow(
         Text(
             text = "Çalışma Geçmişi · JSON",
             style = MaterialTheme.typography.titleMedium,
-            color = color.onSurface,
+            color = c.onSurface,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumActionButton(
             label = "Çalışma geçmişini yedekle",
             onClick = onExportStudy,
-            accent = color.primary,
+            accent = c.primary,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         PremiumOutlinedActionButton(
             label = "Çalışma geçmişini içe aktar",
             onClick = onImportStudy,
-            accent = color.primary,
+            accent = c.primary,
             modifier = Modifier.fillMaxWidth()
         )
     }

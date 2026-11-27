@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -16,7 +18,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.ColorSchemeButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.ui.theme.YksTokens
@@ -41,7 +46,7 @@ fun PremiumExamDetailScreen(
     onDelete: () -> Unit,
     onOpenLearning: (String, String, String) -> Unit
 ) {
-    val c = MaterialTheme.colorScheme
+    val c = colorScheme
     var confirmDelete by remember(exam.id) { mutableStateOf(false) }
     val displayDate = remember(exam.date) {
         runCatching {
@@ -169,12 +174,13 @@ private fun PremiumMetricCard(
     value: String,
     detail: String,
     accent: Color,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surfaceContainer)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
     ) {
         Column(
             modifier = Modifier.padding(YksTokens.Space.cardContent),
@@ -183,7 +189,7 @@ private fun PremiumMetricCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = color.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
@@ -195,7 +201,7 @@ private fun PremiumMetricCard(
             Text(
                 text = detail,
                 style = MaterialTheme.typography.bodyMedium,
-                color = color.onSurfaceVariant
+                color = c.onSurfaceVariant
             )
         }
     }
@@ -205,12 +211,13 @@ private fun PremiumMetricCard(
 private fun PremiumNotesCard(
     title: String,
     content: String,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surfaceContainer)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
     ) {
         Column(
             modifier = Modifier.padding(YksTokens.Space.cardContent),
@@ -219,13 +226,13 @@ private fun PremiumNotesCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelSmall,
-                color = color.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = content,
                 style = MaterialTheme.typography.bodyMedium,
-                color = color.onSurfaceVariant
+                color = c.onSurfaceVariant
             )
         }
     }
@@ -234,13 +241,14 @@ private fun PremiumNotesCard(
 @Composable
 private fun PremiumSubjectRow(
     subject: com.deniz0706.ykstakip.domain.model.SubjectResult,
-    color: Color,
+    colorScheme: ColorScheme,
     onTopicClick: (String) -> Unit
 ) {
+    val c = colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.card),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surface)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
         Column(
             modifier = Modifier.padding(YksTokens.Space.cardContent),
@@ -254,19 +262,19 @@ private fun PremiumSubjectRow(
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
                         text = subject.subject,
-                        color = color.onSurface,
+                        color = c.onSurface,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = "${subject.questionCount} soru · ${subject.timeMinutes} dk",
-                        color = color.onSurfaceVariant,
+                        color = c.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
                 Text(
                     text = "${Fmt.net(subject.net)} net",
-                    color = color.primary,
+                    color = c.primary,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -275,7 +283,7 @@ private fun PremiumSubjectRow(
             Text(
                 text = "${subject.correct} doğru · ${subject.wrong} yanlış · ${subject.blank} boş" +
                     (subject.minutesPerQuestion?.let { " · ${Fmt.minutesPerQuestion(it)} dk/soru" } ?: ""),
-                color = color.onSurfaceVariant,
+                color = c.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall
             )
 
@@ -283,7 +291,7 @@ private fun PremiumSubjectRow(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Zayıf Konular",
-                    color = color.onSurface,
+                    color = c.onSurface,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -301,7 +309,7 @@ private fun PremiumSubjectRow(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Bir konuya dokunarak öğrenme merkezinde aç.",
-                    color = color.onSurfaceVariant,
+                    color = c.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -314,22 +322,18 @@ private fun PremiumDeleteDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     examTitle: String,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Deneme Silinsin mi?") },
         text = { Text("“$examTitle” denemesi kalıcı olarak silinecek. Bu işlem geri alınamaz.") },
         confirmButton = {
-            TextButton(onClick = { onConfirm() }) { Text("Sil", color = color.error) }
+            TextButton(onClick = { onConfirm() }) { Text("Sil", color = c.error) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Vazgeç") }
         }
     )
-}
-
-private object Fmt {
-    fun net(value: Double?): String = value?.let { "%.2f".format(it) } ?: "—"
-    fun minutesPerQuestion(value: Double): String = "%.1f".format(value)
 }

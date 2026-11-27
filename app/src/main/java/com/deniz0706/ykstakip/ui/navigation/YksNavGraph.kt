@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -46,7 +47,7 @@ import androidx.lifecycle.lifecycleScope
 import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -77,6 +78,7 @@ import com.deniz0706.ykstakip.ui.home.PremiumHomeDashboard
 import com.deniz0706.ykstakip.ui.settings.PremiumSettingsScreen
 import com.deniz0706.ykstakip.ui.statistics.PremiumStatisticsScreen
 import com.deniz0706.ykstakip.ui.study.PremiumStudyScreen
+import com.deniz0706.ykstakip.ui.theme.YksTokens
 import com.deniz0706.ykstakip.ui.theme.YksTheme
 import com.deniz0706.ykstakip.ui.viewmodel.HomeViewModel
 import com.deniz0706.ykstakip.viewmodel.ExamViewModel
@@ -559,7 +561,7 @@ fun YksNavHost(
                     coroutineScope.launch {
                         val outcome = learningOutcomes.firstOrNull { it.id == id }
                         if (outcome != null) {
-                            learningRepository.saveOutcome(outcome.copy(completed = completed))
+                            learningRepository.updateOutcome(outcome.copy(completed = completed))
                         }
                     }
                 },
@@ -573,7 +575,7 @@ fun YksNavHost(
                             } else {
                                 subtopics.remove(subtopic)
                             }
-                            learningRepository.saveOutcome(outcome.copy(completedSubtopics = subtopics))
+                            learningRepository.updateOutcome(outcome.copy(completedSubtopics = subtopics))
                         }
                     }
                 },
@@ -581,7 +583,7 @@ fun YksNavHost(
                     coroutineScope.launch {
                         val outcome = learningOutcomes.firstOrNull { it.id == id }
                         if (outcome != null) {
-                            learningRepository.saveOutcome(outcome.copy(wrongCount = outcome.wrongCount + 1))
+                            learningRepository.updateOutcome(outcome.copy(wrongCount = outcome.wrongCount + 1))
                         }
                     }
                 },
@@ -589,7 +591,7 @@ fun YksNavHost(
                     coroutineScope.launch {
                         val outcome = learningOutcomes.firstOrNull { it.id == id }
                         if (outcome != null) {
-                            learningRepository.saveOutcome(outcome.copy(reviewRequested = true))
+                            learningRepository.updateOutcome(outcome.copy(reviewRequested = true))
                         }
                     }
                 },
@@ -597,7 +599,7 @@ fun YksNavHost(
                     coroutineScope.launch {
                         val outcome = learningOutcomes.firstOrNull { it.id == id }
                         if (outcome != null) {
-                            learningRepository.saveOutcome(outcome.copy(reviewRequested = false, reviewLevel = outcome.reviewLevel + 1))
+                            learningRepository.updateOutcome(outcome.copy(reviewRequested = false, reviewLevel = outcome.reviewLevel + 1))
                         }
                     }
                 },
@@ -605,7 +607,7 @@ fun YksNavHost(
                     coroutineScope.launch {
                         val outcome = learningOutcomes.firstOrNull { it.id == id }
                         if (outcome != null) {
-                            learningRepository.saveOutcome(outcome.copy(nextReviewDate = java.time.LocalDate.now().plusDays(1).toString()))
+                            learningRepository.updateOutcome(outcome.copy(nextReviewDate = java.time.LocalDate.now().plusDays(1).toString()))
                         }
                     }
                 },
@@ -618,15 +620,15 @@ fun YksNavHost(
                             wrongCount = 0, acknowledgedWrongCount = 0, nextReviewDate = "",
                             reviewLevel = 0, lastReviewedDate = "", custom = true
                         )
-                        learningRepository.saveOutcome(outcome)
+                        learningRepository.updateOutcome(outcome)
                     }
                 },
                 onLearningDelete = { id ->
                     coroutineScope.launch {
-                        learningRepository.deleteOutcome(id)
+                        learningRepository.deleteCustomOutcome(id)
                     }
                 },
-                onQuestionCreate = { title, notes, status, photos ->
+                onQuestionCreate = { title, notes, photos, status ->
                     // Use an existing outcome or create a default one for standalone questions
                     val outcomeId = learningOutcomes.firstOrNull()?.id
                         ?: run {
@@ -638,7 +640,7 @@ fun YksNavHost(
                                 nextReviewDate = "", reviewLevel = 0, lastReviewedDate = "",
                                 custom = true, completedSubtopics = emptyList()
                             )
-                            coroutineScope.launch { learningRepository.saveOutcome(defaultOutcome) }
+                            coroutineScope.launch { learningRepository.updateOutcome(defaultOutcome) }
                             defaultId
                         }
                     val card = learningRepository.addQuestion(outcomeId, title, notes, status)
@@ -739,10 +741,9 @@ fun YksNavHost(
         ) { backStackEntry ->
             PremiumStatisticsScreen(
                 exams = statsExams,
-                obp = AppSettings.getObp(appContext),
+                obp = AppSettings.getObp(appContext)?.toDouble(),
                 targetTyt = AppSettings.getTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.TYT),
-                targetAyt = AppSettings.getTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.AYT),
-                onOpenExams = { navController.navigate("exams") }
+                targetAyt = AppSettings.getTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.AYT)
             )
             onDestinationChange?.invoke(YksNavDestination.Statistics)
         }

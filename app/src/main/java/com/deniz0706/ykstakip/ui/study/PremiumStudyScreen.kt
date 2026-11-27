@@ -25,6 +25,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -178,9 +180,9 @@ fun PremiumStudyScreen(
 private fun PremiumSectionHeader(
     title: String,
     subtitle: String,
-    color: Color
+    colorScheme: ColorScheme
 ) {
-    val c = MaterialTheme.colorScheme
+    val c = colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -350,12 +352,13 @@ private fun PremiumPlanSection(
 private fun PremiumDayCard(
     label: String,
     items: List<StudyPlanItem>,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surface)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
         androidx.compose.foundation.layout.Column(
             modifier = Modifier.padding(YksTokens.Space.cardContent)
@@ -363,14 +366,14 @@ private fun PremiumDayCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
-                color = color.onSurface,
+                color = c.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(8.dp))
             items.forEach { item ->
                 PremiumPlanItemRow(
                     item = item,
-                    color = color
+                    colorScheme = c
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -381,8 +384,9 @@ private fun PremiumDayCard(
 @Composable
 private fun PremiumPlanItemRow(
     item: StudyPlanItem,
-    color: Color
+    colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -391,21 +395,21 @@ private fun PremiumPlanItemRow(
         Text(
             text = "${item.startTime} - ${item.endTime}",
             style = MaterialTheme.typography.labelMedium,
-            color = color.onSurfaceVariant,
+            color = c.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.width(110.dp)
         )
         Text(
             text = item.subject,
             style = MaterialTheme.typography.bodyMedium,
-            color = color.onSurface,
+            color = c.onSurface,
             modifier = Modifier.weight(1f)
         )
         if (item.topic.isNotBlank()) {
             Text(
                 text = "· ${item.topic}",
                 style = MaterialTheme.typography.bodySmall,
-                color = color.onSurfaceVariant
+                color = c.onSurfaceVariant
             )
         }
     }
@@ -469,33 +473,33 @@ private fun PremiumLearningSection(
 @Composable
 private fun PremiumLearningRow(
     outcome: LearningOutcome,
-    color: Color,
+    colorScheme: ColorScheme,
     onComplete: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(YksTokens.Shape.control))
-            .background(color.surfaceContainer)
+            .background(c.surfaceContainer)
             .padding(vertical = 8.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
     ) {
         Text(
             text = if (outcome.completed) "✓" else "○",
-            color = if (outcome.completed) color.primary else color.onSurfaceVariant,
+            color = if (outcome.completed) c.primary else c.onSurfaceVariant,
             style = MaterialTheme.typography.titleMedium
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "${outcome.subject} · ${outcome.topic}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = color.onSurface,
+                color = c.onSurface,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = outcome.title,
                 style = MaterialTheme.typography.bodySmall,
-                color = color.onSurfaceVariant
+                color = c.onSurfaceVariant
             )
         }
         androidx.compose.material3.IconButton(
@@ -506,13 +510,13 @@ private fun PremiumLearningRow(
                 androidx.compose.material3.Icon(
                     imageVector = androidx.compose.material3.Icons.Default.Check,
                     contentDescription = "Tamamlandı",
-                    tint = color.primary
+                    tint = c.primary
                 )
             } else {
                 androidx.compose.material3.Icon(
                     imageVector = androidx.compose.material3.Icons.Default.CheckBoxOutlineBlank,
                     contentDescription = "Tamamla",
-                    tint = color.onSurfaceVariant
+                    tint = c.onSurfaceVariant
                 )
             }
         }
