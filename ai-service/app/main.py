@@ -1,4 +1,4 @@
-"""Small OpenAI-compatible NVIDIA proxy for YKS Takip.
+""""Small OpenAI-compatible NVIDIA proxy for YKS Takip.
 
 This is a single-tenant deployment foundation. For public multi-user production,
 replace the static bearer token and in-memory limiter with per-user JWT/device
@@ -13,7 +13,7 @@ from collections import defaultdict, deque
 from typing import Any, AsyncIterator
 
 import httpx
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.responses import JSONResponse, StreamingResponse
@@ -54,7 +54,9 @@ def _required_env(name: str) -> str:
     return value
 
 
-def _authenticate(credentials: HTTPAuthorizationCredentials | None) -> str:
+def _authenticate(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
+) -> str:
     expected = _required_env("YKS_CLIENT_TOKEN")
     supplied = credentials.credentials if credentials else ""
     if not supplied or not secrets.compare_digest(supplied, expected):
@@ -91,11 +93,9 @@ async def health() -> dict[str, str]:
 @app.post("/v1/chat/completions")
 async def chat_completions(
     payload: ChatRequest,
-    request: Request,
-    _client_id: str = Depends(_authenticate),
-    _rate_limit_result: None = Depends(lambda: None),
+    client_id: str = Depends(_authenticate),
 ):
-    _rate_limit(_client_id)
+    _rate_limit(client_id)
     api_key = _required_env("NVIDIA_API_KEY")
     base_url = os.getenv(
         "NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"
@@ -130,10 +130,9 @@ async def chat_completions(
         raise HTTPException(status_code=502, detail="AI sağlayıcısına bağlanılamadı.")
 
     if upstream.status_code < 200 or upstream.status_code >= 300:
-        raw = (await upstream.aread()).decode("utf-8", errors="replace")
         await upstream.aclose()
         await client.aclose()
-        # Do not return upstream headers or credentials to the client.
+        # Do not return upstream response bodies or headers to the client.
         raise HTTPException(
             status_code=502,
             detail=f"AI sağlayıcısı isteği reddetti (HTTP {upstream.status_code}).",
