@@ -5,25 +5,23 @@ import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
 import kotlin.math.absoluteValue
 
-/** Protected: ranking calculation orchestration. Delegates to platform estimator implementations. */
-class CalculateRankingUseCase(private val estimator: RankingEstimator) {
+/** Protected: ranking calculation orchestration.
+ *
+ * Uses the portable [YksRankingEstimator] from commonMain, which compiles
+ * for Android, iOS, and JVM. No Android dependencies. Calculation logic is
+ * identical to the previous Android-only estimator.
+ */
+class CalculateRankingUseCase {
 
     data class TytResult(val exam: Exam, val estimate: RankingEstimate)
     data class AytResult(val tytExam: Exam, val aytExam: Exam, val field: AytField, val estimate: RankingEstimate)
-
-    data class RankingEstimate(val center: Int, val lower: Int, val upper: Int)
-
-    interface RankingEstimator {
-        fun estimateTyt(exam: Exam, obp: Double, previouslyPlaced: Boolean): RankingEstimate?
-        fun estimateAyt(tytExam: Exam, aytExam: Exam, obp: Double, field: AytField, previouslyPlaced: Boolean): RankingEstimate?
-    }
 
     fun calculateTyt(exams: List<Exam>, obp: Double): List<TytResult> =
         exams
             .filter { it.type == ExamType.TYT }
             .sortedBy { it.date }
             .mapNotNull { exam ->
-                val estimate = estimator.estimateTyt(exam, obp, previouslyPlaced = false) ?: return@mapNotNull null
+                val estimate = YksRankingEstimator.estimateTyt(exam, obp, previouslyPlaced = false) ?: return@mapNotNull null
                 TytResult(exam, estimate)
             }
 
@@ -37,7 +35,7 @@ class CalculateRankingUseCase(private val estimator: RankingEstimator) {
 
         return effectiveAyt.mapNotNull { aytExam ->
             val tytExam = findMatchingTyt(aytExam, tytExams) ?: return@mapNotNull null
-            val estimate = estimator.estimateAyt(tytExam, aytExam, obp, field, previouslyPlaced = false) ?: return@mapNotNull null
+            val estimate = YksRankingEstimator.estimateAyt(tytExam, aytExam, obp, field, previouslyPlaced = false) ?: return@mapNotNull null
             AytResult(tytExam, aytExam, field, estimate)
         }
     }

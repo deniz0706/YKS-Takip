@@ -1,0 +1,134 @@
+package com.deniz0706.ykstakip.domain.usecase
+
+import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
+
+/** Portable ranking calculator using domain models. Compiles for iOS, JVM, and Android. */
+object YksRankingCalculator {
+
+    fun calculateTyt(
+        exams: List<Exam>,
+        obp: Double
+    ): List<TytRankingResult> {
+        return exams
+            .filter { it.type == ExamType.TYT }
+            .sortedBy { it.date }
+            .mapNotNull { exam ->
+                val estimate = YksRankingEstimator.estimateTyt(
+                    exam = exam,
+                    obp = obp
+                ) ?: return@mapNotNull null
+
+                TytRankingResult(
+                    exam = exam,
+                    estimate = estimate
+                )
+            }
+    }
+
+    fun calculateAyt(
+        exams: List<Exam>,
+        obp: Double,
+        field: AytField
+    ): List<AytRankingResult> {
+
+        val tytExams = exams
+            .filter { it.type == ExamType.TYT }
+            .sortedBy { it.date }
+
+        val allAytExams = exams
+            .filter { it.type == ExamType.AYT }
+            .sortedBy { it.date }
+
+        if (tytExams.isEmpty() || allAytExams.isEmpty()) {
+            return emptyList()
+        }
+
+        val fieldAytExams = allAytExams.filter {
+            it.aytField == null || it.aytField == field
+        }
+
+        val aytExams = if (fieldAytExams.isNotEmpty()) {
+            fieldAytExams
+        } else {
+            allAytExams
+        }
+
+        return aytExams.mapNotNull { aytExam ->
+
+            val tytExam = findMatchingTytExam(
+                aytExam = aytExam,
+                tytExams = tytExams
+            ) ?: return@mapNotNull null
+
+            val estimate = YksRankingEstimator.estimateAyt(
+                tytExam = tytExam,
+                aytExam = aytExam,
+                obp = obp,
+                field = field
+            ) ?: return@mapNotNull null
+
+            AytRankingResult(
+                tytExam = tytExam,
+                aytExam = aytExam,
+                field = field,
+                estimate = estimate
+            )
+        }
+    }
+
+    private fun findMatchingTytExam(
+        aytExam: Exam,
+        tytExams: List<Exam>
+    ): Exam? {
+
+        if (tytExams.isEmpty()) return null
+
+        val sameDate = tytExams.firstOrNull {
+            it.date == aytExam.date
+        }
+
+        if (sameDate != null) {
+            return sameDate
+        }
+
+        return tytExams.minByOrNull {
+            kotlin.math.abs(
+                daysBetween(it.date, aytExam.date)
+            )
+        }
+    }
+
+    private fun daysBetween(
+        first: String,
+        second: String
+    ): Long {
+        return try {
+            val firstDate = java.time.LocalDate.parse(first)
+            val secondDate = java.time.LocalDate.parse(second)
+
+            kotlin.math.abs(
+                java.time.temporal.ChronoUnit.DAYS.between(
+                    firstDate,
+                    secondDate
+                )
+            )
+        } catch (e: Exception) {
+            Long.MAX_VALUE
+        }
+    }
+}
+
+/** Portable ranking result types using domain models. */
+data class TytRankingResult(
+    val exam: Exam,
+    val estimate: RankingEstimate
+)
+
+data class AytRankingResult(
+    val tytExam: Exam,
+    val aytExam: Exam,
+    val field: AytField,
+    val estimate: RankingEstimate
+)
