@@ -44,6 +44,8 @@ jobs:
         run: gradle --no-daemon testDebugUnitTest
       - name: Launch app and run Android UI smoke tests
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          ANDROID_I_WANT_MY_TCG: 'yes'
         with:
           api-level: 35
           target: google_apis
