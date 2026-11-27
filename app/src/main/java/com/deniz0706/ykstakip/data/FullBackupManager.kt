@@ -13,13 +13,15 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-/** Safe merge-only archive for exams, study history, learning records and private question photos. */
+/** Safe merge-only archive for exams, study history, learning records, settings,
+ * study plans and private question photos. */
 object FullBackupManager {
     private const val SCHEMA = "yks_takip_full_backup"
-    private const val VERSION = 1
+    private const val VERSION = 2
     private const val MAX_MANIFEST = 1_000_000L
     private const val MAX_JSON = 8_000_000L
     private const val MAX_LEARNING = 260_000_000L
+    private const val MAX_SETTINGS = 100_000L
     private const val MAX_TOTAL = 280_000_000L
 
     data class ExportResult(
@@ -27,19 +29,25 @@ object FullBackupManager {
         val studyDays: Int,
         val learningOutcomes: Int,
         val learningQuestions: Int,
-        val photos: Int
+        val photos: Int,
+        val settingsCount: Int,
+        val studyPlanCount: Int
     )
 
     data class ImportResult(
         val examsAdded: Int,
         val studyDaysAdded: Int,
-        val learning: LearningArchiveManager.ImportResult
+        val learning: LearningArchiveManager.ImportResult,
+        val settings: SettingsBackupManager.Parsed,
+        val studyPlan: StudyPlanBackupManager.Parsed
     )
 
     class PreparedImport internal constructor(
         internal val exams: List<Exam>,
         internal val studyDays: List<StudyDay>,
         internal val learning: LearningArchiveManager.PreparedImport,
+        internal val settings: SettingsBackupManager.Parsed,
+        internal val studyPlan: StudyPlanBackupManager.Parsed,
         private val staging: File
     ) {
         val examCount: Int get() = exams.size
@@ -60,7 +68,11 @@ object FullBackupManager {
         val studyDays = StudyRepository(app).getAll()
         val examBytes = BackupManager.exportToJson(exams).toByteArray(Charsets.UTF_8)
         val studyBytes = StudyBackupManager.exportJson(studyDays).toByteArray(Charsets.UTF_8)
-        if (examBytes.size > MAX_JSON || studyBytes.size > MAX_JSON) {
+        val settingsBytes = SettingsBackupManager.exportJson(app).toByteArray(Charsets.UTF_8)
+        val studyPlanBytes = StudyPlanBackupManager.exportJson(app).toByteArray(Charsets.UTF_8)
+        if (examBytes.size > MAX_JSON || studyBytes.size > MAX_JSON ||
+            settingsBytes.size > MAX_SETTINGS || studyPlanBytes.size > MAX_JSON
+        ) {
             throw IOException("Deneme veya çalışma yedeği boyut sınırını aşıyor.")
         }
 
@@ -77,6 +89,8 @@ object FullBackupManager {
                 put("learningOutcomeCount", learningResult.outcomes)
                 put("learningQuestionCount", learningResult.questions)
                 put("photoCount", learningResult.photos)
+                put("settingsCount", settingsBytes.size)
+                put("studyPlanCount", studyPlanBytes.size)
                 put("secretsIncluded", false)
             }.toString().toByteArray(Charsets.UTF_8)
 
@@ -87,6 +101,8 @@ object FullBackupManager {
                     writeEntry(zip, "manifest.json", manifest)
                     writeEntry(zip, "exams.json", examBytes)
                     writeEntry(zip, "study.json", studyBytes)
+                    writeEntry(zip, "settings.json", settingsBytes)
+                    writeEntry(zip, "study_plan.json", studyPlanBytes)
                     zip.putNextEntry(ZipEntry("learning.zip"))
                     learningFile.inputStream().use { it.copyTo(zip, 32 * 1024) }
                     zip.closeEntry()
@@ -94,7 +110,8 @@ object FullBackupManager {
             }
             return ExportResult(
                 exams.size, studyDays.size, learningResult.outcomes,
-                learningResult.questions, learningResult.photos
+                learningResult.questions, learningResult.photos,
+                settingsBytes.size, studyPlanBytes.size
             )
         } finally {
             learningFile.delete()
@@ -106,7 +123,8 @@ object FullBackupManager {
         val stage = File(app.cacheDir, "full-backup-import-${UUID.randomUUID()}")
         if (!stage.mkdirs()) throw IOException("Geçici yedek klasörü açılamadı.")
         try {
-            val allowed = setOf("manifest.json", "exams.json", "study.json", "learning.zip")
+            val allowed = setOf("manifest.json", "exams.json", "study.json", "settings.json",
+                "study_plan.json", "learning.zip")
             val extracted = mutableMapOf<String, File>()
             var total = 0L
             val input = app.contentResolver.openInputStream(source)
@@ -122,6 +140,8 @@ object FullBackupManager {
                         val limit = when (name) {
                             "manifest.json" -> MAX_MANIFEST
                             "exams.json", "study.json" -> MAX_JSON
+                            "settings.json" -> MAX_SETTINGS
+                            "study_plan.json" -> MAX_JSON
                             "learning.zip" -> MAX_LEARNING
                             else -> throw IOException("Bilinmeyen yedek bölümü.")
                         }
@@ -157,6 +177,8 @@ object FullBackupManager {
             val exams = (examResult as? BackupManager.ImportResult.Success)?.exams
                 ?: throw IOException((examResult as? BackupManager.ImportResult.Error)?.message ?: "Deneme bölümü okunamadı.")
             val study = StudyBackupManager.parseJson(extracted.getValue("study.json").readText())
+            val settings = SettingsBackupManager.importJson(app, extracted.getValue("settings.json").readText())
+            val studyPlan = StudyPlanBackupManager.importJson(app, extracted.getValue("study_plan.json").readText())
             val learning = LearningArchiveManager(app).prepareImport(Uri.fromFile(extracted.getValue("learning.zip")))
             extracted.getValue("learning.zip").delete()
 
@@ -169,7 +191,7 @@ object FullBackupManager {
                 learning.discard()
                 throw IOException("Yedek özeti ile içerik sayıları uyuşmuyor.")
             }
-            return PreparedImport(exams, study.days, learning, stage)
+            return PreparedImport(exams, study.days, learning, settings, studyPlan, stage)
         } catch (e: Exception) {
             stage.deleteRecursively()
             if (e is IOException) throw e
@@ -195,7 +217,9 @@ object FullBackupManager {
             return ImportResult(
                 examsAdded = mergedExams.size - previousExams.size,
                 studyDaysAdded = studyChanges,
-                learning = learningResult
+                learning = learningResult,
+                settings = prepared.settings,
+                studyPlan = prepared.studyPlan
             )
         } catch (e: Exception) {
             if (examChangesApplied) examRepository.replaceAll(previousExams)
