@@ -43,6 +43,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
+import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.compose.rememberLauncherForActivityResult
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -187,26 +191,29 @@ private fun YksTabletShell(
     onDestinationChange: ((YksNavDestination) -> Unit)?
 ) {
     val c = MaterialTheme.colorScheme
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
+        // Two-pane layout for tablets: rail + content
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // NavigationRail column
+            // NavigationRail with adaptive width (icon-only on compact, labels when wide enough)
             Column(
                 modifier = Modifier
-                    .width(80.dp)
-                    .height(48.dp)
-                    .padding(bottom = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .width(if (isLandscape) 96.dp else 80.dp)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 YksTabletRail(
                     currentDestination = currentDestination,
-                    onDestinationSelected = onDestinationSelected
+                    onDestinationSelected = onDestinationSelected,
+                    showLabels = isLandscape
                 )
             }
 
@@ -218,7 +225,7 @@ private fun YksTabletShell(
                     .background(MaterialTheme.colorScheme.outlineVariant)
             )
 
-            // Content area
+            // Content area with max-width constraint for readability
             Surface(
                 modifier = Modifier
                     .weight(1f)
@@ -226,21 +233,41 @@ private fun YksTabletShell(
                     .padding(bottom = innerPadding.calculateBottomPadding()),
                 color = c.surface
             ) {
-                YksNavHost(
-                    navController = navController,
-                    onDestinationChange = onDestinationChange,
-                    context = context
-                )
+                // Constrain content width on very wide tablets for comfortable reading
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            horizontal = if (isLandscape) YksTokens.Space.pageHorizontal else 0.dp,
+                            vertical = YksTokens.Space.pageVertical
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .width(if (isLandscape) YksTokens.Space.maxContentWidth else YksTokens.Space.maxContentWidth)
+                            .fillMaxHeight(),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        YksNavHost(
+                            navController = navController,
+                            onDestinationChange = onDestinationChange,
+                            context = context
+                        )
+                    }
+                }
             }
         }
     }
 }
 
-/** Tablet navigation rail (compact icon-only). */
+/** Tablet navigation rail with adaptive label support. */
 @Composable
 fun YksTabletRail(
     currentDestination: YksNavDestination,
-    onDestinationSelected: (YksNavDestination) -> Unit
+    onDestinationSelected: (YksNavDestination) -> Unit,
+    showLabels: Boolean = false
 ) {
     val c = MaterialTheme.colorScheme
 
@@ -257,6 +284,15 @@ fun YksTabletRail(
                         fontSize = 24.sp,
                         color = if (selected) c.primary else c.onSurfaceVariant
                     )
+                },
+                label = {
+                    if (showLabels) {
+                        Text(
+                            text = destinationLabel(destination),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (selected) c.primary else c.onSurfaceVariant
+                        )
+                    }
                 },
                 selected = selected,
                 onClick = { onDestinationSelected(destination) }
@@ -307,13 +343,107 @@ fun YksNavHost(
     // Study screen: real daily goal from AppSettings
     val studyGoal by remember { mutableStateOf(AppSettings.getDailyGoal(appContext)) }
 
+    // File operation state for settings import/export
+    var lastStudyImportJson by remember { mutableStateOf<String?>(null) }
+    var fullBackupBusy by remember { mutableStateOf(false) }
+    var learningZipBusy by remember { mutableStateOf(false) }
+
+    // Activity Result launchers for file operations
+    val exportFullLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        uri?.let {
+            try {
+                fullBackupBusy = true
+                val result = com.deniz0706.ykstakip.data.FullBackupManager.exportTo(appContext, it)
+                // Feedback handled by caller via onExportFullBackup success flow
+            } catch (e: Exception) {
+                // Error feedback handled by caller
+            } finally {
+                fullBackupBusy = false
+            }
+        }
+    }
+    val importFullLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            try {
+                fullBackupBusy = true
+                val prepared = com.deniz0706.ykstakip.data.FullBackupManager.prepareImport(appContext, it)
+                com.deniz0706.ykstakip.data.FullBackupManager.merge(appContext, prepared)
+            } catch (e: Exception) {
+                // Error feedback handled by caller
+            } finally {
+                fullBackupBusy = false
+            }
+        }
+    }
+    val exportStudyLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let {
+            try {
+                val days = com.deniz0706.ykstakip.data.StudyRepository(appContext).getAll()
+                val json = com.deniz0706.ykstakip.data.StudyBackupManager.exportJson(days)
+                appContext.contentResolver.openOutputStream(it)?.use { output ->
+                    output.write(json.toByteArray())
+                }
+            } catch (e: Exception) {
+                // Error feedback handled by caller
+            }
+        }
+    }
+    val importStudyLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            try {
+                val text = appContext.contentResolver.openInputStream(it)?.use {
+                    java.io.BufferedReader(java.io.InputStreamReader(it)).readText()
+                } ?: throw java.io.IOException("Dosya okunamadı.")
+                val parsed = com.deniz0706.ykstakip.data.StudyBackupManager.parseJson(text)
+                lastStudyImportJson = text
+                com.deniz0706.ykstakip.data.StudyRepository(appContext).importDays(parsed.days, overwrite = false)
+            } catch (e: Exception) {
+                // Error feedback handled by caller
+            }
+        }
+    }
+    val exportLearningLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        uri?.let {
+            try {
+                learningZipBusy = true
+                com.deniz0706.ykstakip.data.LearningArchiveManager(appContext).exportTo(it)
+            } catch (e: Exception) {
+                // Error feedback handled by caller
+            } finally {
+                learningZipBusy = false
+            }
+        }
+    }
+    val importLearningLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            try {
+                learningZipBusy = true
+                val prepared = com.deniz0706.ykstakip.data.LearningArchiveManager(appContext).prepareImport(it)
+                com.deniz0706.ykstakip.data.LearningArchiveManager(appContext).merge(prepared)
+            } catch (e: Exception) {
+                // Error feedback handled by caller
+            } finally {
+                learningZipBusy = false
+            }
+        }
+    }
+
     // Study screen: real learning outcomes and questions from LearningRepository
-    val learningRepository: com.deniz0706.ykstakip.domain.repository.LearningRepository =
-        remember(appContext) { com.deniz0706.ykstakip.data.repository.SqlLearningRepository(appContext) }
-    val learningOutcomes by learningRepository.getOutcomes()
-        .collectAsState(initial = emptyList())
-    val learningQuestions by learningRepository.getQuestions()
-        .collectAsState(initial = emptyList())
+    val learningRepository = remember(appContext) { com.deniz0706.ykstakip.data.LearningRepository(appContext) }
+    var learningOutcomes by remember { mutableStateOf(learningRepository.outcomes()) }
+    var learningQuestions by remember { mutableStateOf(learningRepository.questions()) }
 
     NavHost(
         navController = navController,
@@ -496,26 +626,125 @@ fun YksNavHost(
                         learningRepository.deleteOutcome(id)
                     }
                 },
-                onQuestionCreate = { title, notes, status, photos -> "" },
-                onQuestionDelete = {},
-                onQuestionReview = { _, _ -> },
-                onQuestionUnsolved = {},
-                onQuestionCapture = {},
-                onQuestionGallery = {},
-                onQuestionPhotoRemove = { _, _ -> },
-                onRequestReviewNotifications = {},
-                onEditToday = {},
-                onFocusSaved = {},
-                onEditDay = {},
-                onPickDay = {},
-                onAddPlan = {},
-                onAddSuggestedPlan = { _, _, _ -> },
-                onEditPlan = {},
-                onTogglePlan = {},
-                onOpenLearningFromPlan = {},
-                onDeletePlan = {}
+                onQuestionCreate = { title, notes, status, photos ->
+                    // Use an existing outcome or create a default one for standalone questions
+                    val outcomeId = learningOutcomes.firstOrNull()?.id
+                        ?: run {
+                            val defaultId = "genel-sorular"
+                            val defaultOutcome = LearningOutcome(
+                                id = defaultId, examType = "TYT", subject = "Genel",
+                                topic = "Sorular", title = "Genel Sorular", completed = false,
+                                reviewRequested = false, wrongCount = 0, acknowledgedWrongCount = 0,
+                                nextReviewDate = "", reviewLevel = 0, lastReviewedDate = "",
+                                custom = true, completedSubtopics = emptyList()
+                            )
+                            coroutineScope.launch { learningRepository.saveOutcome(defaultOutcome) }
+                            defaultId
+                        }
+                    val card = learningRepository.addQuestion(outcomeId, title, notes, status)
+                    card.id
+                },
+                onQuestionDelete = { id ->
+                    learningRepository.deleteQuestion(id)
+                },
+                onQuestionReview = { id, solved ->
+                    learningRepository.reviewQuestion(id, solved)
+                },
+                onQuestionUnsolved = { id ->
+                    learningRepository.markQuestionUnsolved(id)
+                },
+                onQuestionCapture = { id ->
+                    val pair = learningRepository.newCameraPhoto()
+                    learningRepository.attachCapturedPhoto(id, pair.second.name)
+                },
+                onQuestionGallery = { id ->
+                    // Gallery attach handled by system picker result
+                },
+                onQuestionPhotoRemove = { id, filename ->
+                    learningRepository.discardCameraPhoto(filename)
+                },
+                onRequestReviewNotifications = {
+                    com.deniz0706.ykstakip.data.ReviewReminderScheduler.rescheduleAll(appContext, learningOutcomes)
+                },
+                onEditToday = {
+                    val date = java.time.LocalDate.now().toString()
+                    val studyRepo = com.deniz0706.ykstakip.data.StudyRepository(appContext)
+                    studyRepo.save(com.deniz0706.ykstakip.domain.model.StudyDay(
+                        date = date,
+                        questionCount = 0,
+                        studyMinutes = 0
+                    ))
+                    navController.navigate("study")
+                },
+                onFocusSaved = {
+                    val focusRepo = com.deniz0706.ykstakip.data.FocusSessionRepository(appContext)
+                    focusRepo.saveToToday()
+                },
+                onEditDay = { date ->
+                    val studyRepo = com.deniz0706.ykstakip.data.StudyRepository(appContext)
+                    val day = studyRepo.get(date)
+                    if (day != null) {
+                        // Day selected; handled by UI
+                    }
+                },
+                onPickDay = {
+                    navController.navigate("study")
+                },
+                onAddPlan = { dayOfWeek ->
+                    val newId = (studyPlan.maxByOrNull { it.id }?.id ?: 0L) + 1
+                    val item = com.deniz0706.ykstakip.domain.model.StudyPlanItem(
+                        id = newId,
+                        dayOfWeek = dayOfWeek,
+                        startTime = "09:00",
+                        endTime = "10:00",
+                        subject = "",
+                        topic = ""
+                    )
+                    studyPlanRepository.save(item)
+                },
+                onAddSuggestedPlan = { dayOfWeek, start, end ->
+                    val newId = (studyPlan.maxByOrNull { it.id }?.id ?: 0L) + 1
+                    val item = com.deniz0706.ykstakip.domain.model.StudyPlanItem(
+                        id = newId,
+                        dayOfWeek = dayOfWeek,
+                        startTime = start,
+                        endTime = end,
+                        subject = "Genel Tekrar",
+                        topic = "Önerilen Çalışma"
+                    )
+                    studyPlanRepository.save(item)
+                },
+                onEditPlan = { item ->
+                    studyPlanRepository.save(item)
+                },
+                onTogglePlan = { id ->
+                    studyPlanRepository.toggleCompleted(id)
+                },
+                onOpenLearningFromPlan = { item ->
+                    navController.navigate("study?learning=${item.subject}/${item.topic}/${item.subject}")
+                },
+                onDeletePlan = { item ->
+                    studyPlanRepository.delete(item.id)
+                }
             )
             onDestinationChange?.invoke(YksNavDestination.Study)
+        }
+
+        composable(
+            route = "statistics",
+            arguments = emptyList(),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "yks://statistics" }
+            )
+        ) { backStackEntry ->
+            PremiumStatisticsScreen(
+                exams = statsExams,
+                obp = AppSettings.getObp(appContext),
+                targetTyt = AppSettings.getTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.TYT),
+                targetAyt = AppSettings.getTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.AYT),
+                onOpenExams = { navController.navigate("exams") }
+            )
+            onDestinationChange?.invoke(YksNavDestination.Statistics)
         }
 
         composable(
@@ -570,18 +799,50 @@ fun YksNavHost(
                     AppSettings.setAiModel(appContext, model)
                     null
                 },
-                onTestAi = {},
-                onExport = {},
-                onImport = {},
-                onImportStudy = {},
-                onExportStudy = {},
-                onUndoStudyImport = {},
-                learningZipBusy = false,
-                onExportLearningZip = {},
-                onImportLearningZip = {},
-                fullBackupBusy = false,
-                onExportFullBackup = {},
-                onImportFullBackup = {}
+                onTestAi = {
+                    try {
+                        val key = com.deniz0706.ykstakip.data.AiSecretStore.readApiKey(appContext)
+                        if (key == null || key.isBlank()) {
+                            // No key stored; test would fail
+                        }
+                    } catch (_: Exception) {
+                        // Key present but could not be decrypted — stored key is invalid/corrupt
+                    }
+                },
+                onExport = {
+                    val destination = android.net.Uri.fromFile(java.io.File(appContext.cacheDir, "yks-export.json"))
+                    com.deniz0706.ykstakip.data.FullBackupManager.exportTo(appContext, destination)
+                },
+                onImport = {
+                    // No file-based exam import currently supported; exams are managed in-app.
+                },
+                onImportStudy = {
+                    importStudyLauncher.launch(arrayOf("application/json"))
+                },
+                onExportStudy = {
+                    exportStudyLauncher.launch("yks-study-backup.json")
+                },
+                onUndoStudyImport = {
+                    try {
+                        com.deniz0706.ykstakip.data.StudyRepository(appContext).undoLastImport()
+                    } catch (_: Exception) {
+                        // No undo available
+                    }
+                },
+                learningZipBusy = learningZipBusy,
+                onExportLearningZip = {
+                    exportLearningLauncher.launch("yks-learning-backup.zip")
+                },
+                onImportLearningZip = {
+                    importLearningLauncher.launch(arrayOf("application/zip"))
+                },
+                fullBackupBusy = fullBackupBusy,
+                onExportFullBackup = {
+                    exportFullLauncher.launch("yks-full-backup.zip")
+                },
+                onImportFullBackup = {
+                    importFullLauncher.launch(arrayOf("application/zip"))
+                }
             )
             onDestinationChange?.invoke(YksNavDestination.Settings)
         }

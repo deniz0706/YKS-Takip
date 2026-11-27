@@ -24,6 +24,7 @@ object YksTokens {
         val xl = 24.dp
         val xxl = 32.dp
         val xxxl = 40.dp
+        val maxContentWidth = 800.dp
         val pageHorizontal = 20.dp
         val pageVertical = 24.dp
         val section = 20.dp
