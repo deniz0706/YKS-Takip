@@ -1,20 +1,19 @@
 package com.deniz0706.ykstakip.data.repository
 
 import android.content.Context
-import com.deniz0706.ykstakip.data.local.YksDatabase
+import com.deniz0706.ykstakip.data.local.DatabaseHolder
 import com.deniz0706.ykstakip.domain.model.AytField
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.domain.model.SubjectResult
 import com.deniz0706.ykstakip.domain.repository.ExamRepository
-import com.squareup.sqldelight.android.AndroidSqliteDriver
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 
 class SqlExamRepository(private val context: Context) : ExamRepository {
-    private val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, context.applicationContext))
+    private val db = DatabaseHolder.get(context)
 
     override fun getAllExams(): Flow<List<Exam>> = flow {
         val exams = withContext(Dispatchers.IO) {
