@@ -36,7 +36,8 @@ import com.deniz0706.ykstakip.util.Fmt
 fun PremiumExamsScreen(
     exams: List<Exam>,
     onExamClick: (Long) -> Unit,
-    onNewExam: () -> Unit
+    onNewExam: () -> Unit,
+    colorScheme: ColorScheme
 ) {
     val c = colorScheme
 
@@ -152,7 +153,7 @@ private fun PremiumActionCard(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = c.onSurface,
+                    colorScheme = c.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
@@ -193,14 +194,14 @@ private fun PremiumEmptyState(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = c.onSurfaceVariant,
+                colorScheme = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = c.onSurfaceVariant,
+                colorScheme = c.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
@@ -231,7 +232,7 @@ private fun PremiumExamCard(
                 Text(
                     text = "${exam.type.label} · ${exam.title}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = c.onSurface,
+                    colorScheme = c.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -244,7 +245,7 @@ private fun PremiumExamCard(
                 Text(
                     text = "Net: ${Fmt.net(exam.totalNet)}  •  ${exam.totalQuestions} soru",
                     style = MaterialTheme.typography.labelMedium,
-                    color = c.primary,
+                    colorScheme = c.primary,
                     fontWeight = FontWeight.Medium
                 )
             }

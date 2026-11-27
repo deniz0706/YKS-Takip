@@ -209,7 +209,7 @@ private fun PremiumStatTile(
             .background(c.surfaceContainer)
             .padding(YksTokens.Space.cardContent)
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+        Text(text = label, style = MaterialTheme.typography.bodySmall, colorScheme = c.onSurfaceVariant)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
@@ -218,7 +218,7 @@ private fun PremiumStatTile(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = detail, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
+        Text(text = detail, style = MaterialTheme.typography.labelSmall, colorScheme = c.onSurfaceVariant)
     }
 }
 
@@ -298,7 +298,7 @@ private fun PremiumProgressTile(
     } else 0.0
 
     Column(modifier = modifier.weight(1f)) {
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+        Text(text = label, style = MaterialTheme.typography.bodySmall, colorScheme = c.onSurfaceVariant)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = Fmt.net(current) + (if (unit.isNotBlank()) " $unit" else ""),
@@ -383,20 +383,20 @@ private fun PremiumTrendRow(exam: Exam, colorScheme: ColorScheme) {
         Text(
             text = exam.date,
             style = MaterialTheme.typography.bodyMedium,
-            color = c.onSurfaceVariant,
+            colorScheme = c.onSurfaceVariant,
             modifier = Modifier.width(70.dp)
         )
         Text(
             text = "${exam.type.label} · ${exam.title}",
             style = MaterialTheme.typography.bodyMedium,
-            color = c.onSurface,
+            colorScheme = c.onSurface,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f)
         )
         Text(
             text = Fmt.net(exam.totalNet),
             style = MaterialTheme.typography.headlineMedium,
-            color = c.primary,
+            colorScheme = c.primary,
             fontWeight = FontWeight.Bold
         )
     }

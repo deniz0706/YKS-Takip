@@ -18,6 +18,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,7 +43,8 @@ fun PremiumExamDetailScreen(
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onOpenLearning: (String, String, String) -> Unit
+    onOpenLearning: (String, String, String) -> Unit,
+    colorScheme: ColorScheme
 ) {
     val c = colorScheme
     var confirmDelete by remember(exam.id) { mutableStateOf(false) }
@@ -67,7 +69,7 @@ fun PremiumExamDetailScreen(
             Spacer(modifier = Modifier.weight(1f))
             OutlinedButton(onClick = onEdit) { Text("Düzenle") }
             TextButton(onClick = { confirmDelete = true }) {
-                Text("Sil", color = c.error)
+                Text("Sil", colorScheme = c.error)
             }
         }
 
@@ -80,19 +82,19 @@ fun PremiumExamDetailScreen(
         ) {
             Text(
                 text = exam.type.label.uppercase(),
-                color = c.primary,
+                colorScheme = c.primary,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = exam.title,
-                color = c.onSurface,
+                colorScheme = c.onSurface,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = displayDate + (exam.publisher.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
-                color = c.onSurfaceVariant,
+                colorScheme = c.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -134,7 +136,7 @@ fun PremiumExamDetailScreen(
         Text(
             text = "Ders Kırılımı (${exam.subjects.size} ders)",
             style = MaterialTheme.typography.titleMedium,
-            color = c.onSurfaceVariant,
+            colorScheme = c.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -187,7 +189,7 @@ private fun PremiumMetricCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = c.onSurfaceVariant,
+                colorScheme = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
@@ -224,7 +226,7 @@ private fun PremiumNotesCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelSmall,
-                color = c.onSurfaceVariant,
+                colorScheme = c.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
@@ -260,19 +262,19 @@ private fun PremiumSubjectRow(
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
                         text = subject.subject,
-                        color = c.onSurface,
+                        colorScheme = c.onSurface,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = "${subject.questionCount} soru · ${subject.timeMinutes} dk",
-                        color = c.onSurfaceVariant,
+                        colorScheme = c.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
                 Text(
                     text = "${Fmt.net(subject.net)} net",
-                    color = c.primary,
+                    colorScheme = c.primary,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -281,7 +283,7 @@ private fun PremiumSubjectRow(
             Text(
                 text = "${subject.correct} doğru · ${subject.wrong} yanlış · ${subject.blank} boş" +
                     (subject.minutesPerQuestion?.let { " · ${Fmt.minutesPerQuestion(it)} dk/soru" } ?: ""),
-                color = c.onSurfaceVariant,
+                colorScheme = c.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall
             )
 
@@ -289,7 +291,7 @@ private fun PremiumSubjectRow(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Zayıf Konular",
-                    color = c.onSurface,
+                    colorScheme = c.onSurface,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -307,7 +309,7 @@ private fun PremiumSubjectRow(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Bir konuya dokunarak öğrenme merkezinde aç.",
-                    color = c.onSurfaceVariant,
+                    colorScheme = c.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -328,7 +330,7 @@ private fun PremiumDeleteDialog(
         title = { Text("Deneme Silinsin mi?") },
         text = { Text("“$examTitle” denemesi kalıcı olarak silinecek. Bu işlem geri alınamaz.") },
         confirmButton = {
-            TextButton(onClick = { onConfirm() }) { Text("Sil", color = c.error) }
+            TextButton(onClick = { onConfirm() }) { Text("Sil", colorScheme = c.error) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Vazgeç") }
