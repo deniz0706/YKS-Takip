@@ -321,7 +321,7 @@ private fun PremiumProgressTile(
         ) {
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier
-                    .width(progress.toFloat() * 1000.dp) // approximate visual width
+                    .width(1000.dp * progress.toFloat()) // approximate visual width
                     .height(4.dp)
                     .background(accent)
                     .clip(RoundedCornerShape(YksTokens.Shape.pill))

@@ -44,8 +44,8 @@ jobs:
       - name: Verify Kotlin Multiplatform iOS target compilation
         run: |
           echo "Verifying domain KMP module compiles for iOS targets..."
-          ./gradlew :domain:compileKotlinIosX64 :domain:compileKotlinIosArm64 --no-daemon || \
-          ./gradlew :domain:compileKotlinMetadata --no-daemon
+          gradle :domain:compileKotlinIosX64 :domain:compileKotlinIosArm64 --no-daemon || \
+          gradle :domain:compileKotlinMetadata --no-daemon
 
       - name: Report KMP target status
         run: |

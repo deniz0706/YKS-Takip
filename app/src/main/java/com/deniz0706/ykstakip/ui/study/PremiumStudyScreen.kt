@@ -342,7 +342,7 @@ private fun PremiumPlanSection(
                     items = dayItems,
                     colorScheme = c
                 )
-                item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
+                Spacer(modifier = Modifier.height(YksTokens.Space.sm))
             }
         }
     }
