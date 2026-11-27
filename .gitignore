@@ -11,8 +11,20 @@
 # Kotlin
 .kotlin/
 
-# Local configuration files
+# Local configuration files and secrets
 local.properties
+.env
+.env.*
+!.env.example
+**/.venv/
+**/venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
 
 # OS generated files
 .DS_Store
