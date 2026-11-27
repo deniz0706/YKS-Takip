@@ -2,8 +2,8 @@ package com.deniz0706.ykstakip.data
 
 import android.content.Context
 import android.net.Uri
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.StudyDay
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException

@@ -1,7 +1,7 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
-import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.domain.model.StudyPlanItem
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.DayOfWeek

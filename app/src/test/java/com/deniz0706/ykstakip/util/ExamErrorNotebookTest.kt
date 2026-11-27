@@ -1,11 +1,11 @@
 package com.deniz0706.ykstakip.util
 
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.ExamType
-import com.deniz0706.ykstakip.model.LearningOutcome
-import com.deniz0706.ykstakip.model.QuestionCard
-import com.deniz0706.ykstakip.model.QuestionStatus
-import com.deniz0706.ykstakip.model.SubjectResult
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.QuestionCard
+import com.deniz0706.ykstakip.domain.model.QuestionStatus
+import com.deniz0706.ykstakip.domain.model.SubjectResult
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -17,7 +17,7 @@ class ExamErrorNotebookTest {
     ) = Exam(
         id = id, title = "Kurum Denemesi", date = "2026-11-20",
         type = ExamType.TYT,
-        subjects = listOf(SubjectResult(subject, 40, 30, 6, 55, tags))
+        subjects = listOf(SubjectResult(subject, 30, 6, 4, 55, tags))
     )
 
     private fun outcome(id: String = "topic-1", subject: String = "Matematik",

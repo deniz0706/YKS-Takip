@@ -34,7 +34,7 @@ import com.deniz0706.ykstakip.domain.model.LearningOutcome
 import com.deniz0706.ykstakip.domain.model.QuestionCard
 import com.deniz0706.ykstakip.domain.model.QuestionStatus
 import com.deniz0706.ykstakip.domain.model.StudyDay
-import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.domain.model.StudyPlanItem
 import com.deniz0706.ykstakip.ui.components.YksSection
 import com.deniz0706.ykstakip.ui.components.YksStatTile
 import com.deniz0706.ykstakip.ui.theme.YksShape

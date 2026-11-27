@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.QuestionCard
+import com.deniz0706.ykstakip.domain.model.QuestionCard
 
 /** Never delete a private photo still referenced by another question. */
 internal object LearningPhotoOwnership {

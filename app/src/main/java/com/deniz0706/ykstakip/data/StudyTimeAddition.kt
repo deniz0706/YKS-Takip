@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.StudyDay
 
 /** Add real minutes without resetting previous questions or study metadata. */
 internal object StudyTimeAddition {
