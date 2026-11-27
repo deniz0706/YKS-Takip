@@ -1,4 +1,4 @@
-""""Small OpenAI-compatible NVIDIA proxy for YKS Takip.
+"""Small OpenAI-compatible NVIDIA proxy for YKS Takip.
 
 This is a single-tenant deployment foundation. For public multi-user production,
 replace the static bearer token and in-memory limiter with per-user JWT/device
