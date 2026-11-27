@@ -2,6 +2,7 @@ package com.deniz0706.ykstakip.data
 
 import android.content.Context
 import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.model.StudyPlanItem
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -21,6 +22,10 @@ class LegacyRepositoryWriteProtectionTest {
         context.getSharedPreferences("yks_takip_prefs", Context.MODE_PRIVATE)
             .edit().clear().commit()
         context.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
+            .edit().clear().commit()
+        context.getSharedPreferences("yks_takip_study_plan", Context.MODE_PRIVATE)
+            .edit().clear().commit()
+        context.getSharedPreferences("ai_coach_long_term_memory", Context.MODE_PRIVATE)
             .edit().clear().commit()
     }
 
@@ -65,5 +70,34 @@ class LegacyRepositoryWriteProtectionTest {
             repository.importDays(listOf(StudyDay("2026-11-27", 50, 60)))
         }
         assertEquals(original, prefs.getString("study_days", null))
+    }
+    @Test
+    fun malformedStudyPlanCannotBeOverwritten() {
+        val prefs = context.getSharedPreferences("yks_takip_study_plan", Context.MODE_PRIVATE)
+        val original = """[{"id":broken}]"""
+        prefs.edit().putString("study_plan_items", original).commit()
+        val repository = StudyPlanRepository(context)
+
+        assertTrue(repository.getAll().isEmpty())
+        assertTrue(repository.hasUnreadableLegacyData())
+        assertThrows(IllegalStateException::class.java) {
+            repository.save(StudyPlanItem(1L, 1, "09:00", "10:00", "Matematik", "", false))
+        }
+        assertEquals(original, prefs.getString("study_plan_items", null))
+    }
+
+    @Test
+    fun malformedAiMemoryCannotBeOverwrittenOrDeleted() {
+        val prefs = context.getSharedPreferences("ai_coach_long_term_memory", Context.MODE_PRIVATE)
+        val original = """{"not":"an array"}"""
+        prefs.edit().putString("memories_v1", original).commit()
+        val repository = AiMemoryRepository(context)
+
+        assertTrue(repository.all().isEmpty())
+        assertThrows(IllegalStateException::class.java) {
+            repository.remember("Önemli bir tercih")
+        }
+        assertEquals(0, repository.forgetMatching("önemli bir tercih"))
+        assertEquals(original, prefs.getString("memories_v1", null))
     }
 }
