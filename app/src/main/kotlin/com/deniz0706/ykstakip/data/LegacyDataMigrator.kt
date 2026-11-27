@@ -19,7 +19,7 @@ import org.json.JSONObject
 
 /**
  * One-time migration from SharedPreferences to SQLDelight.
- * Preserves all existing user data. Runs only when the migration flag is not set.
+ * Every insert is safe to repeat so an interrupted migration can resume.
  */
 object LegacyDataMigrator {
     private const val PREFS = "yks_takip_prefs"
@@ -37,7 +37,8 @@ object LegacyDataMigrator {
             migrateLearning(app)
         }
 
-        prefs.edit().putBoolean(KEY_MIGRATED_TO_SQL, true).apply()
+        // Set only after every migration step has completed successfully.
+        prefs.edit().putBoolean(KEY_MIGRATED_TO_SQL, true).commit()
     }
 
     private fun migrateExams(app: Context, prefs: android.content.SharedPreferences) {
@@ -143,7 +144,7 @@ object LegacyDataMigrator {
         if (days.isEmpty()) return
         val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, app))
         days.forEach { day ->
-            db.studyDayQueriesQueries.insertStudyDay(
+            db.studyDayQueriesQueries.insertStudyDayBulk(
                 date = day.date,
                 question_count = day.questionCount.toLong(),
                 study_minutes = day.studyMinutes.toLong(),
@@ -180,7 +181,7 @@ object LegacyDataMigrator {
         if (items.isEmpty()) return
         val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, app))
         items.forEach { item ->
-            db.studyPlanQueriesQueries.insertStudyPlanItem(
+            db.studyPlanQueriesQueries.insertStudyPlanItemBulk(
                 item.id,
                 item.dayOfWeek.toLong(),
                 item.startTime,
