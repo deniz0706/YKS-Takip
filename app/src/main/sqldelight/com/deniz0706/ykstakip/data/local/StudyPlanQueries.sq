@@ -8,6 +8,10 @@ insertStudyPlanItem:
 INSERT INTO study_plan_items (id, day_of_week, start_time, end_time, subject, topic, completed, completed_week)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
+insertStudyPlanItemBulk:
+INSERT OR REPLACE INTO study_plan_items (id, day_of_week, start_time, end_time, subject, topic, completed, completed_week)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
 deleteStudyPlanItem:
 DELETE FROM study_plan_items WHERE id = ?;
 
