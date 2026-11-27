@@ -1,5 +1,6 @@
 package com.deniz0706.ykstakip.domain.model
 
+import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
 
 /** Protected: exam data contract shared across Android and any future platform. */

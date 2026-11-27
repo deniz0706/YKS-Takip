@@ -3,6 +3,7 @@ package com.deniz0706.ykstakip.domain.usecase
 import com.deniz0706.ykstakip.domain.model.AytField
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
+import kotlin.math.absoluteValue
 
 /** Protected: ranking calculation orchestration. Delegates to platform estimator implementations. */
 class CalculateRankingUseCase(private val estimator: RankingEstimator) {

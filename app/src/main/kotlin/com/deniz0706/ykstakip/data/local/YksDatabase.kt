@@ -1,17 +1,17 @@
 package com.deniz0706.ykstakip.data.local
 
 import android.content.Context
-import com.squareup.sqldelight.android.SqlDriver
-import com.squareup.sqldelight.db.SqlDatabase
+import com.squareup.sqldelight.android.AndroidSqliteDriver
+import com.squareup.sqldelight.db.SqlDriver
 
-/** Single database instance for the application. */
-class YksDatabase private constructor(internal val database: SqlDatabase) {
+/** Single database instance for the application (wraps raw SqlDatabase for legacy access). */
+class DatabaseHolder private constructor(internal val driver: SqlDriver) {
     companion object {
-        @Volatile private var instance: YksDatabase? = null
+        @Volatile private var instance: DatabaseHolder? = null
 
-        fun get(context: Context): YksDatabase =
+        fun get(context: Context): DatabaseHolder =
             instance ?: synchronized(this) {
-                instance ?: YksDatabase(SqlDatabase(com.deniz0706.ykstakip.data.local.Schema, SqlDriver(context))).also { instance = it }
+                instance ?: DatabaseHolder(AndroidSqliteDriver(YksDatabase.Schema, context)).also { instance = it }
             }
     }
 }

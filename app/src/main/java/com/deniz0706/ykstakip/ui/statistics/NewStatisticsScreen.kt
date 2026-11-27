@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
@@ -80,7 +81,7 @@ fun NewStatisticsScreen(
                 )
                 YksStatTile(
                     label = "Ortalama net",
-                    value = Fmt.net(exams.averageOfOrNull { it.totalNet }),
+                    value = Fmt.net(if (exams.isNotEmpty()) exams.map { it.totalNet }.sum() / exams.size else 0.0),
                     detail = "tüm sınavlar",
                     modifier = Modifier.weight(1f)
                 )

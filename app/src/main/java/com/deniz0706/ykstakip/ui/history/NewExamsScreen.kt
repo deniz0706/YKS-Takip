@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.ui.components.YksSection
 import com.deniz0706.ykstakip.ui.components.YksStatTile
+import com.deniz0706.ykstakip.ui.theme.YksTokens
 import com.deniz0706.ykstakip.ui.theme.YksShape
 import com.deniz0706.ykstakip.ui.theme.YksSpacing
 
@@ -121,7 +123,7 @@ private fun EmptyExamsState() {
         Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(YksShape.card))
             .background(c.surfaceContainer)
-            .padding(YksSpacing.xxxl),
+                            .padding(YksTokens.Space.xxxl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

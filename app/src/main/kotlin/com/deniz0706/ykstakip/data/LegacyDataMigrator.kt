@@ -3,6 +3,7 @@ package com.deniz0706.ykstakip.data
 import android.content.Context
 import com.deniz0706.ykstakip.data.local.YksDatabase
 import com.deniz0706.ykstakip.domain.model.AytField
+import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.domain.model.LearningOutcome
@@ -45,7 +46,7 @@ object LegacyDataMigrator {
             val array = JSONArray(raw)
             (0 until array.length()).mapNotNull { index ->
                 try {
-                    Exam.fromJson(array.getJSONObject(index))
+                    parseExam(array.getJSONObject(index))
                 } catch (_: Exception) {
                     null
                 }
@@ -55,7 +56,67 @@ object LegacyDataMigrator {
         }
         if (exams.isEmpty()) return
         val repository = SqlExamRepository(app)
-        repository.replaceAll(exams)
+        runBlocking { repository.replaceAll(exams) }
+    }
+
+    private fun parseExam(json: JSONObject): Exam {
+        val arr = json.getJSONArray("subjects")
+        val subjects = (0 until arr.length()).map { parseSubjectResult(arr.getJSONObject(it)) }
+        return Exam(
+            id = json.getLong("id"),
+            title = json.getString("title"),
+            date = json.getString("date"),
+            type = ExamType.valueOf(json.getString("type")),
+            aytField = json.optString("aytField", "").takeIf { it.isNotEmpty() }?.let { AytField.valueOf(it) },
+            subjects = subjects,
+            notes = json.optString("notes", ""),
+            publisher = json.optString("publisher", "")
+        )
+    }
+
+    private fun parseSubjectResult(json: JSONObject): SubjectResult =
+        SubjectResult(
+            subject = json.getString("subject"),
+            correct = json.getInt("correct"),
+            wrong = json.getInt("wrong"),
+            blank = json.getInt("blank"),
+            timeMinutes = json.getInt("timeMinutes")
+        )
+
+    private fun parseLearningOutcome(json: JSONObject): LearningOutcome =
+        LearningOutcome(
+            id = json.getString("id"),
+            examType = json.optString("examType", "TYT"),
+            subject = json.optString("subject", ""),
+            topic = json.optString("topic", ""),
+            title = json.optString("title", ""),
+            completed = json.optBoolean("completed"),
+            reviewRequested = json.optBoolean("reviewRequested"),
+            wrongCount = json.optInt("wrongCount"),
+            acknowledgedWrongCount = json.optInt("acknowledgedWrongCount"),
+            nextReviewDate = json.optString("nextReviewDate", ""),
+            reviewLevel = json.optInt("reviewLevel"),
+            lastReviewedDate = json.optString("lastReviewedDate", ""),
+            custom = json.optBoolean("custom"),
+            completedSubtopics = (json.optJSONArray("completedSubtopics") ?: JSONArray()).let { a ->
+                (0 until a.length()).map { a.optString(it) }.filter { it.isNotBlank() }.distinct()
+            },
+            completedDate = json.optString("completedDate", "")
+        )
+
+    private fun parseQuestionCard(json: JSONObject): QuestionCard {
+        val p = json.optJSONArray("photos") ?: JSONArray()
+        return QuestionCard(
+            id = json.getString("id"),
+            outcomeId = json.optString("outcomeId", ""),
+            title = json.optString("title", ""),
+            notes = json.optString("notes", ""),
+            status = runCatching { QuestionStatus.valueOf(json.optString("status")) }.getOrDefault(QuestionStatus.GERI_DON),
+            createdAt = json.optString("createdAt", ""),
+            dueDate = json.optString("dueDate", ""),
+            reviewCount = json.optInt("reviewCount"),
+            photos = (0 until p.length()).map { p.getString(it) }
+        )
     }
 
     private fun migrateStudyDays(app: Context) {
@@ -80,10 +141,14 @@ object LegacyDataMigrator {
             return
         }
         if (days.isEmpty()) return
-        val db = YksDatabase.get(app).database
-        val queries = com.deniz0706.ykstakip.data.local.StudyDayQueries(db)
+        val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, app))
         days.forEach { day ->
-            queries.insertStudyDay(day.date, day.questionCount, day.studyMinutes, if (day.estimated) 1 else 0)
+            db.studyDayQueriesQueries.insertStudyDay(
+                date = day.date,
+                question_count = day.questionCount.toLong(),
+                study_minutes = day.studyMinutes.toLong(),
+                estimated = if (day.estimated) 1 else 0
+            )
         }
     }
 
@@ -95,7 +160,7 @@ object LegacyDataMigrator {
             (0 until array.length()).mapNotNull { index ->
                 try {
                     val obj = array.getJSONObject(index)
-                    com.deniz0706.ykstakip.domain.model.StudyPlanItem(
+                    StudyPlanItem(
                         id = obj.getLong("id"),
                         dayOfWeek = obj.getInt("dayOfWeek"),
                         startTime = obj.getString("startTime"),
@@ -113,12 +178,17 @@ object LegacyDataMigrator {
             return
         }
         if (items.isEmpty()) return
-        val db = YksDatabase.get(app).database
-        val queries = com.deniz0706.ykstakip.data.local.StudyPlanQueries(db)
+        val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, app))
         items.forEach { item ->
-            queries.insertStudyPlanItem(
-                item.id, item.dayOfWeek, item.startTime, item.endTime,
-                item.subject, item.topic, if (item.completed) 1 else 0, item.completedWeek
+            db.studyPlanQueriesQueries.insertStudyPlanItem(
+                item.id,
+                item.dayOfWeek.toLong(),
+                item.startTime,
+                item.endTime,
+                item.subject,
+                item.topic,
+                if (item.completed) 1L else 0L,
+                item.completedWeek
             )
         }
     }
@@ -132,7 +202,7 @@ object LegacyDataMigrator {
             val array = JSONArray(outcomesRaw)
             (0 until array.length()).mapNotNull { index ->
                 try {
-                    LearningOutcome.fromJson(array.getJSONObject(index))
+                    parseLearningOutcome(array.getJSONObject(index))
                 } catch (_: Exception) {
                     null
                 }
@@ -145,7 +215,7 @@ object LegacyDataMigrator {
             val array = JSONArray(questionsRaw)
             (0 until array.length()).mapNotNull { index ->
                 try {
-                    QuestionCard.fromJson(array.getJSONObject(index))
+                    parseQuestionCard(array.getJSONObject(index))
                 } catch (_: Exception) {
                     null
                 }
@@ -161,67 +231,6 @@ object LegacyDataMigrator {
             outcomes.forEach { repository.saveOutcome(it) }
             questions.forEach { repository.saveQuestion(it) }
         }
-    }
-
-    // JSON deserialization helpers mirroring the original models
-    private fun Exam.fromJson(json: JSONObject): Exam {
-        val arr = json.getJSONArray("subjects")
-        val subjects = (0 until arr.length()).map { SubjectResult.fromJson(arr.getJSONObject(it)) }
-        return Exam(
-            id = json.getLong("id"),
-            title = json.getString("title"),
-            date = json.getString("date"),
-            type = ExamType.valueOf(json.getString("type")),
-            aytField = json.optString("aytField", "").takeIf { it.isNotEmpty() }?.let { AytField.valueOf(it) },
-            subjects = subjects,
-            notes = json.optString("notes", ""),
-            publisher = json.optString("publisher", "")
-        )
-    }
-
-    private fun SubjectResult.fromJson(json: JSONObject): SubjectResult =
-        SubjectResult(
-            subject = json.getString("subject"),
-            correct = json.getInt("correct"),
-            wrong = json.getInt("wrong"),
-            blank = json.getInt("blank"),
-            timeMinutes = json.getInt("timeMinutes")
-        )
-
-    private fun LearningOutcome.fromJson(json: JSONObject): LearningOutcome =
-        LearningOutcome(
-            id = json.getString("id"),
-            examType = json.optString("examType", "TYT"),
-            subject = json.optString("subject", ""),
-            topic = json.optString("topic", ""),
-            title = json.optString("title", ""),
-            completed = json.optBoolean("completed"),
-            reviewRequested = json.optBoolean("reviewRequested"),
-            wrongCount = json.optInt("wrongCount"),
-            acknowledgedWrongCount = json.optInt("acknowledgedWrongCount"),
-            nextReviewDate = json.optString("nextReviewDate", ""),
-            reviewLevel = json.optInt("reviewLevel"),
-            lastReviewedDate = json.optString("lastReviewedDate", ""),
-            custom = json.optBoolean("custom"),
-            completedSubtopics = (json.optJSONArray("completedSubtopics") ?: JSONArray()).let { a ->
-                (0 until a.length()).map { a.optString(it) }.filter { it.isNotBlank() }.distinct()
-            },
-            completedDate = json.optString("completedDate", "")
-        )
-
-    private fun QuestionCard.fromJson(json: JSONObject): QuestionCard {
-        val p = json.optJSONArray("photos") ?: JSONArray()
-        return QuestionCard(
-            id = json.getString("id"),
-            outcomeId = json.optString("outcomeId", ""),
-            title = json.optString("title", ""),
-            notes = json.optString("notes", ""),
-            status = runCatching { QuestionStatus.valueOf(json.optString("status")) }.getOrDefault(QuestionStatus.GERI_DON),
-            createdAt = json.optString("createdAt", ""),
-            dueDate = json.optString("dueDate", ""),
-            reviewCount = json.optInt("reviewCount"),
-            photos = (0 until p.length()).map { p.getString(it) }
-        )
     }
 
     private data class StudyPlanItem(

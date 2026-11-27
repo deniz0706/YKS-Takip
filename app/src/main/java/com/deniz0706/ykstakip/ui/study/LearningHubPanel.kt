@@ -24,12 +24,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.model.LearningOutcome
 import com.deniz0706.ykstakip.data.LearningSubtopics
-import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.model.AytField
 import com.deniz0706.ykstakip.util.LearningFields
-import com.deniz0706.ykstakip.domain.model.QuestionCard
-import com.deniz0706.ykstakip.domain.model.QuestionStatus
+import com.deniz0706.ykstakip.model.QuestionCard
+import com.deniz0706.ykstakip.model.QuestionStatus
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
 import com.deniz0706.ykstakip.ui.components.DashboardRing

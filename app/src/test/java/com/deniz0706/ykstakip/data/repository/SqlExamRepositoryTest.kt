@@ -1,18 +1,24 @@
 package com.deniz0706.ykstakip.data.repository
 
 import com.deniz0706.ykstakip.data.local.YksDatabase
-import com.deniz0706.ykstakip.model.ExamType
-import com.deniz0706.ykstakip.model.SubjectResult
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
+import com.deniz0706.ykstakip.domain.model.SubjectResult
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.time.LocalDate
 
+@RunWith(RobolectricTestRunner::class)
 class SqlExamRepositoryTest {
 
     @Test
-    fun save_and_retrieve_exam() {
+    fun save_and_retrieve_exam() = runBlocking {
         val repo = SqlExamRepository.getInstance(androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>())
 
-        val exam = com.deniz0706.ykstakip.model.Exam(
+        val exam = Exam(
             id = 42,
             title = "TYT Test",
             date = LocalDate.now().toString(),
@@ -23,8 +29,8 @@ class SqlExamRepositoryTest {
         )
 
         repo.saveExam(exam)
-        val all = repo.getAllExams()
-        val saved = all.find { it.id == 42 }
+        val all = repo.getAllExams().first()
+        val saved = all.find { it.id == 42L }
         assert(saved != null)
         assert(saved!!.title == "TYT Test")
         assert(saved!!.type == ExamType.TYT)

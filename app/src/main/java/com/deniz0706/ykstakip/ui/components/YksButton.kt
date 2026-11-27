@@ -1,17 +1,21 @@
 package com.deniz0706.ykstakip.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.theme.YksTokens
 
 /** Primary action button: filled, high-contrast, full-width by default. */
@@ -30,7 +34,7 @@ fun YksButton(
         modifier = modifier
             .then(if (fullWidth) Modifier.fillMaxWidth() else Modifier)
             .height(YksTokens.Size.minimumTouchTarget)
-            .clip(com.deniz0706.ykstakip.ui.theme.YksTokens.Shape.control)
+            .clip(RoundedCornerShape(YksTokens.Shape.control))
             .background(bg)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = YksTokens.Space.md, vertical = YksTokens.Space.xs)
@@ -58,7 +62,7 @@ fun YksOutlineButton(
         modifier = modifier
             .fillMaxWidth()
             .height(YksTokens.Size.minimumTouchTarget)
-            .clip(com.deniz0706.ykstakip.ui.theme.YksTokens.Shape.control)
+            .clip(RoundedCornerShape(YksTokens.Shape.control))
             .background(Color.Transparent)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = YksTokens.Space.md, vertical = YksTokens.Space.xs)

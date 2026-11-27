@@ -13,7 +13,6 @@ DELETE FROM exams WHERE id = ?;
 
 replaceAllExams:
 DELETE FROM exams;
-<%
 
 insertExamSubjects:
 INSERT INTO exam_subjects (exam_id, subject, correct, wrong, blank, time_minutes)
@@ -24,5 +23,3 @@ DELETE FROM exam_subjects WHERE exam_id = ?;
 
 selectSubjectsForExam:
 SELECT subject, correct, wrong, blank, time_minutes FROM exam_subjects WHERE exam_id = ?;
-
-%>

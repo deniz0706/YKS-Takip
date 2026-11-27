@@ -13,10 +13,7 @@ DELETE FROM study_days WHERE date = ?;
 
 replaceAllStudyDays:
 DELETE FROM study_days;
-<%
 
 insertStudyDayBulk:
 INSERT OR REPLACE INTO study_days (date, question_count, study_minutes, estimated)
 VALUES (?, ?, ?, ?);
-
-%>

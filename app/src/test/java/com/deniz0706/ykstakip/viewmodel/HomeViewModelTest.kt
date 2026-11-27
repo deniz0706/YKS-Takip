@@ -1,23 +1,30 @@
 package com.deniz0706.ykstakip.viewmodel
 
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
-import com.deniz0706.ykstakip.model.ExamType
-import com.deniz0706.ykstakip.model.SubjectResult
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
+import com.deniz0706.ykstakip.domain.model.SubjectResult
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.time.LocalDate
 
+@RunWith(RobolectricTestRunner::class)
 class HomeViewModelTest {
 
     @Test
-    fun empty_exams_should_show_zero_stats() {
-        val repo = SqlExamRepository.getInstance(androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>())
-        val exams = repo.getAllExams()
+    fun empty_exams_should_show_zero_stats() = runBlocking {
+        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val repo = SqlExamRepository(context.applicationContext)
+        val exams = repo.getAllExams().first()
         assert(exams.isEmpty())
     }
 
     @Test
     fun exam_with_all_subjects_should_calculate_net() {
-        val exam = com.deniz0706.ykstakip.model.Exam(
+        val exam = Exam(
             id = 1,
             title = "TYT Deneme 1",
             date = LocalDate.now().toString(),
@@ -32,6 +39,6 @@ class HomeViewModelTest {
         assert(exam.totalCorrect == 93)
         assert(exam.totalWrong == 20)
         assert(exam.totalBlank == 27)
-        assert(exam.totalQuestions == 130)
+        assert(exam.totalQuestions == 140)
     }
 }

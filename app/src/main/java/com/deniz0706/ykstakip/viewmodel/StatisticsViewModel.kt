@@ -7,7 +7,7 @@ import com.deniz0706.ykstakip.data.repository.SqlExamRepository
 import com.deniz0706.ykstakip.domain.model.Exam
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.viewModelScope
+import androidx.lifecycle.viewModelScope
 
 class StatisticsViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = SqlExamRepository(application.applicationContext)

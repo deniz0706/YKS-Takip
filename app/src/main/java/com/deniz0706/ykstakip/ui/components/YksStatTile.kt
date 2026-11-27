@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.theme.YksTokens
 
 /** A single metric display: large number with label and optional detail. */
@@ -53,7 +54,7 @@ fun YksStatTile(
                 text = it,
                 style = MaterialTheme.typography.bodySmall,
                 color = c.onSurfaceVariant,
-                lineHeight = 16.dp
+                lineHeight = 16.sp
             )
         }
     }

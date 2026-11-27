@@ -1,24 +1,18 @@
 plugins {
     id("org.jetbrains.kotlin.multiplatform") version "2.0.21"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
+    id("com.android.library")
 }
 
 kotlin {
-    androidTarget {
-        publishLibraryAt("domain")
-    }
-    jvm {
-        compilations.configureEach {
-            compilerOptions.configure {
-                jvmTarget = "17"
-                freeCompilerArgs = freeCompilerArgs.filter { it != "-Xopt-in=kotlin.RequiresOptIn" }
-            }
-        }
-    }
+    androidTarget()
+    jvm()
+
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
             }
         }
         val androidMain by getting {
@@ -41,9 +35,5 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 }

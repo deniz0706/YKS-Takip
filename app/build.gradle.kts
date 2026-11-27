@@ -2,12 +2,12 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
-    id("com.squareup.sqldelight") version "1.6.0"
+    id("com.squareup.sqldelight") version "1.5.5"
 }
 
 android {
     namespace = "com.deniz0706.ykstakip"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.deniz0706.ykstakip"
@@ -56,7 +56,7 @@ android {
     }
 
     sourceSets {
-        val main by getting {
+        named("main") {
             java.srcDirs("src/main/kotlin")
         }
     }
@@ -65,7 +65,6 @@ android {
 sqldelight {
     database("YksDatabase") {
         packageName = "com.deniz0706.ykstakip.data.local"
-        sourceFolders = listOf("src/main/sqldelight")
     }
 }
 
@@ -87,13 +86,14 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.9.1")
 
     implementation("androidx.sqlite:sqlite:2.4.0")
-    implementation("com.squareup.sqldelight:runtime:1.6.0")
-    implementation("com.squareup.sqldelight:android:1.6.0")
-    implementation("com.squareup.sqldelight:coroutines-extensions:1.6.0")
+    implementation("com.squareup.sqldelight:runtime:1.5.5")
+    implementation("com.squareup.sqldelight:android-driver:1.5.5")
+    implementation("com.squareup.sqldelight:coroutines-extensions:1.5.5")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test:core:1.6.0")
     testImplementation("org.json:json:20240303")
-    testImplementation("com.squareup.sqldelight:sqlite-driver:1.6.0")
-    testImplementation("com.squareup.sqldelight:coroutines-extensions-test:1.6.0")
+    testImplementation("com.squareup.sqldelight:sqlite-driver:1.5.5")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 }

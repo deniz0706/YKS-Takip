@@ -1,7 +1,7 @@
 package com.deniz0706.ykstakip.util
 
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
 
 data class SubjectNetChange(val subject: String, val delta: Double)
 

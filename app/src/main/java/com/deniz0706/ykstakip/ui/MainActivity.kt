@@ -1,11 +1,15 @@
 package com.deniz0706.ykstakip.ui
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.deniz0706.ykstakip.data.StudyRepository
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
 import com.deniz0706.ykstakip.data.repository.SqlLearningRepository
 import com.deniz0706.ykstakip.data.repository.SqlStudyRepository
@@ -22,7 +26,6 @@ import com.deniz0706.ykstakip.ui.settings.NewSettingsScreen
 import com.deniz0706.ykstakip.ui.statistics.NewStatisticsScreen
 import com.deniz0706.ykstakip.ui.study.NewStudyScreen
 import com.deniz0706.ykstakip.ui.theme.YksTheme
-import com.deniz0706.ykstakip.domain.model.Exam
 
 class MainActivity : ComponentActivity() {
 
@@ -30,23 +33,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             YksTheme {
-                YksApp()
+                YksApp(context = this)
             }
         }
     }
 }
 
 @Composable
-fun YksApp() {
-    val screen by remember { mutableStateOf<Screen>(Screen.Home) }
+fun YksApp(context: Context) {
+    var screen by remember { mutableStateOf<Screen>(Screen.Home) }
 
-    val examRepository: ExamRepository by remember {
+    val examRepository: ExamRepository = remember {
         SqlExamRepository(context.applicationContext)
     }
-    val studyRepository: StudyRepository by remember {
+    val studyRepository = remember {
         SqlStudyRepository(context.applicationContext)
     }
-    val learningRepository: LearningRepository by remember {
+    val learningRepository: LearningRepository = remember {
         SqlLearningRepository(context.applicationContext)
     }
 

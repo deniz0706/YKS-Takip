@@ -1,13 +1,22 @@
 package com.deniz0706.ykstakip.data.repository
 
-import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.StudyDay
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class SqlStudyRepositoryTest {
 
+    private fun newRepo(): SqlStudyRepository {
+        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        return SqlStudyRepository(context.applicationContext)
+    }
+
     @Test
-    fun save_and_retrieve_study_day() {
-        val repo = SqlStudyRepository.getInstance(androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>())
+    fun save_and_retrieve_study_day() = runBlocking {
+        val repo = newRepo()
 
         val day = StudyDay("2026-01-15", 25, 120, estimated = false)
         repo.save(day)
@@ -23,8 +32,8 @@ class SqlStudyRepositoryTest {
     }
 
     @Test
-    fun import_days_merges_without_overwrite() {
-        val repo = SqlStudyRepository.getInstance(androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>())
+    fun import_days_merges_without_overwrite() = runBlocking {
+        val repo = newRepo()
 
         repo.save(StudyDay("2026-01-10", 10, 60, estimated = false))
 
@@ -43,8 +52,8 @@ class SqlStudyRepositoryTest {
     }
 
     @Test
-    fun import_days_with_overwrite_replaces_existing() {
-        val repo = SqlStudyRepository.getInstance(androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>())
+    fun import_days_with_overwrite_replaces_existing() = runBlocking {
+        val repo = newRepo()
 
         repo.save(StudyDay("2026-01-10", 10, 60, estimated = false))
 

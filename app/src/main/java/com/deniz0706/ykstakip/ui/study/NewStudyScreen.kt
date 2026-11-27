@@ -109,69 +109,75 @@ fun NewStudyScreen(
         }
 
         item {
-            SingleChoiceSegmentedButtonRow(
-                selected = section,
-                onClick = { section = it },
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(YksSpacing.xs)
             ) {
                 listOf("today" to "Bugün", "plan" to "Plan", "learning" to "Öğrenme", "analysis" to "Analiz")
                     .forEachIndexed { index, (key, label) ->
-                        SegmentedButton(
-                            selected = section == key,
+                        androidx.compose.material3.TextButton(
                             onClick = { section = key },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 4),
-                            label = { Text(label, maxLines = 1) }
-                        )
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = label,
+                                maxLines = 1,
+                                style = if (section == key) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+                                color = if (section == key) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
             }
         }
 
-        if (section == "today") {
-            TodaySection(
-                days = days,
-                goal = goal,
-                onEditToday = onEditToday,
-                onPickDay = onPickDay,
-                onEditDay = onEditDay
-            )
-        } else if (section == "plan") {
-            PlanSection(
-                plan = plan,
-                onAddPlan = onAddPlan,
-                onEditPlan = onEditPlan,
-                onTogglePlan = onTogglePlan,
-                onDeletePlan = onDeletePlan,
-                onOpenLearningFromPlan = onOpenLearningFromPlan
-            )
-        } else if (section == "learning") {
-            LearningSection(
-                outcomes = learningOutcomes,
-                questions = learningQuestions,
-                field = learningField,
-                onFieldChange = onLearningFieldChange,
-                onComplete = onLearningComplete,
-                onSubtopicComplete = onLearningSubtopicComplete,
-                onWrong = onLearningWrong,
-                onRequestReview = onLearningRequestReview,
-                onReviewed = onLearningReviewed,
-                onPostpone = onLearningPostpone,
-                onCreate = onLearningCreate,
-                onDelete = onLearningDelete,
-                onQuestionCreate = onQuestionCreate,
-                onQuestionDelete = onQuestionDelete,
-                onQuestionReview = onQuestionReview,
-                onQuestionUnsolved = onQuestionUnsolved,
-                onQuestionCapture = onQuestionCapture,
-                onQuestionGallery = onQuestionGallery,
-                onQuestionPhotoRemove = onQuestionPhotoRemove,
-                onRequestReviewNotifications = onRequestReviewNotifications
-            )
-        } else {
-            AnalysisSection(
-                days = days,
-                goal = goal,
-                exams = exams
-            )
+        item {
+            if (section == "today") {
+                TodaySection(
+                    days = days,
+                    goal = goal,
+                    onEditToday = onEditToday,
+                    onPickDay = onPickDay,
+                    onEditDay = onEditDay
+                )
+            } else if (section == "plan") {
+                PlanSection(
+                    plan = plan,
+                    onAddPlan = onAddPlan,
+                    onEditPlan = onEditPlan,
+                    onTogglePlan = onTogglePlan,
+                    onDeletePlan = onDeletePlan,
+                    onOpenLearningFromPlan = onOpenLearningFromPlan
+                )
+            } else if (section == "learning") {
+                LearningSection(
+                    outcomes = learningOutcomes,
+                    questions = learningQuestions,
+                    field = learningField,
+                    onFieldChange = onLearningFieldChange,
+                    onComplete = onLearningComplete,
+                    onSubtopicComplete = onLearningSubtopicComplete,
+                    onWrong = onLearningWrong,
+                    onRequestReview = onLearningRequestReview,
+                    onReviewed = onLearningReviewed,
+                    onPostpone = onLearningPostpone,
+                    onCreate = onLearningCreate,
+                    onDelete = onLearningDelete,
+                    onQuestionCreate = onQuestionCreate,
+                    onQuestionDelete = onQuestionDelete,
+                    onQuestionReview = onQuestionReview,
+                    onQuestionUnsolved = onQuestionUnsolved,
+                    onQuestionCapture = onQuestionCapture,
+                    onQuestionGallery = onQuestionGallery,
+                    onQuestionPhotoRemove = onQuestionPhotoRemove,
+                    onRequestReviewNotifications = onRequestReviewNotifications
+                )
+            } else {
+                AnalysisSection(
+                    days = days,
+                    goal = goal,
+                    exams = exams
+                )
+            }
         }
 
         item { Spacer(Modifier.height(96.dp)) }
@@ -216,7 +222,7 @@ private fun TodaySection(
         horizontalArrangement = Arrangement.spacedBy(YksSpacing.sm)
     ) {
         androidx.compose.foundation.layout.Column(
-            Modifier.weight(1f).fillMaxHeight()
+            Modifier.weight(1f)
                 .clip(RoundedCornerShape(YksShape.card))
                 .background(c.surfaceContainer)
                 .padding(YksSpacing.cardContent)
@@ -225,7 +231,7 @@ private fun TodaySection(
             Text("Düzenle", style = MaterialTheme.typography.labelMedium, color = c.primary)
         }
         androidx.compose.foundation.layout.Box(
-            Modifier.weight(1f).fillMaxHeight()
+            Modifier.weight(1f)
                 .clip(RoundedCornerShape(YksShape.card))
                 .background(c.surfaceContainer)
                 .clickable(onClick = onPickDay)

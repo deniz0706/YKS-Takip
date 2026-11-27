@@ -123,16 +123,15 @@ private val YksTypography = androidx.compose.material3.Typography(
     bodySmall = YksTokens.Text.bodySmall,
     labelLarge = YksTokens.Text.labelLarge,
     labelMedium = YksTokens.Text.labelMedium,
-    labelSmall = YksTokens.Text.labelSmall,
-    caption = YksTokens.Text.caption
+    labelSmall = YksTokens.Text.labelSmall
 )
 
 /** Shapes for the design system. */
 private val YksShapes = androidx.compose.material3.Shapes(
-    small = YksTokens.Shape.control,
-    medium = YksTokens.Shape.input,
-    large = YksTokens.Shape.card,
-    extraLarge = YksTokens.Shape.panel
+    small = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.control),
+    medium = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.input),
+    large = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.card),
+    extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel)
 )
 
 /** Returns whether the active theme is dark. */

@@ -9,7 +9,9 @@ import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -44,10 +46,10 @@ class HomeViewModel(
     init {
         viewModelScope.launch {
             val examsFlow = examRepository.getAllExams().stateIn(
-                viewModelScope, /*start=*/ null, emptyList()
+                viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
             )
             val outcomesFlow = learningRepository.getOutcomes().stateIn(
-                viewModelScope, /*start=*/ null, emptyList()
+                viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
             )
             examsFlow.collect { exams ->
                 outcomesFlow.collect { outcomes ->

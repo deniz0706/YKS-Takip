@@ -1,22 +1,24 @@
 package com.deniz0706.ykstakip.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.BottomNavigation
-import androidx.compose.material3.BottomNavigationItem
-import androidx.compose.material3.ExperimentalMaterialApi
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.theme.YksTokens
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.runtime.CompositionLocalProvider
 
-@OptIn(ExperimentalMaterialApi::class)
-sealed object Screen {
+sealed class Screen {
     object Home : Screen()
     object Exams : Screen()
     object Study : Screen()
@@ -24,7 +26,8 @@ sealed object Screen {
     object Settings : Screen()
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+data class NavItem(val screen: Screen, val label: String, val icon: String)
+
 @Composable
 fun YksNavigation(
     currentScreen: Screen,
@@ -34,50 +37,54 @@ fun YksNavigation(
     val c = MaterialTheme.colorScheme
     Scaffold(
         bottomBar = {
-            BottomNavigation(
-                backgroundColor = c.surfaceContainer
+            Surface(
+                color = c.surfaceContainer,
+                modifier = Modifier.height(56.dp)
             ) {
-                val items = listOf(
-                    Pair(Screen.Home, "Ana Sayfa"),
-                    Pair(Screen.Exams, "Denemeler"),
-                    Pair(Screen.Study, "Çalışma"),
-                    Pair(Screen.AiCoach, "AI Koç"),
-                    Pair(Screen.Settings, "Ayarlar")
-                )
-                items.forEachIndexed { _, (screen, label) ->
-                    val selected = currentScreen == screen
-                    BottomNavigationItem(
-                        selected = selected,
-                        onClick = { onScreenChange(screen) },
-                        icon = {
-                            androidx.compose.foundation.layout.Box(
-                                modifier = Modifier.size(24.dp),
-                                contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val items = listOf(
+                        NavItem(Screen.Home, "Ana Sayfa", "🏠"),
+                        NavItem(Screen.Exams, "Denemeler", "📝"),
+                        NavItem(Screen.Study, "Çalışma", "📚"),
+                        NavItem(Screen.AiCoach, "AI Koç", "🤖"),
+                        NavItem(Screen.Settings, "Ayarlar", "⚙️")
+                    )
+                    items.forEach { item ->
+                        val selected = currentScreen == item.screen
+                        androidx.compose.material3.IconButton(
+                            onClick = { onScreenChange(item.screen) },
+                            modifier = Modifier.size(48.dp),
+                            enabled = true
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = when (screen) {
-                                        Screen.Home -> "🏠"
-                                        Screen.Exams -> "📝"
-                                        Screen.Study -> "📚"
-                                        Screen.AiCoach -> "🤖"
-                                        Screen.Settings -> "⚙️"
-                                    },
+                                    text = item.icon,
                                     fontSize = 20.sp,
-                                    style = MaterialTheme.typography.labelSmall
+                                    color = if (selected) c.primary else c.onSurfaceVariant
+                                )
+                                Text(
+                                    text = item.label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (selected) c.primary else c.onSurfaceVariant
                                 )
                             }
-                        },
-                        label = { Text(text = label, style = MaterialTheme.typography.labelSmall) },
-                        colors = androidx.compose.material3.BottomNavigationDefaults.colors(
-                            unselectedItemColor = c.onSurfaceVariant.copy(alpha = 0.6f),
-                            selectedItemColor = c.primary
-                        )
-                    )
+                        }
+                    }
                 }
             }
         }
     ) { padding ->
-        content(currentScreen)
-            .modifier(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()))
+        Box(
+            modifier = Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding())
+        ) {
+            content(currentScreen)
+        }
     }
 }
