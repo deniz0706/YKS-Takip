@@ -2,6 +2,7 @@ package com.deniz0706.ykstakip.data
 
 import com.deniz0706.ykstakip.domain.model.StudyDay
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.time.LocalDate
 
@@ -32,7 +33,18 @@ object StudyBackupManager {
         }.toString(2)
     }
 
-    fun parseJson(raw: String, today: LocalDate = LocalDate.now()): Parsed {
+    /**
+     * Convert low-level JSON parser failures into the same validation exception
+     * used for structurally invalid backups. Callers can handle one import error type.
+     */
+    fun parseJson(raw: String, today: LocalDate = LocalDate.now()): Parsed =
+        try {
+            parseJsonContent(raw, today)
+        } catch (error: JSONException) {
+            throw IllegalArgumentException("Çalışma yedeği geçerli bir JSON dosyası değil.", error)
+        }
+
+    private fun parseJsonContent(raw: String, today: LocalDate): Parsed {
         val source = raw.trim()
         val envelope = if (source.startsWith("[")) null else JSONObject(source)
         if (envelope != null) {
