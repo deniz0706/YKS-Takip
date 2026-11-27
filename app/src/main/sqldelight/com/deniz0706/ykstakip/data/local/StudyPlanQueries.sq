@@ -9,7 +9,7 @@ INSERT INTO study_plan_items (id, day_of_week, start_time, end_time, subject, to
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 insertStudyPlanItemBulk:
-INSERT OR REPLACE INTO study_plan_items (id, day_of_week, start_time, end_time, subject, topic, completed, completed_week)
+INSERT OR IGNORE INTO study_plan_items (id, day_of_week, start_time, end_time, subject, topic, completed, completed_week)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteStudyPlanItem:
