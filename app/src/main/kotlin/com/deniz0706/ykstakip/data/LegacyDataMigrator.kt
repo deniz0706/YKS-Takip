@@ -1,9 +1,8 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
-import com.deniz0706.ykstakip.data.local.YksDatabase
+import com.deniz0706.ykstakip.data.local.DatabaseHolder
 import com.deniz0706.ykstakip.domain.model.AytField
-import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.domain.model.LearningOutcome
@@ -141,7 +140,7 @@ object LegacyDataMigrator {
             return
         }
         if (days.isEmpty()) return
-        val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, app))
+        val db = DatabaseHolder.get(app)
         days.forEach { day ->
             db.studyDayQueriesQueries.insertStudyDayBulk(
                 date = day.date,
@@ -178,7 +177,7 @@ object LegacyDataMigrator {
             return
         }
         if (items.isEmpty()) return
-        val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, app))
+        val db = DatabaseHolder.get(app)
         items.forEach { item ->
             db.studyPlanQueriesQueries.insertStudyPlanItemBulk(
                 item.id,
@@ -226,7 +225,7 @@ object LegacyDataMigrator {
 
         if (outcomes.isEmpty() && questions.isEmpty()) return
 
-        val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, app))
+        val db = DatabaseHolder.get(app)
         val queries = db.learningQueriesQueries
         outcomes.forEach { outcome ->
             queries.insertLearningOutcomeBulk(
