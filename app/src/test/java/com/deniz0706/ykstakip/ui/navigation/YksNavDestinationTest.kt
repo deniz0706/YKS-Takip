@@ -10,12 +10,10 @@ class YksNavDestinationTest {
     @Test
     fun bottomNavDestinationsContainAllMainTabs() {
         val routes = BOTTOM_NAV_DESTINATIONS.map { it.route }
-        assertEquals(5, routes.size)
-        assertEquals("home", routes[0])
-        assertEquals("exams", routes[1])
-        assertEquals("study", routes[2])
-        assertEquals("ai-coach", routes[3])
-        assertEquals("settings", routes[4])
+        assertEquals(
+            listOf("statistics", "home", "exams", "study", "ai-coach", "settings"),
+            routes
+        )
     }
 
     @Test
