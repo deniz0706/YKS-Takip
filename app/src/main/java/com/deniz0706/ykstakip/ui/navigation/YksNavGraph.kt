@@ -1,90 +1,311 @@
 package com.deniz0706.ykstakip.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.deniz0706.ykstakip.ui.theme.YksTokens
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
+import com.deniz0706.ykstakip.ui.ai.CoachLine
+import com.deniz0706.ykstakip.ui.ai.NewAiCoachScreen
+import com.deniz0706.ykstakip.ui.history.ExamDetailScreen
+import com.deniz0706.ykstakip.ui.history.NewExamsScreen
+import com.deniz0706.ykstakip.ui.home.NewHomeScreen
+import com.deniz0706.ykstakip.ui.settings.NewSettingsScreen
+import com.deniz0706.ykstakip.ui.study.NewStudyScreen
+import com.deniz0706.ykstakip.ui.theme.YksTheme
+import android.content.Context
 
-sealed class Screen {
-    object Home : Screen()
-    object Exams : Screen()
-    object Study : Screen()
-    object AiCoach : Screen()
-    object Settings : Screen()
-}
-
-data class NavItem(val screen: Screen, val label: String, val icon: String)
-
+/** Adaptive shell that chooses NavigationBar (phone) or NavigationRail (tablet). */
 @Composable
-fun YksNavigation(
-    currentScreen: Screen,
-    onScreenChange: (Screen) -> Unit,
-    content: @Composable (Screen) -> Unit
+fun YksShell(
+    context: Context,
+    onDestinationChange: ((YksNavDestination) -> Unit)? = null
 ) {
-    val c = MaterialTheme.colorScheme
-    Scaffold(
-        bottomBar = {
-            Surface(
-                color = c.surfaceContainer,
-                modifier = Modifier.height(56.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val items = listOf(
-                        NavItem(Screen.Home, "Ana Sayfa", "🏠"),
-                        NavItem(Screen.Exams, "Denemeler", "📝"),
-                        NavItem(Screen.Study, "Çalışma", "📚"),
-                        NavItem(Screen.AiCoach, "AI Koç", "🤖"),
-                        NavItem(Screen.Settings, "Ayarlar", "⚙️")
-                    )
-                    items.forEach { item ->
-                        val selected = currentScreen == item.screen
-                        androidx.compose.material3.IconButton(
-                            onClick = { onScreenChange(item.screen) },
-                            modifier = Modifier.size(48.dp),
-                            enabled = true
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = item.icon,
-                                    fontSize = 20.sp,
-                                    color = if (selected) c.primary else c.onSurfaceVariant
-                                )
-                                Text(
-                                    text = item.label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (selected) c.primary else c.onSurfaceVariant
-                                )
+    var currentDestination by remember { mutableStateOf<YksNavDestination>(YksNavDestination.Home) }
+    val navController = rememberNavController()
+
+    onDestinationChange?.invoke(currentDestination)
+
+    YksTheme {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                YksBottomNavigation(
+                    currentDestination = currentDestination,
+                    navController = navController,
+                    onDestinationSelected = { destination ->
+                        currentDestination = destination
+                        if (destination !is YksNavDestination.ExamDetail) {
+                            navController.navigate(destination.route) {
+                                popUpTo(YksNavDestination.Home.route) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
                             }
                         }
                     }
-                }
+                )
+            }
+        ) { innerPadding ->
+            Surface(
+                modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding()),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                YksNavHost(
+                    navController = navController,
+                    onDestinationChange = { destination ->
+                        currentDestination = destination
+                    },
+                    context = context
+                )
             }
         }
-    ) { padding ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding())
-        ) {
-            content(currentScreen)
+    }
+}
+
+/** Navigation Compose host with typed destinations and deep-link support. */
+@Composable
+fun YksNavHost(
+    navController: NavHostController,
+    onDestinationChange: ((YksNavDestination) -> Unit)? = null,
+    context: Context
+) {
+    NavHost(
+        navController = navController,
+        startDestination = YksNavDestination.Home.route
+    ) {
+        composable(
+            route = "home",
+            arguments = emptyList(),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "yks://home" }
+            )
+        ) { backStackEntry ->
+            NewHomeScreen(
+                exams = emptyList(),
+                onNewExam = { navController.navigate("exams") },
+                onOpenStudy = { navController.navigate("study") },
+                onOpenAiCoach = { navController.navigate("ai-coach") },
+                onOpenLearning = { _, _ -> navController.navigate("study") },
+                aiCoachAdvice = "",
+                aiCoachDate = ""
+            )
+            onDestinationChange?.invoke(YksNavDestination.Home)
+        }
+
+        composable(
+            route = "exams",
+            arguments = emptyList(),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "yks://exams" }
+            )
+        ) { backStackEntry ->
+            NewExamsScreen(
+                exams = emptyList(),
+                onExamClick = { examId ->
+                    navController.navigate("exams/$examId")
+                },
+                onNewExam = { /* handled by shell */ }
+            )
+            onDestinationChange?.invoke(YksNavDestination.Exams)
+        }
+
+        composable(
+            route = "exams/{examId}",
+            arguments = listOf(navArgument("examId") { type = androidx.navigation.NavType.LongType }),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "yks://exams/{examId}" }
+            )
+        ) { backStackEntry ->
+            val examId = backStackEntry.arguments?.getLong("examId") ?: -1L
+            ExamDetailScreen(
+                exam = Exam(
+                    id = examId,
+                    title = "",
+                    date = "",
+                    type = ExamType.TYT,
+                    subjects = emptyList()
+                ),
+                onBack = { navController.popBackStack() },
+                onEdit = {},
+                onDelete = {},
+                onOpenLearning = { _, _, _ -> }
+            )
+            onDestinationChange?.invoke(YksNavDestination.ExamDetail(examId))
+        }
+
+        composable(
+            route = "study",
+            arguments = emptyList(),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "yks://study" }
+            )
+        ) { backStackEntry ->
+            NewStudyScreen(
+                days = emptyList(),
+                plan = emptyList(),
+                goal = null,
+                exams = emptyList(),
+                learningOutcomes = emptyList(),
+                learningQuestions = emptyList(),
+                learningField = AytField.SAYISAL,
+                onLearningFieldChange = {},
+                onLearningComplete = { _, _ -> },
+                onLearningSubtopicComplete = { _, _, _ -> },
+                onLearningWrong = {},
+                onLearningRequestReview = {},
+                onLearningReviewed = {},
+                onLearningPostpone = {},
+                onLearningCreate = { _, _, _, _ -> },
+                onLearningDelete = {},
+                onQuestionCreate = { _, _, _, _ -> "" },
+                onQuestionDelete = {},
+                onQuestionReview = { _, _ -> },
+                onQuestionUnsolved = {},
+                onQuestionCapture = {},
+                onQuestionGallery = {},
+                onQuestionPhotoRemove = { _, _ -> },
+                onRequestReviewNotifications = {},
+                onEditToday = {},
+                onFocusSaved = {},
+                onEditDay = {},
+                onPickDay = {},
+                onAddPlan = {},
+                onAddSuggestedPlan = { _, _, _ -> },
+                onEditPlan = {},
+                onTogglePlan = {},
+                onOpenLearningFromPlan = {},
+                onDeletePlan = {}
+            )
+            onDestinationChange?.invoke(YksNavDestination.Study)
+        }
+
+        composable(
+            route = "ai-coach",
+            arguments = emptyList(),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "yks://ai-coach" }
+            )
+        ) { backStackEntry ->
+            NewAiCoachScreen(
+                lines = listOf(CoachLine("assistant", "Merhaba! Size nasıl yardımcı olabilir?")),
+                draft = "",
+                onDraftChange = {},
+                onSend = {},
+                sending = false,
+                hasApiKey = false,
+                onApiKeyMissing = { navController.navigate("settings") }
+            )
+            onDestinationChange?.invoke(YksNavDestination.AiCoach)
+        }
+
+        composable(
+            route = "settings",
+            arguments = emptyList(),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "yks://settings" }
+            )
+        ) { backStackEntry ->
+            NewSettingsScreen(
+                selectedTheme = "light",
+                onThemeChange = {},
+                tyt = "",
+                ayt = "",
+                obp = "",
+                daily = "",
+                onSave = { _, _, _, _ -> null },
+                aiBaseUrl = "",
+                aiModel = "",
+                hasAiKey = false,
+                onSaveAi = { _, _, _ -> null },
+                onTestAi = {},
+                onExport = {},
+                onImport = {},
+                onImportStudy = {},
+                onExportStudy = {},
+                onUndoStudyImport = {},
+                learningZipBusy = false,
+                onExportLearningZip = {},
+                onImportLearningZip = {},
+                fullBackupBusy = false,
+                onExportFullBackup = {},
+                onImportFullBackup = {}
+            )
+            onDestinationChange?.invoke(YksNavDestination.Settings)
         }
     }
+}
+
+/** Bottom navigation bar for compact (phone) layouts. */
+@Composable
+fun YksBottomNavigation(
+    currentDestination: YksNavDestination,
+    navController: NavHostController,
+    onDestinationSelected: (YksNavDestination) -> Unit
+) {
+    val c = MaterialTheme.colorScheme
+
+    NavigationBar(
+        containerColor = c.surfaceContainer
+    ) {
+        BOTTOM_NAV_DESTINATIONS.forEach { destination ->
+            val selected = currentDestination == destination ||
+                (currentDestination is YksNavDestination.ExamDetail && destination == YksNavDestination.Exams)
+            NavigationBarItem(
+                icon = {
+                    Text(
+                        text = destinationIcon(destination),
+                        fontSize = 24.sp,
+                        color = if (selected) c.primary else c.onSurfaceVariant
+                    )
+                },
+                label = {
+                    Text(
+                        text = destinationLabel(destination),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (selected) c.primary else c.onSurfaceVariant
+                    )
+                },
+                selected = selected,
+                onClick = { onDestinationSelected(destination) },
+                alwaysShowLabel = true
+            )
+        }
+    }
+}
+
+/** Backwards-compatible wrapper for the old YksNavigation API. */
+@Deprecated(
+    message = "Use YksShell / YksNavHost with Navigation Compose instead",
+    level = DeprecationLevel.ERROR
+)
+@Composable
+fun YksNavigation(
+    currentScreen: Any,
+    onScreenChange: (Any) -> Unit,
+    content: @Composable (Any) -> Unit
+) {
+    error("YksNavigation is deprecated. Use YksShell and YksNavHost instead.")
 }

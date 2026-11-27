@@ -85,6 +85,10 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("androidx.activity:activity-ktx:1.9.1")
 
+    // Navigation Compose for typed, deep-linkable navigation
+    implementation("androidx.navigation:navigation-compose:2.8.2")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.8.2")
+
     implementation("androidx.sqlite:sqlite:2.4.0")
     implementation("com.squareup.sqldelight:runtime:1.5.5")
     implementation("com.squareup.sqldelight:android-driver:1.5.5")
