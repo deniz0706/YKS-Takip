@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.domain.model.Exam
-import com.deniz0706.ykstakip.domain.model.AytField
 import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.ui.theme.YksTokens
 import com.deniz0706.ykstakip.util.Fmt
