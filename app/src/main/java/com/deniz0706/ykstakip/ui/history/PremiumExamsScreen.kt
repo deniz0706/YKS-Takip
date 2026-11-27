@@ -54,7 +54,7 @@ fun PremiumExamsScreen(
             PremiumSectionHeader(
                 title = "Denemeler",
                 subtitle = "${exams.size} kayıt",
-                color = c.primary
+                colorScheme = c
             )
         }
 

@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -141,7 +142,7 @@ fun PremiumAiCoachScreen(
                 enabled = uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()
             ) {
                 Icon(
-                    imageVector = androidx.compose.material3.Icons.Default.Send,
+                    imageVector = Icons.Default.Send,
                     contentDescription = "Gönder",
                     tint = if (uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()) c.primary else c.onSurfaceVariant
                 )
