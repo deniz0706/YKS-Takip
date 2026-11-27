@@ -46,40 +46,40 @@ class FileOperationsTest {
             StudyDay("2026-08-20", 280, 420, false)
         )
         val json = StudyBackupManager.exportJson(days)
-        val parsed = StudyBackupManager.parseJson(json, LocalDate(2026, 10, 17))
+        val parsed = StudyBackupManager.parseJson(json, LocalDate.of(2026, 10, 17))
         assertEquals(3, parsed.days.size)
         assertEquals(days, parsed.days)
     }
 
     @Test fun studyExportWithEmptyHistorySucceeds() {
         val json = StudyBackupManager.exportJson(emptyList())
-        val parsed = StudyBackupManager.parseJson(json, LocalDate(2026, 10, 17))
+        val parsed = StudyBackupManager.parseJson(json, LocalDate.of(2026, 10, 17))
         assertTrue(parsed.days.isEmpty())
         assertEquals(0, parsed.estimatedDays)
     }
 
     @Test fun studyImportRejectsInvalidSchema() {
         assertThrows(IllegalArgumentException::class.java) {
-            StudyBackupManager.parseJson("""{"schema":"wrong","version":1,"days":[]}""", LocalDate(2026, 10, 17))
+            StudyBackupManager.parseJson("""{"schema":"wrong","version":1,"days":[]}""", LocalDate.of(2026, 10, 17))
         }
     }
 
     @Test fun studyImportRejectsUnsupportedVersion() {
         assertThrows(IllegalArgumentException::class.java) {
-            StudyBackupManager.parseJson("""{"schema":"yks_takip_study_backup","version":99,"days":[]}""", LocalDate(2026, 10, 17))
+            StudyBackupManager.parseJson("""{"schema":"yks_takip_study_backup","version":99,"days":[]}""", LocalDate.of(2026, 10, 17))
         }
     }
 
     @Test fun studyImportRejectsFutureDates() {
         assertThrows(IllegalArgumentException::class.java) {
-            StudyBackupManager.parseJson("""[{"date":"2026-10-18","questionCount":300,"studyMinutes":600}]""", LocalDate(2026, 10, 17))
+            StudyBackupManager.parseJson("""[{"date":"2026-10-18","questionCount":300,"studyMinutes":600}]""", LocalDate.of(2026, 10, 17))
         }
     }
 
     @Test fun studyImportRejectsDuplicateDates() {
         assertThrows(IllegalArgumentException::class.java) {
             StudyBackupManager.parseJson("""[{"date":"2026-09-09","questionCount":330,"studyMinutes":550},
-                {"date":"2026-09-09","questionCount":333,"studyMinutes":553}]""", LocalDate(2026, 10, 17))
+                {"date":"2026-09-09","questionCount":333,"studyMinutes":553}]""", LocalDate.of(2026, 10, 17))
         }
     }
 
@@ -146,13 +146,13 @@ class FileOperationsTest {
 
     @Test fun corruptedJsonIsRejected() {
         assertThrows(IllegalArgumentException::class.java) {
-            StudyBackupManager.parseJson("not valid json at all", LocalDate(2026, 10, 17))
+            StudyBackupManager.parseJson("not valid json at all", LocalDate.of(2026, 10, 17))
         }
     }
 
     @Test fun truncatedJsonIsRejected() {
         assertThrows(IllegalArgumentException::class.java) {
-            StudyBackupManager.parseJson("""[{"date":"2026-09-09"""", LocalDate(2026, 10, 17))
+            StudyBackupManager.parseJson("""[{"date":"2026-09-09"""", LocalDate.of(2026, 10, 17))
         }
     }
 
@@ -160,7 +160,7 @@ class FileOperationsTest {
 
     @Test fun emptyStudyHistoryBackwardCompatible() {
         val emptyJson = StudyBackupManager.exportJson(emptyList())
-        val parsed = StudyBackupManager.parseJson(emptyJson, LocalDate(2026, 10, 17))
+        val parsed = StudyBackupManager.parseJson(emptyJson, LocalDate.of(2026, 10, 17))
         assertTrue(parsed.days.isEmpty())
     }
 }
