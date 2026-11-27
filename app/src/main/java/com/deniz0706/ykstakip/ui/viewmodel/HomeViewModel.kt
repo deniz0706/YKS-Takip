@@ -1,19 +1,18 @@
 package com.deniz0706.ykstakip.ui.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.deniz0706.ykstakip.domain.repository.ExamRepository
-import com.deniz0706.ykstakip.domain.repository.LearningRepository
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
+import com.deniz0706.ykstakip.domain.repository.ExamRepository
+import com.deniz0706.ykstakip.domain.repository.LearningRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 data class HomeUiState(
     val exams: List<Exam> = emptyList(),
@@ -45,15 +44,16 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            val examsFlow = examRepository.getAllExams().stateIn(
-                viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
-            )
-            val outcomesFlow = learningRepository.getOutcomes().stateIn(
-                viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
-            )
-            examsFlow.collect { exams ->
-                outcomesFlow.collect { outcomes ->
-                    val filtered = exams.filter { it.type == selectedType }.sortedBy { it.date }
+            try {
+                combine(
+                    examRepository.getAllExams(),
+                    learningRepository.getOutcomes()
+                ) { exams, outcomes ->
+                    exams to outcomes
+                }.collect { (exams, outcomes) ->
+                    val filtered = exams
+                        .filter { it.type == selectedType }
+                        .sortedBy { it.date }
                     val latest = filtered.lastOrNull()?.totalNet
                     val previous = filtered.getOrNull(filtered.lastIndex - 1)?.totalNet
                     val change = if (latest != null && previous != null) latest - previous else null
@@ -68,12 +68,18 @@ class HomeViewModel(
                         loading = false
                     )
                 }
+            } catch (error: Exception) {
+                // A repository failure should leave the dashboard usable rather
+                // than escaping viewModelScope and terminating the process.
+                Log.e("HomeViewModel", "Dashboard data could not be loaded.", error)
+                _uiState.value = _uiState.value.copy(loading = false)
             }
         }
     }
 
     fun selectExamType(type: ExamType) {
         selectedType = type
+        _uiState.value = _uiState.value.copy(selectedType = type)
     }
 
     fun refresh() {
