@@ -11,6 +11,8 @@ class SqlStudyRepositoryTest {
 
     private fun newRepo(): SqlStudyRepository {
         val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val database = com.deniz0706.ykstakip.data.local.DatabaseHolder.get(context)
+        database.studyDayQueriesQueries.replaceAllStudyDays()
         return SqlStudyRepository(context.applicationContext)
     }
 
