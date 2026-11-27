@@ -13,6 +13,7 @@ class StudyPlanRepository(context: Context) {
 
     private val prefs =
         context.getSharedPreferences("yks_takip_study_plan", Context.MODE_PRIVATE)
+    private val writeGuard = LegacyDataWriteGuard("Haftalık çalışma planı")
 
     private fun currentWeek(): String = LocalDate.now()
         .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toString()
@@ -49,9 +50,12 @@ class StudyPlanRepository(context: Context) {
             if (legacy) persist(items)
             items
         } catch (_: Exception) {
+            writeGuard.markUnreadable()
             emptyList()
         }
     }
+
+    fun hasUnreadableLegacyData(): Boolean = writeGuard.isBlocked
 
     fun getForDay(dayOfWeek: Int): List<StudyPlanItem> =
         getAll().filter { it.dayOfWeek == dayOfWeek }.sortedBy { it.startTime }
@@ -76,6 +80,7 @@ class StudyPlanRepository(context: Context) {
     }
 
     private fun persist(items: List<StudyPlanItem>) {
+        writeGuard.requireWritable()
         val array = JSONArray()
         items.forEach { item ->
             array.put(JSONObject().apply {
