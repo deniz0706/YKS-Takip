@@ -12,7 +12,6 @@ import com.deniz0706.ykstakip.domain.model.QuestionStatus
 import com.deniz0706.ykstakip.domain.model.StudyDay
 import com.deniz0706.ykstakip.domain.model.SubjectResult
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
-import com.deniz0706.ykstakip.data.repository.SqlLearningRepository
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
@@ -227,10 +226,25 @@ object LegacyDataMigrator {
 
         if (outcomes.isEmpty() && questions.isEmpty()) return
 
-        val repository = SqlLearningRepository(app)
-        runBlocking {
-            outcomes.forEach { repository.saveOutcome(it) }
-            questions.forEach { repository.saveQuestion(it) }
+        val db = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, app))
+        val queries = db.learningQueriesQueries
+        outcomes.forEach { outcome ->
+            queries.insertLearningOutcomeBulk(
+                outcome.id, outcome.examType, outcome.subject, outcome.topic, outcome.title,
+                if (outcome.completed) 1L else 0L,
+                if (outcome.reviewRequested) 1L else 0L,
+                outcome.wrongCount.toLong(), outcome.acknowledgedWrongCount.toLong(),
+                outcome.nextReviewDate, outcome.reviewLevel.toLong(), outcome.lastReviewedDate,
+                if (outcome.custom) 1L else 0L, outcome.completedDate,
+                JSONArray(outcome.completedSubtopics.distinct()).toString()
+            )
+        }
+        questions.forEach { question ->
+            queries.insertQuestionCardBulk(
+                question.id, question.outcomeId, question.title, question.notes,
+                question.status.name, question.createdAt, question.dueDate,
+                question.reviewCount.toLong(), JSONArray(question.photos.distinct()).toString()
+            )
         }
     }
 
