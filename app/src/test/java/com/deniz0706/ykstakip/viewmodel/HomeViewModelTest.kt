@@ -17,6 +17,8 @@ class HomeViewModelTest {
     @Test
     fun empty_exams_should_show_zero_stats() = runBlocking {
         val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val database = com.deniz0706.ykstakip.data.local.DatabaseHolder.get(context)
+        database.examQueriesQueries.replaceAllExams()
         val repo = SqlExamRepository(context.applicationContext)
         val exams = repo.getAllExams().first()
         assert(exams.isEmpty())
