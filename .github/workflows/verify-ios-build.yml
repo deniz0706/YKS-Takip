@@ -1,4 +1,4 @@
-name: Verify iOS Build
+name: Verify Shared Domain iOS Targets
 
 on:
   push:
@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: verify-ios-${{ github.ref }}
+  group: verify-ios-domain-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -37,17 +37,10 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Install Xcode command-line tools (if needed)
-        run: |
-          xcode-select --version || xcode-select --install
+      - name: Verify shared domain iOS target compilation
+        run: gradle :domain:compileKotlinIosX64 :domain:compileKotlinIosArm64 :domain:compileKotlinIosSimulatorArm64 --no-daemon
 
-      - name: Verify Kotlin Multiplatform iOS target compilation
+      - name: Report verified scope
         run: |
-          echo "Verifying domain KMP module compiles for iOS targets..."
-          gradle :domain:compileKotlinIosX64 :domain:compileKotlinIosArm64 --no-daemon || \
-          gradle :domain:compileKotlinMetadata --no-daemon
-
-      - name: Report KMP target status
-        run: |
-          echo "iOS targets verified on macOS."
-          echo "Note: Full iOS framework export requires Xcode 15+ and a valid provisioning profile for device deployment."
+          echo "Shared domain compiled for iOS device and simulator targets."
+          echo "This does not build a native iOS application or verify signing, provisioning, or App Store submission."
