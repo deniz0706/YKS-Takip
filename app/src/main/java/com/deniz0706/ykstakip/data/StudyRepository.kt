@@ -9,16 +9,15 @@ import org.json.JSONObject
 class StudyRepository(context: Context) {
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
+    private val writeGuard = LegacyDataWriteGuard("Çalışma geçmişi")
 
     fun getAll(): List<StudyDay> {
         val raw = prefs.getString(KEY_STUDY_DAYS, null) ?: return emptyList()
 
         return try {
             val array = JSONArray(raw)
-
             (0 until array.length()).map {
                 val obj = array.getJSONObject(it)
-
                 StudyDay(
                     date = obj.getString("date"),
                     questionCount = obj.getInt("questionCount"),
@@ -26,25 +25,18 @@ class StudyRepository(context: Context) {
                     estimated = obj.optBoolean("estimated", false)
                 )
             }.sortedBy { it.date }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
+            writeGuard.markUnreadable()
             emptyList()
         }
     }
 
-    fun get(date: String): StudyDay? {
-        return getAll().find { it.date == date }
-    }
+    fun get(date: String): StudyDay? = getAll().find { it.date == date }
 
     fun save(studyDay: StudyDay) {
         val current = getAll().toMutableList()
         val index = current.indexOfFirst { it.date == studyDay.date }
-
-        if (index >= 0) {
-            current[index] = studyDay
-        } else {
-            current.add(studyDay)
-        }
-
+        if (index >= 0) current[index] = studyDay else current.add(studyDay)
         persist(current)
     }
 
@@ -52,23 +44,21 @@ class StudyRepository(context: Context) {
         persist(getAll().filterNot { it.date == date })
     }
 
+    fun hasUnreadableLegacyData(): Boolean = writeGuard.isBlocked
+
     private fun persist(days: List<StudyDay>) {
+        writeGuard.requireWritable()
         val array = JSONArray()
-
         days.sortedBy { it.date }.forEach { day ->
-            array.put(
-                JSONObject().apply {
-                    put("date", day.date)
-                    put("questionCount", day.questionCount)
-                    put("studyMinutes", day.studyMinutes)
-                    put("estimated", day.estimated)
-                }
-            )
+            array.put(JSONObject().apply {
+                put("date", day.date)
+                put("questionCount", day.questionCount)
+                put("studyMinutes", day.studyMinutes)
+                put("estimated", day.estimated)
+            })
         }
-
         prefs.edit()
             .putString(KEY_STUDY_DAYS, array.toString())
-            // A manual edit invalidates the import rollback snapshot.
             .remove(KEY_BEFORE_IMPORT)
             .remove(KEY_AFTER_IMPORT)
             .apply()
@@ -78,6 +68,7 @@ class StudyRepository(context: Context) {
     /** Atomic merge. Existing days stay unchanged unless user explicitly allows overwrites. */
     fun importDays(incoming: List<StudyDay>, overwrite: Boolean = false): Int {
         val current = getAll()
+        writeGuard.requireWritable()
         val merged = current.associateBy { it.date }.toMutableMap()
         var changes = 0
         for (day in incoming) {
@@ -107,14 +98,17 @@ class StudyRepository(context: Context) {
         return changes
     }
 
-    fun canUndoLastImport(): Boolean = StudyBackupManager.canUndoImport(
-        prefs.getString(KEY_BEFORE_IMPORT, null),
-        prefs.getString(KEY_AFTER_IMPORT, null),
-        prefs.getString(KEY_STUDY_DAYS, null)
-    )
+    fun canUndoLastImport(): Boolean {
+        getAll()
+        if (writeGuard.isBlocked) return false
+        return StudyBackupManager.canUndoImport(
+            prefs.getString(KEY_BEFORE_IMPORT, null),
+            prefs.getString(KEY_AFTER_IMPORT, null),
+            prefs.getString(KEY_STUDY_DAYS, null)
+        )
+    }
 
     fun undoLastImport(): Boolean {
-        // Older backups lack an after-import snapshot: do not restore blindly.
         if (!canUndoLastImport()) return false
         val previous = prefs.getString(KEY_BEFORE_IMPORT, null) ?: return false
         val restored = prefs.edit().putString(KEY_STUDY_DAYS, previous)
