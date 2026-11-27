@@ -100,4 +100,9 @@ dependencies {
     testImplementation("org.json:json:20240303")
     testImplementation("com.squareup.sqldelight:sqlite-driver:1.5.5")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+
+    // Compose UI testing
+    debugImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    testImplementation("androidx.navigation:navigation-testing:2.8.2")
 }
