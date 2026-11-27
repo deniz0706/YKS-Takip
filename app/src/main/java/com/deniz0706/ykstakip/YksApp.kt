@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip
 
 import android.app.Application
+import android.util.Log
 import com.deniz0706.ykstakip.data.LegacyDataMigrator
 import com.deniz0706.ykstakip.data.ThemeManager
 import kotlinx.coroutines.CoroutineScope
@@ -14,7 +15,14 @@ class YksApp : Application() {
     override fun onCreate() {
         super.onCreate()
         ThemeManager.applySavedTheme(this)
-        // One-time migration from SharedPreferences to SQLDelight, preserving all user data.
-        LegacyDataMigrator.migrateIfNeeded(this)
+
+        // A failed legacy migration must never prevent the app from opening.
+        // The migration flag is written only after all steps succeed, so a later
+        // launch can safely retry the idempotent migration.
+        try {
+            LegacyDataMigrator.migrateIfNeeded(this)
+        } catch (error: Exception) {
+            Log.e("YksApp", "Legacy data migration failed; app startup will continue.", error)
+        }
     }
 }
