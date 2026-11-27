@@ -34,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.ui.theme.YksTokens
 import com.deniz0706.ykstakip.util.Fmt
 
@@ -48,6 +50,7 @@ fun PremiumStatisticsScreen(
     val c = MaterialTheme.colorScheme
     val tytExams = exams.filter { it.type.label == "TYT" }.sortedBy { it.date }
     val aytExams = exams.filter { it.type.label == "AYT" }.sortedBy { it.date }
+    val aytFields = remember(aytExams) { aytExams.mapNotNull { it.aytField }.distinct() }
 
     val tytAverage = remember(tytExams) {
         if (tytExams.isNotEmpty()) tytExams.map { it.totalNet }.average() else 0.0
@@ -151,6 +154,11 @@ fun PremiumStatisticsScreen(
                 tytAverage = tytAverage,
                 aytAverage = aytAverage
             )
+        }
+
+        item { PremiumIntelligenceCard(exams = exams, type = ExamType.TYT) }
+        items(aytFields) { field ->
+            PremiumIntelligenceCard(exams = exams, type = ExamType.AYT, aytField = field)
         }
 
         item { Spacer(modifier = Modifier.height(YksTokens.Space.md)) }
