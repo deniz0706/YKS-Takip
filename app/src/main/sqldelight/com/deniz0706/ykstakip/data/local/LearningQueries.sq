@@ -5,7 +5,7 @@ selectLearningOutcomeById:
 SELECT * FROM learning_outcomes WHERE id = ?;
 
 insertLearningOutcome:
-INSERT INTO learning_outcomes (id, exam_type, subject, topic, title, completed, review_requested, wrong_count, acknowledged_wrong_count, next_review_date, review_level, last_reviewed_date, custom, completed_date, completed_subtopics)
+INSERT OR REPLACE INTO learning_outcomes (id, exam_type, subject, topic, title, completed, review_requested, wrong_count, acknowledged_wrong_count, next_review_date, review_level, last_reviewed_date, custom, completed_date, completed_subtopics)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteLearningOutcome:
@@ -18,7 +18,7 @@ selectQuestionCardsByOutcome:
 SELECT * FROM question_cards WHERE outcome_id = ? ORDER BY created_at ASC;
 
 insertQuestionCard:
-INSERT INTO question_cards (id, outcome_id, title, notes, status, created_at, due_date, review_count, photos)
+INSERT OR REPLACE INTO question_cards (id, outcome_id, title, notes, status, created_at, due_date, review_count, photos)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteQuestionCard:
