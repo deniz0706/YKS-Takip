@@ -32,6 +32,11 @@ sealed class YksNavDestination {
         override val arguments = emptyList<androidx.navigation.NamedNavArgument>()
     }
 
+    object Statistics : YksNavDestination() {
+        override val route = "statistics"
+        override val arguments = emptyList<androidx.navigation.NamedNavArgument>()
+    }
+
     object AiCoach : YksNavDestination() {
         override val route = "ai-coach"
         override val arguments = emptyList<androidx.navigation.NamedNavArgument>()
@@ -48,6 +53,7 @@ sealed class YksNavDestination {
 
 /** Bottom-nav level destinations (always visible in the shell). */
 val BOTTOM_NAV_DESTINATIONS = listOf(
+    YksNavDestination.Statistics,
     YksNavDestination.Home,
     YksNavDestination.Exams,
     YksNavDestination.Study,
@@ -59,6 +65,7 @@ val BOTTOM_NAV_DESTINATIONS = listOf(
 fun destinationLabel(destination: YksNavDestination): String = when (destination) {
     YksNavDestination.Home -> "Ana Sayfa"
     YksNavDestination.Exams -> "Denemeler"
+    YksNavDestination.Statistics -> "İstatistikler"
     YksNavDestination.Study -> "Çalışma"
     YksNavDestination.AiCoach -> "AI Koç"
     YksNavDestination.Settings -> "Ayarlar"
@@ -68,6 +75,7 @@ fun destinationLabel(destination: YksNavDestination): String = when (destination
 fun destinationIcon(destination: YksNavDestination): String = when (destination) {
     YksNavDestination.Home -> "🏠"
     YksNavDestination.Exams -> "📝"
+    YksNavDestination.Statistics -> "📊"
     YksNavDestination.Study -> "📚"
     YksNavDestination.AiCoach -> "🤖"
     YksNavDestination.Settings -> "⚙️"

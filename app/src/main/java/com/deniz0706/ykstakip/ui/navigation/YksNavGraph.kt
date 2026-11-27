@@ -66,12 +66,13 @@ import com.deniz0706.ykstakip.domain.model.LearningOutcome
 import com.deniz0706.ykstakip.domain.model.QuestionCard
 import com.deniz0706.ykstakip.domain.repository.LearningRepository
 
-import com.deniz0706.ykstakip.ui.ai.NewAiCoachScreen
-import com.deniz0706.ykstakip.ui.history.ExamDetailScreen
-import com.deniz0706.ykstakip.ui.history.NewExamsScreen
+import com.deniz0706.ykstakip.ui.ai.PremiumAiCoachScreen
+import com.deniz0706.ykstakip.ui.history.PremiumExamDetailScreen
+import com.deniz0706.ykstakip.ui.history.PremiumExamsScreen
 import com.deniz0706.ykstakip.ui.home.PremiumHomeDashboard
-import com.deniz0706.ykstakip.ui.settings.NewSettingsScreen
-import com.deniz0706.ykstakip.ui.study.NewStudyScreen
+import com.deniz0706.ykstakip.ui.settings.PremiumSettingsScreen
+import com.deniz0706.ykstakip.ui.statistics.PremiumStatisticsScreen
+import com.deniz0706.ykstakip.ui.study.PremiumStudyScreen
 import com.deniz0706.ykstakip.ui.theme.YksTheme
 import com.deniz0706.ykstakip.ui.viewmodel.HomeViewModel
 import com.deniz0706.ykstakip.viewmodel.ExamViewModel
@@ -359,7 +360,7 @@ fun YksNavHost(
                 navDeepLink { uriPattern = "yks://exams" }
             )
         ) { backStackEntry ->
-            NewExamsScreen(
+            PremiumExamsScreen(
                 exams = exams,
                 onExamClick = { examId ->
                     navController.navigate("exams/$examId")
@@ -388,7 +389,7 @@ fun YksNavHost(
                     subjects = emptyList()
                 )
 
-            ExamDetailScreen(
+            PremiumExamDetailScreen(
                 exam = exam,
                 onBack = { navController.popBackStack() },
                 onEdit = {
@@ -413,7 +414,7 @@ fun YksNavHost(
                 navDeepLink { uriPattern = "yks://study" }
             )
         ) { backStackEntry ->
-            NewStudyScreen(
+            PremiumStudyScreen(
                 days = studyDays,
                 plan = studyPlan,
                 goal = studyGoal,
@@ -527,7 +528,7 @@ fun YksNavHost(
             val aiCoachViewModel: AiCoachViewModel = viewModel(
                 factory = AiCoachViewModelFactory(appContext as android.app.Application)
             )
-            NewAiCoachScreen(
+            PremiumAiCoachScreen(
                 viewModel = aiCoachViewModel,
                 onApiKeyMissing = { navController.navigate("settings") }
             )
@@ -541,7 +542,7 @@ fun YksNavHost(
                 navDeepLink { uriPattern = "yks://settings" }
             )
         ) { backStackEntry ->
-            NewSettingsScreen(
+            PremiumSettingsScreen(
                 selectedTheme = theme,
                 onThemeChange = { mode ->
                     settingsViewModel.setTheme(mode)

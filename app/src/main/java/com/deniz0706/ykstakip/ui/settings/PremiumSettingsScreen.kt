@@ -1,0 +1,523 @@
+package com.deniz0706.ykstakip.ui.settings
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.deniz0706.ykstakip.ui.theme.YksTokens
+
+/** Premium settings screen for YKS Takip 4.0. */
+@Composable
+fun PremiumSettingsScreen(
+    selectedTheme: String,
+    onThemeChange: (String) -> Unit,
+    tyt: String,
+    ayt: String,
+    obp: String,
+    daily: String,
+    onSave: (String, String, String, String) -> String?,
+    aiBaseUrl: String,
+    aiModel: String,
+    hasAiKey: Boolean,
+    onSaveAi: (String, String, String) -> String?,
+    onTestAi: () -> Unit,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
+    onImportStudy: () -> Unit,
+    onExportStudy: () -> Unit,
+    onUndoStudyImport: () -> Unit,
+    learningZipBusy: Boolean,
+    onExportLearningZip: () -> Unit,
+    onImportLearningZip: () -> Unit,
+    fullBackupBusy: Boolean,
+    onExportFullBackup: () -> Unit,
+    onImportFullBackup: () -> Unit
+) {
+    val c = MaterialTheme.colorScheme
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().background(c.background),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            horizontal = YksTokens.Space.pageHorizontal,
+            vertical = YksTokens.Space.pageVertical
+        ),
+        verticalArrangement = Arrangement.spacedBy(YksTokens.Space.section)
+    ) {
+        // Header
+        item {
+            PremiumSectionHeader(
+                title = "Ayarlar",
+                subtitle = "Kişiselleştirme ve veri",
+                color = c.primary
+            )
+        }
+
+        // Appearance section
+        item {
+            PremiumSettingsCard(
+                title = "Görünüm",
+                subtitle = "Uygulama renk temasını seçin.",
+                color = c
+            ) {
+                PremiumThemeRow(
+                    selected = selectedTheme,
+                    onSelect = onThemeChange,
+                    color = c
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(YksTokens.Space.sm))
+
+        // Goals section
+        item {
+            PremiumSettingsCard(
+                title = "Hedefler",
+                subtitle = "Sınav ve günlük çalışma hedeflerinizi ayarlayın.",
+                color = c
+            ) {
+                PremiumGoalRow(
+                    tyt = tyt,
+                    ayt = ayt,
+                    obp = obp,
+                    daily = daily,
+                    onSave = onSave,
+                    color = c
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(YksTokens.Space.sm))
+
+        // AI section
+        item {
+            PremiumSettingsCard(
+                title = "AI Koç Ayarları",
+                subtitle = "NVIDIA AI bağlantınızı yapılandırın.",
+                color = c
+            ) {
+                PremiumAiRow(
+                    aiBaseUrl = aiBaseUrl,
+                    aiModel = aiModel,
+                    hasAiKey = hasAiKey,
+                    onSaveAi = onSaveAi,
+                    onTestAi = onTestAi,
+                    color = c
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(YksTokens.Space.sm))
+
+        // Data management section
+        item {
+            PremiumSettingsCard(
+                title = "Veri Yönetimi",
+                subtitle = "Yedekleme ve geri yükleme araçları.",
+                color = c
+            ) {
+                PremiumDataRow(
+                    onExport = onExport,
+                    onImport = onImport,
+                    onImportStudy = onImportStudy,
+                    onExportStudy = onExportStudy,
+                    onUndoStudyImport = onUndoStudyImport,
+                    learningZipBusy = learningZipBusy,
+                    onExportLearningZip = onExportLearningZip,
+                    onImportLearningZip = onImportLearningZip,
+                    fullBackupBusy = fullBackupBusy,
+                    onExportFullBackup = onExportFullBackup,
+                    onImportFullBackup = onImportFullBackup,
+                    color = c
+                )
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(120.dp)) }
+    }
+}
+
+@Composable
+private fun PremiumSectionHeader(
+    title: String,
+    subtitle: String,
+    color: Color
+) {
+    val c = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                color = c.onSurface
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun PremiumSettingsCard(
+    title: String,
+    subtitle: String,
+    color: Color,
+    content: @Composable () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = color.surface)
+    ) {
+        androidx.compose.foundation.layout.Column(
+            modifier = Modifier.padding(YksTokens.Space.cardContent)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = color.onSurface,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = color.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+private fun PremiumThemeRow(
+    selected: String,
+    onSelect: (String) -> Unit,
+    color: Color
+) {
+    val options = listOf(
+        "light" to "Açık",
+        "dark" to "Koyu",
+        "aurora" to "Aurora",
+        "system" to "Sistem"
+    )
+    options.chunked(2).forEach { row ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            row.forEach { (id, label) ->
+                val isSelected = selected == id
+                PremiumThemeChip(
+                    id = id,
+                    label = label,
+                    isSelected = isSelected,
+                    onSelect = { onSelect(id) },
+                    color = color
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PremiumThemeChip(
+    id: String,
+    label: String,
+    isSelected: Boolean,
+    onSelect: () -> Unit,
+    color: Color
+) {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier
+            .weight(1f)
+            .clip(RoundedCornerShape(YksTokens.Shape.input))
+            .background(if (isSelected) color.primaryContainer else color.surfaceContainer)
+            .clickable { onSelect() }
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = if (isSelected) "✓ $label" else label,
+            style = MaterialTheme.typography.titleMedium,
+            color = color.onSurface,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
+private fun PremiumGoalRow(
+    tyt: String,
+    ayt: String,
+    obp: String,
+    daily: String,
+    onSave: (String, String, String, String) -> String?,
+    color: Color
+) {
+    var tytValue by remember { mutableStateOf(tyt) }
+    var aytValue by remember { mutableStateOf(ayt) }
+    var obpValue by remember { mutableStateOf(obp) }
+    var dailyValue by remember { mutableStateOf(daily) }
+
+    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+        PremiumInputField(
+            label = "TYT net hedefi · 0–120",
+            value = tytValue,
+            onValueChange = { tytValue = it },
+            placeholder = "TYT",
+            color = color
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PremiumInputField(
+            label = "AYT net hedefi · 0–80",
+            value = aytValue,
+            onValueChange = { aytValue = it },
+            placeholder = "AYT",
+            color = color
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PremiumInputField(
+            label = "OBP · 0–100",
+            value = obpValue,
+            onValueChange = { obpValue = it },
+            placeholder = "OBP",
+            color = color
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PremiumInputField(
+            label = "Günlük soru hedefi",
+            value = dailyValue,
+            onValueChange = { dailyValue = it },
+            placeholder = "Günlük",
+            color = color
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        androidx.compose.material3.Button(
+            onClick = { onSave(tytValue, aytValue, obpValue, dailyValue) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Kaydet")
+        }
+    }
+}
+
+@Composable
+private fun PremiumInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    color: Color
+) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = color.onSurfaceVariant
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(placeholder) },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun PremiumAiRow(
+    aiBaseUrl: String,
+    aiModel: String,
+    hasAiKey: Boolean,
+    onSaveAi: (String, String, String) -> String?,
+    onTestAi: () -> Unit,
+    color: Color
+) {
+    var baseUrlValue by remember { mutableStateOf(aiBaseUrl) }
+    var modelValue by remember { mutableStateOf(aiModel) }
+
+    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+        Text(
+            text = "API anahtarı ${if (hasAiKey) "bu cihazda kayıtlı." else "henüz eklenmedi."}",
+            style = MaterialTheme.typography.bodySmall,
+            color = color.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PremiumInputField(
+            label = "Base URL",
+            value = baseUrlValue,
+            onValueChange = { baseUrlValue = it },
+            placeholder = "https://",
+            color = color
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PremiumInputField(
+            label = "Model adı",
+            value = modelValue,
+            onValueChange = { modelValue = it },
+            placeholder = "Model",
+            color = color
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            androidx.compose.material3.Button(
+                onClick = { onSaveAi("", baseUrlValue, modelValue) },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Kaydet")
+            }
+            androidx.compose.material3.OutlinedButton(
+                onClick = onTestAi,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Test et")
+            }
+        }
+    }
+}
+
+@Composable
+private fun PremiumDataRow(
+    onExport: () -> Unit,
+    onImport: () -> Unit,
+    onImportStudy: () -> Unit,
+    onExportStudy: () -> Unit,
+    onUndoStudyImport: () -> Unit,
+    learningZipBusy: Boolean,
+    onExportLearningZip: () -> Unit,
+    onImportLearningZip: () -> Unit,
+    fullBackupBusy: Boolean,
+    onExportFullBackup: () -> Unit,
+    onImportFullBackup: () -> Unit,
+    color: Color
+) {
+    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+        // Full backup section
+        Text(
+            text = "Tam Yedek · ZIP",
+            style = MaterialTheme.typography.titleMedium,
+            color = color.onSurface,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "Denemeler, çalışma geçmişi, kazanımlar ve soru fotoğrafları tek dosyada.",
+            style = MaterialTheme.typography.bodySmall,
+            color = color.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PremiumActionButton(
+            label = "Tüm verileri yedekle · ZIP",
+            onClick = onExportFullBackup,
+            enabled = !fullBackupBusy,
+            accent = color.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        PremiumOutlinedActionButton(
+            label = "Tam yedeği birleştir",
+            onClick = onImportFullBackup,
+            enabled = !fullBackupBusy,
+            accent = color.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+        androidx.compose.material3.HorizontalDivider(
+            color = color.outlineVariant
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Study history section
+        Text(
+            text = "Çalışma Geçmişi · JSON",
+            style = MaterialTheme.typography.titleMedium,
+            color = color.onSurface,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PremiumActionButton(
+            label = "Çalışma geçmişini yedekle",
+            onClick = onExportStudy,
+            accent = color.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        PremiumOutlinedActionButton(
+            label = "Çalışma geçmişini içe aktar",
+            onClick = onImportStudy,
+            accent = color.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun PremiumActionButton(
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    accent: Color,
+    modifier: Modifier = Modifier
+) {
+    val c = MaterialTheme.colorScheme
+    androidx.compose.material3.Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+    ) {
+        Text(label)
+    }
+}
+
+@Composable
+private fun PremiumOutlinedActionButton(
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    accent: Color,
+    modifier: Modifier = Modifier
+) {
+    val c = MaterialTheme.colorScheme
+    androidx.compose.material3.OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+    ) {
+        Text(label)
+    }
+}
