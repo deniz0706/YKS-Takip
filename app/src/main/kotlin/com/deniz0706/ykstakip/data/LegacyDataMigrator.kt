@@ -21,7 +21,7 @@ import org.json.JSONObject
  */
 object LegacyDataMigrator {
     private const val PREFS = "yks_takip_prefs"
-    private const val KEY_MIGRATED_TO_SQL = "migrated_to_sqldelight_v1"
+    private const val KEY_MIGRATED_TO_SQL = "migrated_to_sqldelight_persistent_v2"
 
     fun migrateIfNeeded(context: Context) {
         val app = context.applicationContext
