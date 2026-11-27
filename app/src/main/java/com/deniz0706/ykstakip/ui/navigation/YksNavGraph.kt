@@ -60,18 +60,16 @@ import com.deniz0706.ykstakip.data.repository.SqlStudyRepository
 import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.domain.model.AytField
-import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.domain.model.LearningOutcome
 import com.deniz0706.ykstakip.domain.model.QuestionCard
 import com.deniz0706.ykstakip.domain.repository.LearningRepository
 
-import com.deniz0706.ykstakip.ui.ai.CoachLine
 import com.deniz0706.ykstakip.ui.ai.NewAiCoachScreen
 import com.deniz0706.ykstakip.ui.history.ExamDetailScreen
 import com.deniz0706.ykstakip.ui.history.NewExamsScreen
-import com.deniz0706.ykstakip.ui.home.NewHomeScreen
+import com.deniz0706.ykstakip.ui.home.PremiumHomeDashboard
 import com.deniz0706.ykstakip.ui.settings.NewSettingsScreen
 import com.deniz0706.ykstakip.ui.study.NewStudyScreen
 import com.deniz0706.ykstakip.ui.theme.YksTheme
@@ -80,6 +78,7 @@ import com.deniz0706.ykstakip.viewmodel.ExamViewModel
 import com.deniz0706.ykstakip.viewmodel.SettingsViewModel
 import com.deniz0706.ykstakip.viewmodel.StatisticsViewModel
 import com.deniz0706.ykstakip.viewmodel.StudyViewModel
+import com.deniz0706.ykstakip.viewmodel.AiCoachViewModel
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
@@ -315,10 +314,6 @@ fun YksNavHost(
     val learningQuestions by learningRepository.getQuestions()
         .collectAsState(initial = emptyList())
 
-    // AiCoach: real AI memory for context lines
-    val aiMemoryRepository = remember(appContext) { com.deniz0706.ykstakip.data.AiMemoryRepository(appContext) }
-    val aiMemories by remember { mutableStateOf(aiMemoryRepository.all()) }
-
     NavHost(
         navController = navController,
         startDestination = YksNavDestination.Home.route
@@ -333,7 +328,7 @@ fun YksNavHost(
             val aiCoachAdvice = homeUiState.aiCoachAdvice
             val aiCoachDate = homeUiState.aiCoachDate
 
-            NewHomeScreen(
+            PremiumHomeDashboard(
                 exams = homeUiState.exams,
                 onNewExam = { examType ->
                     navController.navigate("exams")
@@ -529,17 +524,11 @@ fun YksNavHost(
                 navDeepLink { uriPattern = "yks://ai-coach" }
             )
         ) { backStackEntry ->
+            val aiCoachViewModel: AiCoachViewModel = viewModel(
+                factory = AiCoachViewModelFactory(appContext as android.app.Application)
+            )
             NewAiCoachScreen(
-                lines = aiMemories.map { memory ->
-                    CoachLine("user", memory.content)
-                }.let { memories ->
-                    if (memories.isEmpty()) listOf(CoachLine("assistant", "Merhaba! Size nasıl yardımcı olabilir?")) else memories
-                },
-                draft = "",
-                onDraftChange = {},
-                onSend = {},
-                sending = false,
-                hasApiKey = AiSecretStoreHasApiKey(appContext),
+                viewModel = aiCoachViewModel,
                 onApiKeyMissing = { navController.navigate("settings") }
             )
             onDestinationChange?.invoke(YksNavDestination.AiCoach)
@@ -706,3 +695,12 @@ private class StatisticsViewModelFactory(
     }
 }
 
+
+/** ViewModel factory for AiCoachViewModel. */
+private class AiCoachViewModelFactory(
+    private val application: android.app.Application
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return AiCoachViewModel(application) as T
+    }
+}
