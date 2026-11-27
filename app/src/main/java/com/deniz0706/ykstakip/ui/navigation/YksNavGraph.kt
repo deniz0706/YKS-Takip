@@ -28,6 +28,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,10 +57,16 @@ import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
 import com.deniz0706.ykstakip.data.repository.SqlLearningRepository
 import com.deniz0706.ykstakip.data.repository.SqlStudyRepository
+import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.model.StudyPlanItem
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.QuestionCard
+import com.deniz0706.ykstakip.domain.repository.LearningRepository
+
 import com.deniz0706.ykstakip.ui.ai.CoachLine
 import com.deniz0706.ykstakip.ui.ai.NewAiCoachScreen
 import com.deniz0706.ykstakip.ui.history.ExamDetailScreen
@@ -266,6 +273,7 @@ fun YksNavHost(
     context: Context
 ) {
     val appContext = context.applicationContext
+    val coroutineScope = rememberCoroutineScope()
 
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(appContext as android.app.Application)
@@ -291,6 +299,25 @@ fun YksNavHost(
         factory = StatisticsViewModelFactory(appContext as android.app.Application)
     )
     val statsExams by statisticsViewModel.exams.asFlow().collectAsState(initial = emptyList())
+
+    // Study screen: real plan data from StudyPlanRepository
+    val studyPlanRepository = remember(appContext) { StudyPlanRepository(appContext) }
+    val studyPlan by remember { mutableStateOf(studyPlanRepository.getAll()) }
+
+    // Study screen: real daily goal from AppSettings
+    val studyGoal by remember { mutableStateOf(AppSettings.getDailyGoal(appContext)) }
+
+    // Study screen: real learning outcomes and questions from LearningRepository
+    val learningRepository: com.deniz0706.ykstakip.domain.repository.LearningRepository =
+        remember(appContext) { com.deniz0706.ykstakip.data.repository.SqlLearningRepository(appContext) }
+    val learningOutcomes by learningRepository.getOutcomes()
+        .collectAsState(initial = emptyList())
+    val learningQuestions by learningRepository.getQuestions()
+        .collectAsState(initial = emptyList())
+
+    // AiCoach: real AI memory for context lines
+    val aiMemoryRepository = remember(appContext) { com.deniz0706.ykstakip.data.AiMemoryRepository(appContext) }
+    val aiMemories by remember { mutableStateOf(aiMemoryRepository.all()) }
 
     NavHost(
         navController = navController,
@@ -342,7 +369,9 @@ fun YksNavHost(
                 onExamClick = { examId ->
                     navController.navigate("exams/$examId")
                 },
-                onNewExam = { /* handled by shell */ }
+                onNewExam = {
+                    navController.navigate("exams/new")
+                }
             )
             onDestinationChange?.invoke(YksNavDestination.Exams)
         }
@@ -367,9 +396,17 @@ fun YksNavHost(
             ExamDetailScreen(
                 exam = exam,
                 onBack = { navController.popBackStack() },
-                onEdit = {},
-                onDelete = {},
-                onOpenLearning = { _, _, _ -> }
+                onEdit = {
+                    navController.navigate("exams/${exam.id}/edit")
+                },
+                onDelete = {
+                    coroutineScope.launch {
+                        examViewModel.deleteExam(exam.id)
+                    }
+                },
+                onOpenLearning = { subject, topic, title ->
+                    navController.navigate("study?learning=$subject/$topic/$title")
+                }
             )
             onDestinationChange?.invoke(YksNavDestination.ExamDetail(examId))
         }
@@ -383,24 +420,87 @@ fun YksNavHost(
         ) { backStackEntry ->
             NewStudyScreen(
                 days = studyDays,
-                plan = emptyList(),
-                goal = null,
+                plan = studyPlan,
+                goal = studyGoal,
                 exams = statsExams,
-                learningOutcomes = emptyList(),
-                learningQuestions = emptyList(),
+                learningOutcomes = learningOutcomes,
+                learningQuestions = learningQuestions,
                 learningField = AppSettings.getLearningField(appContext),
                 onLearningFieldChange = { field ->
                     AppSettings.setLearningField(appContext, field)
                 },
-                onLearningComplete = { _, _ -> },
-                onLearningSubtopicComplete = { _, _, _ -> },
-                onLearningWrong = {},
-                onLearningRequestReview = {},
-                onLearningReviewed = {},
-                onLearningPostpone = {},
-                onLearningCreate = { _, _, _, _ -> },
-                onLearningDelete = {},
-                onQuestionCreate = { _, _, _, _ -> "" },
+                onLearningComplete = { id, completed ->
+                    coroutineScope.launch {
+                        val outcome = learningOutcomes.firstOrNull { it.id == id }
+                        if (outcome != null) {
+                            learningRepository.saveOutcome(outcome.copy(completed = completed))
+                        }
+                    }
+                },
+                onLearningSubtopicComplete = { id, subtopic, completed ->
+                    coroutineScope.launch {
+                        val outcome = learningOutcomes.firstOrNull { it.id == id }
+                        if (outcome != null) {
+                            val subtopics = outcome.completedSubtopics.toMutableList()
+                            if (completed) {
+                                if (!subtopics.contains(subtopic)) subtopics.add(subtopic)
+                            } else {
+                                subtopics.remove(subtopic)
+                            }
+                            learningRepository.saveOutcome(outcome.copy(completedSubtopics = subtopics))
+                        }
+                    }
+                },
+                onLearningWrong = { id ->
+                    coroutineScope.launch {
+                        val outcome = learningOutcomes.firstOrNull { it.id == id }
+                        if (outcome != null) {
+                            learningRepository.saveOutcome(outcome.copy(wrongCount = outcome.wrongCount + 1))
+                        }
+                    }
+                },
+                onLearningRequestReview = { id ->
+                    coroutineScope.launch {
+                        val outcome = learningOutcomes.firstOrNull { it.id == id }
+                        if (outcome != null) {
+                            learningRepository.saveOutcome(outcome.copy(reviewRequested = true))
+                        }
+                    }
+                },
+                onLearningReviewed = { id ->
+                    coroutineScope.launch {
+                        val outcome = learningOutcomes.firstOrNull { it.id == id }
+                        if (outcome != null) {
+                            learningRepository.saveOutcome(outcome.copy(reviewRequested = false, reviewLevel = outcome.reviewLevel + 1))
+                        }
+                    }
+                },
+                onLearningPostpone = { id ->
+                    coroutineScope.launch {
+                        val outcome = learningOutcomes.firstOrNull { it.id == id }
+                        if (outcome != null) {
+                            learningRepository.saveOutcome(outcome.copy(nextReviewDate = java.time.LocalDate.now().plusDays(1).toString()))
+                        }
+                    }
+                },
+                onLearningCreate = { examType, subject, topic, title ->
+                    coroutineScope.launch {
+                        val id = java.util.UUID.randomUUID().toString()
+                        val outcome = LearningOutcome(
+                            id = id, examType = examType, subject = subject, topic = topic,
+                            title = title, completed = false, reviewRequested = false,
+                            wrongCount = 0, acknowledgedWrongCount = 0, nextReviewDate = "",
+                            reviewLevel = 0, lastReviewedDate = "", custom = true
+                        )
+                        learningRepository.saveOutcome(outcome)
+                    }
+                },
+                onLearningDelete = { id ->
+                    coroutineScope.launch {
+                        learningRepository.deleteOutcome(id)
+                    }
+                },
+                onQuestionCreate = { title, notes, status, photos -> "" },
                 onQuestionDelete = {},
                 onQuestionReview = { _, _ -> },
                 onQuestionUnsolved = {},
@@ -430,7 +530,11 @@ fun YksNavHost(
             )
         ) { backStackEntry ->
             NewAiCoachScreen(
-                lines = listOf(CoachLine("assistant", "Merhaba! Size nasıl yardımcı olabilir?")),
+                lines = aiMemories.map { memory ->
+                    CoachLine("user", memory.content)
+                }.let { memories ->
+                    if (memories.isEmpty()) listOf(CoachLine("assistant", "Merhaba! Size nasıl yardımcı olabilir?")) else memories
+                },
                 draft = "",
                 onDraftChange = {},
                 onSend = {},
@@ -453,15 +557,29 @@ fun YksNavHost(
                 onThemeChange = { mode ->
                     settingsViewModel.setTheme(mode)
                 },
-                tyt = "",
-                ayt = "",
-                obp = "",
-                daily = "",
-                onSave = { _, _, _, _ -> null },
+                tyt = AppSettings.getTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.TYT)?.toString() ?: "",
+                ayt = AppSettings.getTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.AYT)?.toString() ?: "",
+                obp = AppSettings.getObp(appContext)?.toString() ?: "",
+                daily = AppSettings.getDailyGoal(appContext)?.toString() ?: "",
+                onSave = { tytVal, aytVal, obpVal, dailyVal ->
+                    val tytFloat = if (tytVal.isNotBlank()) tytVal.toFloatOrNull() else null
+                    val aytFloat = if (aytVal.isNotBlank()) aytVal.toFloatOrNull() else null
+                    val obpFloat = if (obpVal.isNotBlank()) obpVal.toFloatOrNull() else null
+                    val dailyInt = if (dailyVal.isNotBlank()) dailyVal.toIntOrNull() else null
+                    AppSettings.setTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.TYT, tytFloat)
+                    AppSettings.setTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.AYT, aytFloat)
+                    AppSettings.setObp(appContext, obpFloat)
+                    AppSettings.setDailyGoal(appContext, dailyInt)
+                    null
+                },
                 aiBaseUrl = AppSettings.getAiBaseUrl(appContext),
                 aiModel = AppSettings.getAiModel(appContext),
                 hasAiKey = AiSecretStoreHasApiKey(appContext),
-                onSaveAi = { _, _, _ -> null },
+                onSaveAi = { baseUrl, model, key ->
+                    AppSettings.setAiBaseUrl(appContext, baseUrl)
+                    AppSettings.setAiModel(appContext, model)
+                    null
+                },
                 onTestAi = {},
                 onExport = {},
                 onImport = {},

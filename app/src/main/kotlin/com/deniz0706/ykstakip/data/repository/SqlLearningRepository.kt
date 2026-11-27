@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
+import com.deniz0706.ykstakip.data.LegacyDataWriteGuard
 import org.json.JSONArray
 import org.json.JSONObject
 
 class SqlLearningRepository(private val context: Context) : LearningRepository {
+    private val writeGuard = LegacyDataWriteGuard("Öğrenme kayıtları")
     private val database = YksDatabase(AndroidSqliteDriver(YksDatabase.Schema, context.applicationContext))
 
     override fun getOutcomes(): Flow<List<LearningOutcome>> = flow {
@@ -78,6 +80,7 @@ class SqlLearningRepository(private val context: Context) : LearningRepository {
     }
 
     override suspend fun saveOutcome(outcome: LearningOutcome) = withContext(Dispatchers.IO) {
+        writeGuard.requireWritable()
         val queries = database.learningQueriesQueries
         queries.insertLearningOutcome(
             outcome.id, outcome.examType, outcome.subject, outcome.topic, outcome.title,
@@ -91,11 +94,13 @@ class SqlLearningRepository(private val context: Context) : LearningRepository {
     }
 
     override suspend fun deleteOutcome(id: String) = withContext(Dispatchers.IO) {
+        writeGuard.requireWritable()
         val queries = database.learningQueriesQueries
         queries.deleteLearningOutcome(id)
     }
 
     override suspend fun saveQuestion(question: QuestionCard) = withContext(Dispatchers.IO) {
+        writeGuard.requireWritable()
         val queries = database.learningQueriesQueries
         queries.insertQuestionCard(
             question.id, question.outcomeId, question.title, question.notes,
@@ -106,6 +111,7 @@ class SqlLearningRepository(private val context: Context) : LearningRepository {
     }
 
     override suspend fun deleteQuestion(id: String) = withContext(Dispatchers.IO) {
+        writeGuard.requireWritable()
         val queries = database.learningQueriesQueries
         queries.deleteQuestionCard(id)
     }
