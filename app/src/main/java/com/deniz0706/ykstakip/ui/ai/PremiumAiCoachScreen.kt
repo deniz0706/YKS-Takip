@@ -26,7 +26,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icons
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -141,10 +140,10 @@ fun PremiumAiCoachScreen(
                 onClick = { viewModel.onSend() },
                 enabled = uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()
             ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "Gönder",
-                    tint = if (uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()) c.primary else c.onSurfaceVariant
+                Text(
+                    text = "➤",
+                    color = if (uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()) c.primary else c.onSurfaceVariant,
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }

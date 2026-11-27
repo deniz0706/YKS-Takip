@@ -499,7 +499,8 @@ fun YksNavHost(
                 },
                 onNewExam = {
                     navController.navigate("exams/new")
-                }
+                },
+                colorScheme = androidx.compose.material3.MaterialTheme.colorScheme
             )
             onDestinationChange?.invoke(YksNavDestination.Exams)
         }
@@ -534,7 +535,8 @@ fun YksNavHost(
                 },
                 onOpenLearning = { subject, topic, title ->
                     navController.navigate("study?learning=$subject/$topic/$title")
-                }
+                },
+                colorScheme = androidx.compose.material3.MaterialTheme.colorScheme
             )
             onDestinationChange?.invoke(YksNavDestination.ExamDetail(examId))
         }
@@ -558,70 +560,25 @@ fun YksNavHost(
                     AppSettings.setLearningField(appContext, field)
                 },
                 onLearningComplete = { id, completed ->
-                    coroutineScope.launch {
-                        val outcome = learningOutcomes.firstOrNull { it.id == id }
-                        if (outcome != null) {
-                            learningRepository.updateOutcome(outcome.copy(completed = completed))
-                        }
-                    }
+                    learningRepository.setCompleted(id, completed)
                 },
                 onLearningSubtopicComplete = { id, subtopic, completed ->
-                    coroutineScope.launch {
-                        val outcome = learningOutcomes.firstOrNull { it.id == id }
-                        if (outcome != null) {
-                            val subtopics = outcome.completedSubtopics.toMutableList()
-                            if (completed) {
-                                if (!subtopics.contains(subtopic)) subtopics.add(subtopic)
-                            } else {
-                                subtopics.remove(subtopic)
-                            }
-                            learningRepository.updateOutcome(outcome.copy(completedSubtopics = subtopics))
-                        }
-                    }
+                    learningRepository.setSubtopicCompleted(id, subtopic, completed)
                 },
                 onLearningWrong = { id ->
-                    coroutineScope.launch {
-                        val outcome = learningOutcomes.firstOrNull { it.id == id }
-                        if (outcome != null) {
-                            learningRepository.updateOutcome(outcome.copy(wrongCount = outcome.wrongCount + 1))
-                        }
-                    }
+                    learningRepository.markWrong(id)
                 },
                 onLearningRequestReview = { id ->
-                    coroutineScope.launch {
-                        val outcome = learningOutcomes.firstOrNull { it.id == id }
-                        if (outcome != null) {
-                            learningRepository.updateOutcome(outcome.copy(reviewRequested = true))
-                        }
-                    }
+                    learningRepository.requestReview(id)
                 },
                 onLearningReviewed = { id ->
-                    coroutineScope.launch {
-                        val outcome = learningOutcomes.firstOrNull { it.id == id }
-                        if (outcome != null) {
-                            learningRepository.updateOutcome(outcome.copy(reviewRequested = false, reviewLevel = outcome.reviewLevel + 1))
-                        }
-                    }
+                    learningRepository.reviewOutcome(id)
                 },
                 onLearningPostpone = { id ->
-                    coroutineScope.launch {
-                        val outcome = learningOutcomes.firstOrNull { it.id == id }
-                        if (outcome != null) {
-                            learningRepository.updateOutcome(outcome.copy(nextReviewDate = java.time.LocalDate.now().plusDays(1).toString()))
-                        }
-                    }
+                    learningRepository.postponeReview(id)
                 },
                 onLearningCreate = { examType, subject, topic, title ->
-                    coroutineScope.launch {
-                        val id = java.util.UUID.randomUUID().toString()
-                        val outcome = LearningOutcome(
-                            id = id, examType = examType, subject = subject, topic = topic,
-                            title = title, completed = false, reviewRequested = false,
-                            wrongCount = 0, acknowledgedWrongCount = 0, nextReviewDate = "",
-                            reviewLevel = 0, lastReviewedDate = "", custom = true
-                        )
-                        learningRepository.updateOutcome(outcome)
-                    }
+                    learningRepository.addOutcome(examType, subject, topic, title)
                 },
                 onLearningDelete = { id ->
                     coroutineScope.launch {
@@ -633,15 +590,7 @@ fun YksNavHost(
                     val outcomeId = learningOutcomes.firstOrNull()?.id
                         ?: run {
                             val defaultId = "genel-sorular"
-                            val defaultOutcome = LearningOutcome(
-                                id = defaultId, examType = "TYT", subject = "Genel",
-                                topic = "Sorular", title = "Genel Sorular", completed = false,
-                                reviewRequested = false, wrongCount = 0, acknowledgedWrongCount = 0,
-                                nextReviewDate = "", reviewLevel = 0, lastReviewedDate = "",
-                                custom = true, completedSubtopics = emptyList()
-                            )
-                            coroutineScope.launch { learningRepository.updateOutcome(defaultOutcome) }
-                            defaultId
+                            learningRepository.addOutcome("TYT", "Genel", "Sorular", "Genel Sorular").id
                         }
                     val card = learningRepository.addQuestion(outcomeId, title, notes, status)
                     card.id
@@ -843,7 +792,8 @@ fun YksNavHost(
                 },
                 onImportFullBackup = {
                     importFullLauncher.launch(arrayOf("application/zip"))
-                }
+                },
+                colorScheme = androidx.compose.material3.MaterialTheme.colorScheme
             )
             onDestinationChange?.invoke(YksNavDestination.Settings)
         }

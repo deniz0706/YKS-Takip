@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -71,7 +70,7 @@ fun PremiumExamsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(YksTokens.Space.sm))
+        item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
 
         if (exams.isEmpty()) {
             item {
@@ -135,6 +134,7 @@ private fun PremiumActionCard(
     colorScheme: ColorScheme,
     modifier: Modifier = Modifier
 ) {
+    val c = colorScheme
     Card(
         modifier = modifier
             .fillMaxWidth()

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -75,7 +74,7 @@ fun PremiumSettingsScreen(
             PremiumSectionHeader(
                 title = "Ayarlar",
                 subtitle = "Kişiselleştirme ve veri",
-                color = c.primary
+                colorScheme = c
             )
         }
 
@@ -94,7 +93,7 @@ fun PremiumSettingsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(YksTokens.Space.sm))
+        item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
 
         // Goals section
         item {
@@ -114,7 +113,7 @@ fun PremiumSettingsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(YksTokens.Space.sm))
+        item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
 
         // AI section
         item {
@@ -134,7 +133,7 @@ fun PremiumSettingsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(YksTokens.Space.sm))
+        item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
 
         // Data management section
         item {
@@ -250,7 +249,8 @@ private fun PremiumThemeRow(
                     label = label,
                     isSelected = isSelected,
                     onSelect = { onSelect(id) },
-                    colorScheme = c
+                    colorScheme = c,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -263,12 +263,12 @@ private fun PremiumThemeChip(
     label: String,
     isSelected: Boolean,
     onSelect: () -> Unit,
-    colorScheme: ColorScheme
+    colorScheme: ColorScheme,
+    modifier: Modifier = Modifier
 ) {
     val c = colorScheme
     androidx.compose.foundation.layout.Column(
-        modifier = Modifier
-            .weight(1f)
+        modifier = modifier
             .clip(RoundedCornerShape(YksTokens.Shape.input))
             .background(if (isSelected) c.primaryContainer else c.surfaceContainer)
             .clickable { onSelect() }
@@ -349,6 +349,7 @@ private fun PremiumInputField(
     placeholder: String,
     colorScheme: ColorScheme
 ) {
+    val c = colorScheme
     Text(
         text = label,
         style = MaterialTheme.typography.labelSmall,

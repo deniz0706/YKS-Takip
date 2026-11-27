@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,8 +73,8 @@ fun PremiumStatisticsScreen(
         item {
             PremiumSectionHeader(
                 title = "İstatistikler",
-                subtitle = "${exams.size} deneme · OBP: ${Fmt.obp(obp)}",
-                color = c.primary
+                subtitle = "${exams.size} deneme · OBP: ${Fmt.net(obp)}",
+                colorScheme = c
             )
         }
 
@@ -108,7 +108,7 @@ fun PremiumStatisticsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(YksTokens.Space.sm))
+        item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
 
         // Best scores row
         item {
@@ -140,7 +140,7 @@ fun PremiumStatisticsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(YksTokens.Space.md))
+        item { Spacer(modifier = Modifier.height(YksTokens.Space.md)) }
 
         // Targets section
         item {
@@ -153,7 +153,7 @@ fun PremiumStatisticsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(YksTokens.Space.md))
+        item { Spacer(modifier = Modifier.height(YksTokens.Space.md)) }
 
         // Recent exams trend
         item {
@@ -204,8 +204,7 @@ private fun PremiumStatTile(
     val c = MaterialTheme.colorScheme
     Column(
         modifier = modifier
-            .weight(1f)
-            .clip(RoundedCornerShape(YksTokens.Shape.panel))
+             .clip(RoundedCornerShape(YksTokens.Shape.panel))
             .background(c.surfaceContainer)
             .padding(YksTokens.Space.cardContent)
     ) {
@@ -297,7 +296,7 @@ private fun PremiumProgressTile(
         (current / target.coerceAtLeast(0.1)).coerceIn(0.0, 1.0)
     } else 0.0
 
-    Column(modifier = modifier.weight(1f)) {
+    Column(modifier = modifier) {
         Text(text = label, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
@@ -360,7 +359,7 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(items = exams, key = { it.id }) { exam ->
+                    exams.forEach { exam ->
                         PremiumTrendRow(
                             exam = exam,
                             colorScheme = c

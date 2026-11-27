@@ -56,7 +56,7 @@ fun NewStatisticsScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "${exams.size} deneme · OBP: ${Fmt.obp(obp)}",
+                    text = "${exams.size} deneme · OBP: ${Fmt.net(obp)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = c.onSurfaceVariant
                 )
