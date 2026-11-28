@@ -57,106 +57,129 @@ fun PremiumAiCoachScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val c = MaterialTheme.colorScheme
-
     var draft by remember { mutableStateOf(uiState.draft) }
+    val listState = rememberLazyListState()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(c.background),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            horizontal = YksTokens.Space.pageHorizontal,
-            vertical = YksTokens.Space.pageVertical
-        ),
-        verticalArrangement = Arrangement.spacedBy(YksTokens.Space.sm)
-    ) {
-        // Header
-        item {
-            PremiumAiHeader(colorScheme = c)
-        }
-
-        // API key missing state
-        if (!uiState.hasApiKey) {
-            item {
-                PremiumApiKeyMissingCard(colorScheme = c, onApiKeyMissing = onApiKeyMissing)
-            }
-        }
-
-        // Error state
-        uiState.error?.let { error ->
-            item {
-                PremiumErrorCard(
-                    message = error,
-                    onDismiss = { viewModel.clearError() },
-                    colorScheme = c
-                )
-            }
-        }
-
-        // Messages
-        itemsIndexed(items = uiState.messages) { index, message ->
-            PremiumMessageBubble(
-                role = message.role,
-                text = message.content,
-                isUser = message.role == "user",
-                isError = message.isError,
-                isStreaming = message.isStreaming,
-                colorScheme = c
+    LaunchedEffect(uiState.messages.size, uiState.isStreaming) {
+        val lastIndex = uiState.messages.lastIndex
+        if (lastIndex >= 0) {
+            listState.animateScrollToItem(
+                if (uiState.isStreaming) lastIndex + 1 else lastIndex
             )
-        }
-
-        // Streaming indicator
-        if (uiState.isStreaming) {
-            item {
-                PremiumStreamingIndicator(colorScheme = c)
-            }
         }
     }
 
-    // Input area
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = YksTokens.Space.pageHorizontal, vertical = 8.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(c.background)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.sm)
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                horizontal = YksTokens.Space.pageHorizontal,
+                vertical = YksTokens.Space.pageVertical
+            ),
+            verticalArrangement = Arrangement.spacedBy(YksTokens.Space.sm)
         ) {
-            androidx.compose.material3.TextField(
-                value = draft,
-                onValueChange = { newDraft ->
-                    viewModel.onDraftChange(newDraft)
-                    draft = newDraft
-                },
-                label = { Text("Mesajınızı yazın") },
-                placeholder = { Text("Sorunuzu buraya yazın...") },
-                singleLine = false,
-                maxLines = 4,
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(48.dp, 120.dp)
-                    .clip(RoundedCornerShape(YksTokens.Shape.input)),
-                enabled = uiState.hasApiKey && !uiState.isSending
-            )
-            IconButton(
-                onClick = { viewModel.onSend() },
-                enabled = uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()
-            ) {
-                Text(
-                    text = "➤",
-                    color = if (uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()) c.primary else c.onSurfaceVariant,
-                    style = MaterialTheme.typography.titleMedium
+            item { PremiumAiHeader(colorScheme = c) }
+
+            if (!uiState.hasApiKey) {
+                item {
+                    PremiumApiKeyMissingCard(
+                        colorScheme = c,
+                        onApiKeyMissing = onApiKeyMissing
+                    )
+                }
+            }
+
+            uiState.error?.let { error ->
+                item {
+                    PremiumErrorCard(
+                        message = error,
+                        onDismiss = { viewModel.clearError() },
+                        colorScheme = c
+                    )
+                }
+            }
+
+            itemsIndexed(items = uiState.messages) { _, message ->
+                PremiumMessageBubble(
+                    role = message.role,
+                    text = message.content,
+                    isUser = message.role == "user",
+                    isError = message.isError,
+                    isStreaming = message.isStreaming,
+                    colorScheme = c
                 )
             }
+
+            if (uiState.isStreaming) {
+                item { PremiumStreamingIndicator(colorScheme = c) }
+            }
         }
-        if (uiState.isSending && !uiState.isStreaming) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = c.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = YksTokens.Space.pageHorizontal,
+                        vertical = 8.dp
+                    )
             ) {
-                CircularProgressIndicator(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    strokeWidth = 2.dp,
-                    color = c.primary
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.sm)
+                ) {
+                    androidx.compose.material3.TextField(
+                        value = draft,
+                        onValueChange = { newDraft ->
+                            viewModel.onDraftChange(newDraft)
+                            draft = newDraft
+                        },
+                        label = { Text("Mesajınızı yazın") },
+                        placeholder = { Text("Sorunuzu buraya yazın...") },
+                        singleLine = false,
+                        maxLines = 4,
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(48.dp, 120.dp)
+                            .clip(RoundedCornerShape(YksTokens.Shape.input)),
+                        enabled = uiState.hasApiKey && !uiState.isSending
+                    )
+                    IconButton(
+                        onClick = { viewModel.onSend() },
+                        enabled = uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()
+                    ) {
+                        Text(
+                            text = "➤",
+                            color = if (uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()) {
+                                c.primary
+                            } else {
+                                c.onSurfaceVariant
+                            },
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+                if (uiState.isSending && !uiState.isStreaming) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = c.primary
+                        )
+                    }
+                }
             }
         }
     }
