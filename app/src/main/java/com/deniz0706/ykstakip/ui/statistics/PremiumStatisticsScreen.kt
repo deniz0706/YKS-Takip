@@ -22,12 +22,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -133,7 +135,7 @@ fun PremiumStatisticsScreen(
         // Recent exams trend
         item {
             PremiumRecentTrendCard(
-                exams = exams.takeLast(10).reversed()
+                exams = exams.sortedByDescending { it.date }.take(10).reversed()
             )
         }
 
@@ -353,6 +355,14 @@ private fun PremiumProgressTile(
 @Composable
 private fun PremiumRecentTrendCard(exams: List<Exam>) {
     val c = MaterialTheme.colorScheme
+    var selectedFilter by remember { mutableStateOf("Tümü") }
+    val filteredExams = remember(exams, selectedFilter) {
+        when (selectedFilter) {
+            "TYT" -> exams.filter { it.type == ExamType.TYT }
+            "AYT" -> exams.filter { it.type == ExamType.AYT }
+            else -> exams
+        }
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
@@ -366,17 +376,27 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                 style = MaterialTheme.typography.labelLarge,
                 color = c.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Tümü", "TYT", "AYT").forEach { filter ->
+                    FilterChip(
+                        selected = selectedFilter == filter,
+                        onClick = { selectedFilter = filter },
+                        label = { Text(filter) }
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
-            val chronological = exams.reversed().take(10).reversed()
+            val chronological = filteredExams
             if (chronological.size >= 2) {
                 PremiumStatisticsTrendChart(chronological)
                 Spacer(modifier = Modifier.height(18.dp))
             }
 
-            if (exams.isEmpty()) {
+            if (filteredExams.isEmpty()) {
                 Text(
-                    text = "Henüz deneme kaydı yok",
+                    text = if (exams.isEmpty()) "Henüz deneme kaydı yok" else "Bu filtrede deneme bulunamadı",
                     style = MaterialTheme.typography.bodyMedium,
                     color = c.onSurfaceVariant
                 )
@@ -385,7 +405,7 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    exams.forEach { exam ->
+                    filteredExams.forEach { exam ->
                         PremiumTrendRow(
                             exam = exam,
                             colorScheme = c
