@@ -444,7 +444,7 @@ fun YksNavHost(
             PremiumHomeDashboard(
                 exams = homeUiState.exams,
                 onNewExam = { examType ->
-                    navController.navigate("exams")
+                    navController.navigate("exams/new")
                 },
                 onOpenStudy = { navController.navigate("study") },
                 onOpenAiCoach = { navController.navigate("ai-coach") },
