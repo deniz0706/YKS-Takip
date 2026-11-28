@@ -105,15 +105,7 @@ object YksRankingCalculator {
         second: String
     ): Long {
         return try {
-            val firstDate = java.time.LocalDate.parse(first)
-            val secondDate = java.time.LocalDate.parse(second)
-
-            kotlin.math.abs(
-                java.time.temporal.ChronoUnit.DAYS.between(
-                    firstDate,
-                    secondDate
-                )
-            )
+            DateDistance.daysBetween(first, second)
         } catch (e: Exception) {
             Long.MAX_VALUE
         }
