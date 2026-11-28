@@ -667,8 +667,8 @@ private fun PremiumLearningRow(
     val c = colorScheme
     Row(
         modifier = Modifier.fillMaxWidth()
+            .clayInset(shape = RoundedCornerShape(YksTokens.Shape.control))
             .clip(RoundedCornerShape(YksTokens.Shape.control))
-            .background(c.surfaceContainer)
             .padding(vertical = 8.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
@@ -770,7 +770,6 @@ private fun PremiumStatTile(
         modifier = modifier
              .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp)
             .clip(RoundedCornerShape(YksTokens.Shape.panel))
-            .background(c.surfaceContainer)
             .padding(YksTokens.Space.cardContent)
     ) {
         Text(text = label, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
@@ -801,7 +800,6 @@ private fun PremiumActionTile(
         modifier = modifier
              .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp)
             .clip(RoundedCornerShape(YksTokens.Shape.panel))
-            .background(c.surfaceContainer)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
