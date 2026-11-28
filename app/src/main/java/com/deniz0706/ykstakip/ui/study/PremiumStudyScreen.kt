@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.ui.study
 
 import com.deniz0706.ykstakip.ui.theme.clayCanvas
+import com.deniz0706.ykstakip.ui.theme.clayInset
 import com.deniz0706.ykstakip.ui.theme.clayRaised
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
