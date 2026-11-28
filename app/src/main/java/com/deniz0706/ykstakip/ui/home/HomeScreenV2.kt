@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.model.Exam
 import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.domain.ExamAnalytics
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardProgress
 import com.deniz0706.ykstakip.ui.components.DashboardRing
@@ -103,21 +104,16 @@ fun HomeScreenV2(
             else -> all
         }
     }
-    val nets = remember(shown) { shown.map { it.totalNet } }
-    val latest = all.lastOrNull()?.totalNet
-    val previous = all.getOrNull(all.lastIndex - 1)?.totalNet
-    val change = if (latest != null && previous != null) latest - previous else null
+    val analytics = remember(all) { ExamAnalytics.summarize(all) }
+    val nets = remember(shown) { ExamAnalytics.trend(shown) }
+    val latest = analytics.latestNet
+    val change = analytics.change
     val goal = if (type == ExamType.TYT) targetTyt else targetAyt
     val countdown = if (type == ExamType.TYT) daysLeft else daysLeftAyt
-    val average = remember(all) { all.map { it.totalNet }.takeIf { it.isNotEmpty() }?.average() }
-    val best = remember(all) { all.maxOfOrNull { it.totalNet } }
-    val recent = remember(all) { all.takeLast(5) }
-    val older = remember(all) { all.dropLast(5).takeLast(5) }
-    val recentAvg = remember(recent) { recent.map { it.totalNet }.takeIf { it.isNotEmpty() }?.average() }
-    // A one-to-four-exam sample is not a comparable "previous five" period.
-    val olderAvg = remember(older) {
-        older.takeIf { it.size == 5 }?.map { it.totalNet }?.average()
-    }
+    val average = analytics.averageNet
+    val best = analytics.bestNet
+    val recentAvg = analytics.recentFiveAverage
+    val olderAvg = analytics.previousFiveAverage
 
     LazyColumn(
         modifier.fillMaxSize().background(c.background),
@@ -264,7 +260,7 @@ fun HomeScreenV2(
                 HorizontalDivider(color = c.outlineVariant.copy(alpha = .55f))
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    HomeInsights.trendSentence(recentAvg, olderAvg, recent.size),
+                    HomeInsights.trendSentence(recentAvg, olderAvg, analytics.recentCount),
                     color = c.onSurface, style = MaterialTheme.typography.bodyMedium
                 )
                 if (recentAvg != null && olderAvg != null) {

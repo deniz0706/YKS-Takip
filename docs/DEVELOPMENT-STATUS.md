@@ -227,3 +227,33 @@ Updated: 2026-11-26
 - Connected the existing Android `NewExamScreenV2` save path to `ExamEntryRules.validate/create`. The screen now uses the common validator as its final gate and passes the validated shared `Exam` aggregate to the existing repository callback. The SharedPreferences JSON adapter and persistence contract are unchanged.
 - No ranking files, signing material, application ID, existing exam JSON format, or production database writes were changed.
 - CI for the repair commit is pending; no build or test success is claimed until the new workflows complete.
+
+
+## Shared domain analytics hardening — 2026-11-26
+- Opened isolated branch `4.0/shared-domain-analytics` from `4.0/compose-multiplatform-shell` checkpoint `6b95aec27eddac18e1362f57bc4f659675695562`; it is intentionally separate so the active APK/KMP validation on the parent branch is not cancelled.
+- Added `ExamAnalytics` and `ExamTrendSummary` to commonMain. Latest/previous net, delta, average, best, rolling five-exam averages, and chronological sparkline values now have one platform-independent implementation.
+- Connected the existing Android HomeScreenV2 performance metrics and shared Compose Multiplatform trend card to the common analytics contract. Existing UI sections and navigation remain in place.
+- Hardened exam validation to reject subject records whose stored question count does not match the official TYT/selected AYT subject configuration.
+- Added common tests for empty history, date ordering, trend limits, latest/change/average/best values, complete five-exam comparison windows, AYT subject sets, negative time, combined answer limits, and question-count mismatch.
+- This branch is not merged. Its own CI must pass before opening an integration PR to the CMP shell branch.
+
+
+## Shared dashboard data bridge — 2026-11-26
+- Extended the common Compose dashboard contract with `DashboardUiState.fromExams`, which derives TYT/AYT latest net, previous net, and the latest ten chronological attempts from the shared domain analytics engine.
+- Added a direct commonMain dependency from `:composeApp` to `:core:domain`; platform repositories can now provide the same shared Exam aggregates and platform-owned settings to the common dashboard without duplicating score/trend calculations.
+- Added common tests proving real TYT/AYT records and goals/countdown/study counters map into the shared UI state.
+- This remains a data-contract bridge, not a claim that iOS persistence or the complete app navigation has shipped. Android's current HomeScreenV2 remains the production home while migration proceeds incrementally.
+- Updated branch: `4.0/shared-domain-analytics`; integration PR #53 remains draft and awaits both Android and KMP/iOS-target CI workflows.
+
+
+## Dashboard net-range correctness — 2026-11-26
+- Corrected the shared dashboard state contract to allow negative net values. A negative net is a valid exam outcome when wrong answers outweigh correct answers; only NaN and infinite values are rejected.
+- Net-goal values must be finite and non-negative. Goal progress labels are clamped to the same display range as the ring.
+- Added common tests for negative net acceptance and non-finite trend/goal rejection.
+
+
+## Android Lint / Kotlin Analysis API compatibility repair — 2026-11-26
+- Inspected the failed APK workflow logs. Android debug/release Kotlin compilation and APK packaging completed, but `:app:lintVitalAnalyzeRelease` crashed inside `androidx.lifecycle.lint.NonNullableMutableLiveDataDetector` with `IncompatibleClassChangeError` for `KaCallableMemberCall`. This is the exact Lifecycle lint API compatibility issue documented in the official Lifecycle 2.9.0 release notes; it is not an application source-code error.
+- Updated AGP from 8.7.3 to 8.10.1. Kotlin 2.2.21's supported AGP range includes 8.10.1, and AGP 8.10 requires Gradle 8.11.1, which remains the CI version.
+- Updated Android Lifecycle ViewModel/Runtime dependencies to 2.9.4 and aligned all resolved `androidx.lifecycle` artifacts to 2.9.4 to avoid an older transitive lint detector re-entering the graph.
+- Lint has not been disabled or suppressed. The repair remains unverified until the latest Android APK workflow completes successfully.

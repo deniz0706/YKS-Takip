@@ -25,6 +25,13 @@ object ExamEntryRules {
 
         for (subject in subjects) {
             val rule = expected.first { it.name == subject.subject }
+            if (subject.questionCount != rule.questionCount) {
+                return ExamValidationResult.SubjectQuestionCountMismatch(
+                    subject = subject.subject,
+                    expected = rule.questionCount,
+                    actual = subject.questionCount
+                )
+            }
             val answerResult = ExamValidation.validateAnswers(
                 correct = subject.correct,
                 wrong = subject.wrong,

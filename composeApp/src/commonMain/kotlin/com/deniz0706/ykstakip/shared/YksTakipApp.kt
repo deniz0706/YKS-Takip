@@ -25,6 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.deniz0706.ykstakip.domain.Exam
+import com.deniz0706.ykstakip.domain.ExamAnalytics
+import com.deniz0706.ykstakip.domain.ExamType
 
 private val GraphiteBackground = Color(0xFF0F1115)
 private val GraphiteSurface = Color(0xFF181B20)
@@ -48,11 +51,48 @@ data class DashboardUiState(
         require(todayQuestionCount >= 0) { "Bugünkü soru sayısı negatif olamaz." }
         require(dailyQuestionGoal == null || dailyQuestionGoal >= 0) { "Günlük hedef negatif olamaz." }
         require(daysUntilExam == null || daysUntilExam >= 0) { "Sınava kalan gün negatif olamaz." }
-        require((tytGoal == null || tytGoal >= 0f) && (aytGoal == null || aytGoal >= 0f)) {
-            "Net hedefi negatif olamaz."
+        require(
+            (tytGoal == null || (tytGoal.isFinite() && tytGoal >= 0f)) &&
+                (aytGoal == null || (aytGoal.isFinite() && aytGoal >= 0f))
+        ) {
+            "Net hedefi geçersiz."
         }
-        require((tytTrend + aytTrend).all { it.isFinite() && it >= 0.0 }) {
-            "Net geçmişi geçersiz değer içeriyor."
+        // Negative net values are legitimate when wrong answers exceed correct answers.
+        require((tytTrend + aytTrend).all { it.isFinite() }) {
+            "Net geçmişi sonlu olmayan değer içeriyor."
+        }
+    }
+
+    companion object {
+        /**
+         * Builds the shared dashboard contract from persisted domain records.
+         * Platform repositories only need to supply exams and platform-owned settings.
+         */
+        fun fromExams(
+            exams: List<Exam>,
+            tytGoal: Float? = null,
+            aytGoal: Float? = null,
+            daysUntilExam: Long? = null,
+            todayQuestionCount: Int = 0,
+            dailyQuestionGoal: Int? = null
+        ): DashboardUiState {
+            val tytExams = exams.filter { it.type == ExamType.TYT }
+            val aytExams = exams.filter { it.type == ExamType.AYT }
+            val tyt = ExamAnalytics.summarize(tytExams)
+            val ayt = ExamAnalytics.summarize(aytExams)
+            return DashboardUiState(
+                tytLatestNet = tyt.latestNet,
+                tytPreviousNet = tyt.previousNet,
+                tytGoal = tytGoal,
+                tytTrend = ExamAnalytics.trend(tytExams, limit = 10),
+                aytLatestNet = ayt.latestNet,
+                aytPreviousNet = ayt.previousNet,
+                aytGoal = aytGoal,
+                aytTrend = ExamAnalytics.trend(aytExams, limit = 10),
+                daysUntilExam = daysUntilExam,
+                todayQuestionCount = todayQuestionCount,
+                dailyQuestionGoal = dailyQuestionGoal
+            )
         }
     }
 }
@@ -72,7 +112,7 @@ fun YksTakipApp(
     val trend = if (selectedExam == "TYT") dashboard.tytTrend else dashboard.aytTrend
     val change = if (latest != null && previous != null) latest - previous else null
     val progress = if (latest != null && goal != null && goal > 0f) {
-        "${((latest / goal) * 100.0).toInt()}%"
+        "${((latest / goal) * 100.0).toInt().coerceIn(0, 999)}%"
     } else null
 
     MaterialTheme(

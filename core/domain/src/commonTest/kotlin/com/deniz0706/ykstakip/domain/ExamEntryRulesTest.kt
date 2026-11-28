@@ -50,6 +50,48 @@ class ExamEntryRulesTest {
     }
 
     @Test
+    fun validatesQuestionCountsAndCombinedAnswers() {
+        val wrongQuestionCount = tytSubjects().map {
+            if (it.subject == "Türkçe") it.copy(questionCount = 39) else it
+        }
+        assertEquals(
+            ExamValidationResult.SubjectQuestionCountMismatch("Türkçe", 40, 39),
+            ExamEntryRules.validate(ExamType.TYT, null, wrongQuestionCount)
+        )
+
+        val tooManyAnswers = tytSubjects().map {
+            if (it.subject == "Türkçe") it.copy(correct = 25, wrong = 20) else it
+        }
+        assertEquals(
+            ExamValidationResult.TotalAnswersExceedsSubjectLimit("Türkçe", 40),
+            ExamEntryRules.validate(ExamType.TYT, null, tooManyAnswers)
+        )
+    }
+
+    @Test
+    fun validatesNegativeTimeAndAytSubjectSet() {
+        val negativeTime = tytSubjects().map {
+            if (it.subject == "Türkçe") it.copy(timeMinutes = -1) else it
+        }
+        assertEquals(
+            ExamValidationResult.NegativeTime,
+            ExamEntryRules.validate(ExamType.TYT, null, negativeTime)
+        )
+
+        val aytSubjects = SubjectConfigs.AYT_SAYISAL.map {
+            SubjectResult(it.name, it.questionCount, 0, 0, 0)
+        }
+        assertEquals(
+            ExamValidationResult.Valid,
+            ExamEntryRules.validate(ExamType.AYT, AytField.SAYISAL, aytSubjects)
+        )
+        assertEquals(
+            ExamValidationResult.UnexpectedAytField,
+            ExamEntryRules.validate(ExamType.TYT, AytField.SAYISAL, tytSubjects())
+        )
+    }
+
+    @Test
     fun refusesInvalidMetadataAndAnswerCounts() {
         assertNull(ExamEntryRules.create(1, " ", "2026-11-26", ExamType.TYT, subjects = tytSubjects()))
         val invalid = tytSubjects().map { if (it.subject == "Türkçe") it.copy(correct = 41) else it }
