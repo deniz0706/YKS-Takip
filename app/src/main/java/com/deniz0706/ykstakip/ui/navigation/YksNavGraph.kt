@@ -88,7 +88,9 @@ import com.deniz0706.ykstakip.viewmodel.StudyViewModel
 import com.deniz0706.ykstakip.viewmodel.AiCoachViewModel
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Adaptive shell that chooses NavigationBar (phone) or NavigationRail (tablet). */
 @Composable
@@ -354,61 +356,83 @@ fun YksNavHost(
     val exportFullLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
     ) { uri ->
-        uri?.let {
-            try {
+        uri?.let { destination ->
+            coroutineScope.launch {
                 fullBackupBusy = true
-                val result = com.deniz0706.ykstakip.data.FullBackupManager.exportTo(appContext, it)
-                // Feedback handled by caller via onExportFullBackup success flow
-            } catch (e: Exception) {
-                // Error feedback handled by caller
-            } finally {
-                fullBackupBusy = false
+                try {
+                    withContext(Dispatchers.IO) {
+                        com.deniz0706.ykstakip.data.FullBackupManager.exportTo(appContext, destination)
+                    }
+                } catch (_: Exception) {
+                    // The screen presents a non-destructive error state.
+                } finally {
+                    fullBackupBusy = false
+                }
             }
         }
     }
     val importFullLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
-        uri?.let {
-            try {
+        uri?.let { source ->
+            coroutineScope.launch {
                 fullBackupBusy = true
-                val prepared = com.deniz0706.ykstakip.data.FullBackupManager.prepareImport(appContext, it)
-                com.deniz0706.ykstakip.data.FullBackupManager.merge(appContext, prepared)
-            } catch (e: Exception) {
-                // Error feedback handled by caller
-            } finally {
-                fullBackupBusy = false
+                try {
+                    withContext(Dispatchers.IO) {
+                        val prepared = com.deniz0706.ykstakip.data.FullBackupManager.prepareImport(appContext, source)
+                        com.deniz0706.ykstakip.data.FullBackupManager.merge(appContext, prepared)
+                    }
+                    examViewModel.refresh()
+                    studyViewModel.refresh()
+                } catch (_: Exception) {
+                    // The screen presents a non-destructive error state.
+                } finally {
+                    fullBackupBusy = false
+                }
             }
         }
     }
     val exportStudyLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
-        uri?.let {
-            try {
-                val days = com.deniz0706.ykstakip.data.StudyRepository(appContext).getAll()
-                val json = com.deniz0706.ykstakip.data.StudyBackupManager.exportJson(days)
-                appContext.contentResolver.openOutputStream(it)?.use { output ->
-                    output.write(json.toByteArray())
+        uri?.let { destination ->
+            coroutineScope.launch {
+                try {
+                    val days = withContext(Dispatchers.IO) {
+                        SqlStudyRepository.getInstance(appContext).getAll()
+                    }
+                    val json = com.deniz0706.ykstakip.data.StudyBackupManager.exportJson(days)
+                    withContext(Dispatchers.IO) {
+                        appContext.contentResolver.openOutputStream(destination)?.use { output ->
+                            output.write(json.toByteArray())
+                        }
+                    }
+                } catch (_: Exception) {
+                    // The screen presents a non-destructive error state.
                 }
-            } catch (e: Exception) {
-                // Error feedback handled by caller
             }
         }
     }
     val importStudyLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
-        uri?.let {
-            try {
-                val text = appContext.contentResolver.openInputStream(it)?.use {
-                    java.io.BufferedReader(java.io.InputStreamReader(it)).readText()
-                } ?: throw java.io.IOException("Dosya okunamadı.")
-                val parsed = com.deniz0706.ykstakip.data.StudyBackupManager.parseJson(text)
-                lastStudyImportJson = text
-                com.deniz0706.ykstakip.data.StudyRepository(appContext).importDays(parsed.days, overwrite = false)
-            } catch (e: Exception) {
-                // Error feedback handled by caller
+        uri?.let { source ->
+            coroutineScope.launch {
+                try {
+                    val parsed = withContext(Dispatchers.IO) {
+                        val text = appContext.contentResolver.openInputStream(source)?.use {
+                            java.io.BufferedReader(java.io.InputStreamReader(it)).readText()
+                        } ?: throw java.io.IOException("Dosya okunamadı.")
+                        lastStudyImportJson = text
+                        com.deniz0706.ykstakip.data.StudyBackupManager.parseJson(text)
+                    }
+                    withContext(Dispatchers.IO) {
+                        SqlStudyRepository.getInstance(appContext).importDays(parsed.days, overwrite = false)
+                    }
+                    studyViewModel.refresh()
+                } catch (_: Exception) {
+                    // The screen presents a non-destructive error state.
+                }
             }
         }
     }
@@ -619,12 +643,19 @@ fun YksNavHost(
                 },
                 onEditToday = {
                     val date = java.time.LocalDate.now().toString()
-                    val studyRepo = com.deniz0706.ykstakip.data.StudyRepository(appContext)
-                    studyRepo.save(com.deniz0706.ykstakip.domain.model.StudyDay(
-                        date = date,
-                        questionCount = 0,
-                        studyMinutes = 0
-                    ))
+                    coroutineScope.launch {
+                        withContext(Dispatchers.IO) {
+                            val studyRepo = SqlStudyRepository.getInstance(appContext)
+                            if (studyRepo.get(date) == null) {
+                                studyRepo.save(com.deniz0706.ykstakip.domain.model.StudyDay(
+                                    date = date,
+                                    questionCount = 0,
+                                    studyMinutes = 0
+                                ))
+                            }
+                        }
+                        studyViewModel.refresh()
+                    }
                     navController.navigate("study")
                 },
                 onFocusSaved = {
@@ -632,10 +663,10 @@ fun YksNavHost(
                     focusRepo.saveToToday()
                 },
                 onEditDay = { date ->
-                    val studyRepo = com.deniz0706.ykstakip.data.StudyRepository(appContext)
-                    val day = studyRepo.get(date)
-                    if (day != null) {
-                        // Day selected; handled by UI
+                    coroutineScope.launch {
+                        withContext(Dispatchers.IO) {
+                            SqlStudyRepository.getInstance(appContext).get(date)
+                        }
                     }
                 },
                 onPickDay = {
@@ -760,8 +791,12 @@ fun YksNavHost(
                     }
                 },
                 onExport = {
-                    val destination = android.net.Uri.fromFile(java.io.File(appContext.cacheDir, "yks-export.json"))
-                    com.deniz0706.ykstakip.data.FullBackupManager.exportTo(appContext, destination)
+                    val destination = android.net.Uri.fromFile(java.io.File(appContext.cacheDir, "yks-export.zip"))
+                    coroutineScope.launch {
+                        withContext(Dispatchers.IO) {
+                            com.deniz0706.ykstakip.data.FullBackupManager.exportTo(appContext, destination)
+                        }
+                    }
                 },
                 onImport = {
                     // No file-based exam import currently supported; exams are managed in-app.
@@ -773,10 +808,11 @@ fun YksNavHost(
                     exportStudyLauncher.launch("yks-study-backup.json")
                 },
                 onUndoStudyImport = {
-                    try {
-                        com.deniz0706.ykstakip.data.StudyRepository(appContext).undoLastImport()
-                    } catch (_: Exception) {
-                        // No undo available
+                    coroutineScope.launch {
+                        withContext(Dispatchers.IO) {
+                            SqlStudyRepository.getInstance(appContext).undoLastImport()
+                        }
+                        studyViewModel.refresh()
                     }
                 },
                 learningZipBusy = learningZipBusy,
