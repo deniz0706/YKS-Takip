@@ -297,7 +297,7 @@ private fun PremiumErrorCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "⚠️ $message",
+                text = "Uyarı $message",
                 style = MaterialTheme.typography.bodySmall,
                 color = c.onErrorContainer
             )
@@ -329,7 +329,7 @@ private fun PremiumMessageBubble(
     ) {
         if (!isUser) {
             Text(
-                text = "🤖",
+                text = "AI",
                 style = MaterialTheme.typography.titleMedium,
                 color = c.primary
             )
@@ -351,7 +351,7 @@ private fun PremiumMessageBubble(
         if (isUser) {
             Spacer(Modifier.width(8.dp))
             Text(
-                text = "👤",
+                text = "Sen",
                 style = MaterialTheme.typography.titleMedium,
                 color = c.primary
             )
@@ -368,7 +368,7 @@ private fun PremiumStreamingIndicator(colorScheme: ColorScheme) {
         horizontalArrangement = Arrangement.Start
     ) {
         Text(
-            text = "🤖",
+            text = "AI",
             style = MaterialTheme.typography.titleMedium,
             color = c.primary
         )
