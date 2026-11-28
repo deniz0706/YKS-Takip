@@ -76,7 +76,7 @@ fun ExamEntryScreen(
     val canSave = title.isNotBlank() && validDate && validScores
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.clayCanvas()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = YksTokens.Space.pageHorizontal, vertical = YksTokens.Space.pageVertical),
         verticalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
