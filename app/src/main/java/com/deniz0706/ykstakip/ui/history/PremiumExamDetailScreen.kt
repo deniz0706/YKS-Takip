@@ -1,5 +1,6 @@
 package com.deniz0706.ykstakip.ui.history
 
+import com.deniz0706.ykstakip.ui.theme.clayCanvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,7 +57,7 @@ fun PremiumExamDetailScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        modifier = Modifier.clayCanvas().verticalScroll(rememberScrollState())
             .padding(horizontal = YksTokens.Space.pageHorizontal, vertical = YksTokens.Space.pageVertical),
         verticalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
     ) {
