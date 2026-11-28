@@ -28,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.ui.theme.YksTokens
 
@@ -376,12 +379,25 @@ private fun PremiumAiRow(
     val c = colorScheme
     var baseUrlValue by remember { mutableStateOf(aiBaseUrl) }
     var modelValue by remember { mutableStateOf(aiModel) }
+    var keyValue by remember { mutableStateOf("") }
+    var saveMessage by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.padding(horizontal = 12.dp)) {
         Text(
             text = "API anahtarı ${if (hasAiKey) "bu cihazda kayıtlı." else "henüz eklenmedi."}",
             style = MaterialTheme.typography.bodySmall,
             color = c.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = keyValue,
+            onValueChange = { keyValue = it; saveMessage = null },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("API anahtarı") },
+            placeholder = { Text(if (hasAiKey) "Değiştirmek için yeni anahtar girin" else "API anahtarınızı girin") },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
         Spacer(modifier = Modifier.height(12.dp))
         PremiumInputField(
@@ -405,7 +421,10 @@ private fun PremiumAiRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             androidx.compose.material3.Button(
-                onClick = { onSaveAi("", baseUrlValue, modelValue) },
+                onClick = {
+                    saveMessage = onSaveAi(keyValue, baseUrlValue, modelValue)
+                    if (saveMessage == null) keyValue = ""
+                },
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Kaydet")
@@ -416,6 +435,10 @@ private fun PremiumAiRow(
             ) {
                 Text("Test et")
             }
+        }
+        saveMessage?.let { message ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(message, style = MaterialTheme.typography.bodySmall, color = c.error)
         }
     }
 }
