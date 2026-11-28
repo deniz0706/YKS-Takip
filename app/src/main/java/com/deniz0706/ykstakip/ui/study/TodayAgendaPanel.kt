@@ -85,7 +85,7 @@ fun TodayAgendaPanel(
                     style = MaterialTheme.typography.labelSmall)
             }
             TextButton(onClick = onShowPlan, modifier = Modifier.align(Alignment.End)) {
-                Text("Tüm programı gör  ↗")
+                Text("Tüm programı gör  ")
             }
         }
         Text("Dersler haftalık tekrar eder. Tamamlanma işaretleri her pazartesi yenilenir.",
