@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.domain.model.Exam
@@ -80,66 +84,28 @@ fun PremiumStatisticsScreen(
             )
         }
 
-        // Overview stats row
+        // Responsive overview metrics: two columns on phones, three on wide screens.
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
-            ) {
-                PremiumStatTile(
-                    label = "Genel Ortalama",
-                    value = Fmt.net(overallAverage),
-                    detail = "tüm sınavlar",
-                    accent = c.primary,
-                    modifier = Modifier.weight(1f)
+            PremiumStatGrid(
+                tiles = listOf(
+                    PremiumStatData("Genel Ortalama", Fmt.net(overallAverage), "tüm sınavlar", c.primary),
+                    PremiumStatData("TYT Ortalama", Fmt.net(tytAverage), "${tytExams.size} deneme", c.secondary),
+                    PremiumStatData("AYT Ortalama", Fmt.net(aytAverage), "${aytExams.size} deneme", c.tertiary)
                 )
-                PremiumStatTile(
-                    label = "TYT Ortalama",
-                    value = Fmt.net(tytAverage),
-                    detail = "${tytExams.size} deneme",
-                    accent = c.secondary,
-                    modifier = Modifier.weight(1f)
-                )
-                PremiumStatTile(
-                    label = "AYT Ortalama",
-                    value = Fmt.net(aytAverage),
-                    detail = "${aytExams.size} deneme",
-                    accent = c.tertiary,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            )
         }
 
         item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
 
-        // Best scores row
+        // Personal records and OBP use the same responsive metric grid.
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
-            ) {
-                PremiumStatTile(
-                    label = "TYT En İyi",
-                    value = Fmt.net(tytBest),
-                    detail = "kişisel rekor",
-                    accent = c.primary,
-                    modifier = Modifier.weight(1f)
+            PremiumStatGrid(
+                tiles = listOf(
+                    PremiumStatData("TYT En İyi", Fmt.net(tytBest), "kişisel rekor", c.primary),
+                    PremiumStatData("AYT En İyi", Fmt.net(aytBest), "kişisel rekor", c.secondary),
+                    PremiumStatData("OBP", obp?.let { it.toInt().toString() } ?: "—", "0–100", c.tertiary)
                 )
-                PremiumStatTile(
-                    label = "AYT En İyi",
-                    value = Fmt.net(aytBest),
-                    detail = "kişisel rekor",
-                    accent = c.secondary,
-                    modifier = Modifier.weight(1f)
-                )
-                PremiumStatTile(
-                    label = "OBP",
-                    value = obp?.let { it.toInt().toString() } ?: "—",
-                    detail = "0–100",
-                    accent = c.tertiary,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            )
         }
 
         item { Spacer(modifier = Modifier.height(YksTokens.Space.md)) }
@@ -196,6 +162,39 @@ private fun PremiumSectionHeader(
                 style = MaterialTheme.typography.bodyMedium,
                 color = c.onSurfaceVariant
             )
+        }
+    }
+}
+
+private data class PremiumStatData(
+    val label: String,
+    val value: String,
+    val detail: String,
+    val accent: Color
+)
+
+@Composable
+private fun PremiumStatGrid(tiles: List<PremiumStatData>) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val columns = if (maxWidth >= 840.dp) 3 else 2
+        Column(verticalArrangement = Arrangement.spacedBy(YksTokens.Space.md)) {
+            tiles.chunked(columns).forEach { row ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
+                ) {
+                    row.forEach { tile ->
+                        PremiumStatTile(
+                            label = tile.label,
+                            value = tile.value,
+                            detail = tile.detail,
+                            accent = tile.accent,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
         }
     }
 }
@@ -328,7 +327,7 @@ private fun PremiumProgressTile(
         ) {
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier
-                    .width(1000.dp * progress.toFloat()) // approximate visual width
+                    .fillMaxWidth(progress.toFloat())
                     .height(4.dp)
                     .background(accent)
                     .clip(RoundedCornerShape(YksTokens.Shape.pill))
