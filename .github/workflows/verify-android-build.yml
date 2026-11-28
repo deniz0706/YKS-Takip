@@ -10,6 +10,7 @@ on:
       - 'integration/complete-mainline'
       - 'feat/4.0-*'
       - 'main'
+      - 'fix/*'
   pull_request:
     branches:
       - '2.0'
