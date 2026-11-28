@@ -201,6 +201,8 @@ private fun PremiumActionCard(
             .clip(RoundedCornerShape(YksTokens.Shape.panel))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
     ) {
         Row(
@@ -241,6 +243,8 @@ private fun PremiumEmptyState(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
     ) {
         Column(
@@ -281,6 +285,8 @@ private fun PremiumExamCard(
             .clip(RoundedCornerShape(YksTokens.Shape.card))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(YksTokens.Shape.card),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
         Row(
