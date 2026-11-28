@@ -48,6 +48,7 @@ import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -340,10 +341,35 @@ fun YksNavHost(
 
     // Study screen: real plan data from StudyPlanRepository
     val studyPlanRepository = remember(appContext) { StudyPlanRepository(appContext) }
-    val studyPlan by remember { mutableStateOf(studyPlanRepository.getAll()) }
+    var studyPlan by remember { mutableStateOf(studyPlanRepository.getAll()) }
+    var studyGoal by remember { mutableStateOf(AppSettings.getDailyGoal(appContext)) }
 
-    // Study screen: real daily goal from AppSettings
-    val studyGoal by remember { mutableStateOf(AppSettings.getDailyGoal(appContext)) }
+    val learningRepository = remember(appContext) { com.deniz0706.ykstakip.data.LearningRepository.getInstance(appContext) }
+    var learningOutcomes by remember { mutableStateOf(learningRepository.outcomes()) }
+    var learningQuestions by remember { mutableStateOf(learningRepository.questions()) }
+    val refreshLearningData = {
+        learningOutcomes = learningRepository.outcomes()
+        learningQuestions = learningRepository.questions()
+    }
+    val refreshStudyPlan = { studyPlan = studyPlanRepository.getAll() }
+
+    var pendingCameraPhoto by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var pendingGalleryQuestionId by remember { mutableStateOf<String?>(null) }
+    val cameraPhotoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val pending = pendingCameraPhoto
+        pendingCameraPhoto = null
+        if (pending != null) {
+            if (saved && learningRepository.attachCapturedPhoto(pending.first, pending.second)) refreshLearningData()
+            else learningRepository.discardCameraPhoto(pending.second)
+        }
+    }
+    val galleryPhotoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val questionId = pendingGalleryQuestionId
+        pendingGalleryQuestionId = null
+        if (uri != null && questionId != null && learningRepository.attachGalleryPhoto(questionId, uri)) {
+            refreshLearningData()
+        }
+    }
 
     // File operation state for settings import/export
     var lastStudyImportJson by remember { mutableStateOf<String?>(null) }
@@ -382,6 +408,8 @@ fun YksNavHost(
                     }
                     examViewModel.refresh()
                     studyViewModel.refresh()
+                    refreshLearningData()
+                    refreshStudyPlan()
                 } catch (_: Exception) {
                     // The screen presents a non-destructive error state.
                 } finally {
@@ -463,11 +491,6 @@ fun YksNavHost(
             }
         }
     }
-
-    // Study screen: real learning outcomes and questions from LearningRepository
-    val learningRepository = remember(appContext) { com.deniz0706.ykstakip.data.LearningRepository(appContext) }
-    var learningOutcomes by remember { mutableStateOf(learningRepository.outcomes()) }
-    var learningQuestions by remember { mutableStateOf(learningRepository.questions()) }
 
     NavHost(
         navController = navController,
@@ -583,28 +606,36 @@ fun YksNavHost(
                 },
                 onLearningComplete = { id, completed ->
                     learningRepository.setCompleted(id, completed)
+                    refreshLearningData()
                 },
                 onLearningSubtopicComplete = { id, subtopic, completed ->
                     learningRepository.setSubtopicCompleted(id, subtopic, completed)
+                    refreshLearningData()
                 },
                 onLearningWrong = { id ->
                     learningRepository.markWrong(id)
+                    refreshLearningData()
                 },
                 onLearningRequestReview = { id ->
                     learningRepository.requestReview(id)
+                    refreshLearningData()
                 },
                 onLearningReviewed = { id ->
                     learningRepository.reviewOutcome(id)
+                    refreshLearningData()
                 },
                 onLearningPostpone = { id ->
                     learningRepository.postponeReview(id)
+                    refreshLearningData()
                 },
                 onLearningCreate = { examType, subject, topic, title ->
                     learningRepository.addOutcome(examType, subject, topic, title)
+                    refreshLearningData()
                 },
                 onLearningDelete = { id ->
                     coroutineScope.launch {
                         learningRepository.deleteCustomOutcome(id)
+                        refreshLearningData()
                     }
                 },
                 onQuestionCreate = { title, notes, photos, status ->
@@ -615,26 +646,39 @@ fun YksNavHost(
                             learningRepository.addOutcome("TYT", "Genel", "Sorular", "Genel Sorular").id
                         }
                     val card = learningRepository.addQuestion(outcomeId, title, notes, status)
+                    refreshLearningData()
                     card.id
                 },
                 onQuestionDelete = { id ->
                     learningRepository.deleteQuestion(id)
+                    refreshLearningData()
                 },
                 onQuestionReview = { id, solved ->
                     learningRepository.reviewQuestion(id, solved)
+                    refreshLearningData()
                 },
                 onQuestionUnsolved = { id ->
                     learningRepository.markQuestionUnsolved(id)
+                    refreshLearningData()
                 },
                 onQuestionCapture = { id ->
-                    val pair = learningRepository.newCameraPhoto()
-                    learningRepository.attachCapturedPhoto(id, pair.second.name)
+                    try {
+                        val (filename, file) = learningRepository.newCameraPhoto()
+                        pendingCameraPhoto = id to filename
+                        val uri = FileProvider.getUriForFile(appContext, "${appContext.packageName}.reviewphotos", file)
+                        cameraPhotoLauncher.launch(uri)
+                    } catch (_: Exception) {
+                        pendingCameraPhoto?.second?.let(learningRepository::discardCameraPhoto)
+                        pendingCameraPhoto = null
+                    }
                 },
                 onQuestionGallery = { id ->
-                    // Gallery attach handled by system picker result
+                    pendingGalleryQuestionId = id
+                    galleryPhotoLauncher.launch("image/*")
                 },
                 onQuestionPhotoRemove = { id, filename ->
-                    learningRepository.discardCameraPhoto(filename)
+                    learningRepository.removePhoto(id, filename)
+                    refreshLearningData()
                 },
                 onRequestReviewNotifications = {
                     com.deniz0706.ykstakip.data.ReviewReminderScheduler.rescheduleAll(appContext, learningOutcomes)
@@ -681,6 +725,7 @@ fun YksNavHost(
                         topic = ""
                     )
                     studyPlanRepository.save(item)
+                    refreshStudyPlan()
                 },
                 onAddSuggestedPlan = { dayOfWeek, start, end ->
                     val newId = (studyPlan.maxByOrNull { it.id }?.id ?: 0L) + 1
@@ -693,18 +738,22 @@ fun YksNavHost(
                         topic = "Önerilen Çalışma"
                     )
                     studyPlanRepository.save(item)
+                    refreshStudyPlan()
                 },
                 onEditPlan = { item ->
                     studyPlanRepository.save(item)
+                    refreshStudyPlan()
                 },
                 onTogglePlan = { id ->
                     studyPlanRepository.toggleCompleted(id)
+                    refreshStudyPlan()
                 },
                 onOpenLearningFromPlan = { item ->
                     navController.navigate("study?learning=${item.subject}/${item.topic}/${item.subject}")
                 },
                 onDeletePlan = { item ->
                     studyPlanRepository.delete(item.id)
+                    refreshStudyPlan()
                 }
             )
             onDestinationChange?.invoke(YksNavDestination.Study)
@@ -768,6 +817,7 @@ fun YksNavHost(
                     AppSettings.setTargetNet(appContext, com.deniz0706.ykstakip.domain.model.ExamType.AYT, aytFloat)
                     AppSettings.setObp(appContext, obpFloat)
                     AppSettings.setDailyGoal(appContext, dailyInt)
+                    studyGoal = AppSettings.getDailyGoal(appContext)
                     null
                 },
                 aiBaseUrl = AppSettings.getAiBaseUrl(appContext),
