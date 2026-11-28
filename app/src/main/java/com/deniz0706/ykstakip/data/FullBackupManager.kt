@@ -2,6 +2,7 @@ package com.deniz0706.ykstakip.data
 
 import android.content.Context
 import android.net.Uri
+import android.content.SharedPreferences
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.StudyDay
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
@@ -60,12 +61,12 @@ object FullBackupManager {
         internal val exams: List<Exam>,
         internal val studyDays: List<StudyDay>,
         internal val learning: LearningArchiveManager.PreparedImport,
-        internal val settings: SettingsBackupManager.Parsed,
-        internal val studyPlan: StudyPlanBackupManager.Parsed,
-        internal val theme: ThemeBackupManager.Parsed?,
-        internal val focusSession: FocusSessionBackupManager.Parsed?,
-        internal val examSession: ExamSessionBackupManager.Parsed?,
-        internal val aiMemory: AiMemoryBackupManager.Parsed?,
+        internal val settingsJson: String?,
+        internal val studyPlanJson: String?,
+        internal val themeJson: String?,
+        internal val focusSessionJson: String?,
+        internal val examSessionJson: String?,
+        internal val aiMemoryJson: String?,
         internal val migratedFromV1: Boolean,
         private val staging: File
     ) {
@@ -227,30 +228,14 @@ object FullBackupManager {
                 ?: throw IOException((examResult as? BackupManager.ImportResult.Error)?.message ?: "Deneme bölümü okunamadı.")
             val study = StudyBackupManager.parseJson(extracted.getValue("study.json").readText())
 
-            // Optional sections — only present in v2 backups
-            val settings = if (extracted.containsKey("settings.json")) {
-                SettingsBackupManager.importJson(app, extracted.getValue("settings.json").readText())
-            } else SettingsBackupManager.Parsed(null, null, null, null, null, null, null, null)
-
-            val studyPlan = if (extracted.containsKey("study_plan.json")) {
-                StudyPlanBackupManager.importJson(app, extracted.getValue("study_plan.json").readText())
-            } else StudyPlanBackupManager.Parsed(emptyList())
-
-            val theme = if (extracted.containsKey("theme.json")) {
-                ThemeBackupManager.importJson(app, extracted.getValue("theme.json").readText())
-            } else null
-
-            val focusSession = if (extracted.containsKey("focus_session.json")) {
-                FocusSessionBackupManager.importJson(app, extracted.getValue("focus_session.json").readText())
-            } else null
-
-            val examSession = if (extracted.containsKey("exam_session.json")) {
-                ExamSessionBackupManager.importJson(app, extracted.getValue("exam_session.json").readText())
-            } else null
-
-            val aiMemory = if (extracted.containsKey("ai_memory.json")) {
-                AiMemoryBackupManager.importJson(app, extracted.getValue("ai_memory.json").readText())
-            } else null
+            // Keep optional sections staged as raw JSON. Parsing/importing them here used to
+            // mutate SharedPreferences before the complete archive had been validated.
+            val settingsJson = extracted["settings.json"]?.readText()
+            val studyPlanJson = extracted["study_plan.json"]?.readText()
+            val themeJson = extracted["theme.json"]?.readText()
+            val focusSessionJson = extracted["focus_session.json"]?.readText()
+            val examSessionJson = extracted["exam_session.json"]?.readText()
+            val aiMemoryJson = extracted["ai_memory.json"]?.readText()
 
             val learning = LearningArchiveManager(app).prepareImport(Uri.fromFile(extracted.getValue("learning.zip")))
             extracted.getValue("learning.zip").delete()
@@ -265,8 +250,8 @@ object FullBackupManager {
                 learning.discard()
                 throw IOException("Yedek özeti ile içerik sayıları uyuşmuyor.")
             }
-            return PreparedImport(exams, study.days, learning, settings, studyPlan,
-                theme, focusSession, examSession, aiMemory, migratedFromV1, stage)
+            return PreparedImport(exams, study.days, learning, settingsJson, studyPlanJson,
+                themeJson, focusSessionJson, examSessionJson, aiMemoryJson, migratedFromV1, stage)
         } catch (e: Exception) {
             stage.deleteRecursively()
             if (e is IOException) throw e
@@ -274,7 +259,8 @@ object FullBackupManager {
         }
     }
 
-    /** Merge-only restore: existing local records win; no dataset is blindly overwritten. */
+    /** Merge-only restore. All optional sections are applied only after staging/validation,
+     * and their SharedPreferences snapshots are restored if any later merge step fails. */
     fun merge(context: Context, prepared: PreparedImport): ImportResult {
         val app = context.applicationContext
         LegacyDataMigrator.ensureMigrationReadyForWrites(app)
@@ -283,37 +269,102 @@ object FullBackupManager {
         val previousExams = runBlocking(Dispatchers.IO) { examRepository.getAllExams().first() }
         val existingExamIds = previousExams.map { it.id }.toSet()
         val mergedExams = previousExams + prepared.exams.filterNot { it.id in existingExamIds }
+        val preferenceNames = listOf(
+            "yks_takip_prefs",
+            "yks_takip_study_plan",
+            "yks_focus_session",
+            "yks_exam_session_v1",
+            "ai_coach_long_term_memory"
+        )
+        val preferenceSnapshots = preferenceNames.associateWith { name ->
+            PreferenceSnapshot.capture(app.getSharedPreferences(name, Context.MODE_PRIVATE))
+        }
         var examsApplied = false
         var studyChanges = 0
         try {
+            // importJson methods validate their complete payload before writing. They are
+            // intentionally called here, not from prepareImport, so a rejected archive
+            // cannot alter user settings merely by being previewed.
+            val settings = prepared.settingsJson?.let {
+                SettingsBackupManager.importJson(app, it)
+            } ?: SettingsBackupManager.Parsed(null, null, null, null, null, null, null, null)
+            val studyPlan = prepared.studyPlanJson?.let {
+                StudyPlanBackupManager.importJson(app, it)
+            } ?: StudyPlanBackupManager.Parsed(emptyList())
+            val theme = prepared.themeJson?.let { ThemeBackupManager.importJson(app, it) }
+            val focusSession = prepared.focusSessionJson?.let {
+                FocusSessionBackupManager.importJson(app, it)
+            }
+            val examSession = prepared.examSessionJson?.let {
+                ExamSessionBackupManager.importJson(app, it)
+            }
+            val aiMemory = prepared.aiMemoryJson?.let { AiMemoryBackupManager.importJson(app, it) }
+
             studyChanges = studyRepository.importDays(prepared.studyDays, overwrite = false)
             runBlocking(Dispatchers.IO) {
                 examRepository.replaceAll(mergedExams)
                 examsApplied = true
             }
+            // LearningArchiveManager handles its own photo-file rollback on failure.
+            // It is deliberately the final data merge so no later operation can leave
+            // a successfully imported learning archive paired with rolled-back settings.
             val learningResult = LearningArchiveManager(app).merge(prepared.learning)
             return ImportResult(
                 examsAdded = mergedExams.size - previousExams.size,
                 studyDaysAdded = studyChanges,
                 learning = learningResult,
-                settings = prepared.settings,
-                studyPlan = prepared.studyPlan,
-                theme = prepared.theme,
-                focusSession = prepared.focusSession,
-                examSession = prepared.examSession,
-                aiMemory = prepared.aiMemory,
+                settings = settings,
+                studyPlan = studyPlan,
+                theme = theme,
+                focusSession = focusSession,
+                examSession = examSession,
+                aiMemory = aiMemory,
                 migratedFromV1 = prepared.migratedFromV1
             )
         } catch (e: Exception) {
             if (examsApplied) {
-                runBlocking(Dispatchers.IO) { examRepository.replaceAll(previousExams) }
+                runCatching { runBlocking(Dispatchers.IO) { examRepository.replaceAll(previousExams) } }
+                    .onFailure(e::addSuppressed)
             }
             if (studyChanges > 0 && studyRepository.canUndoLastImport()) {
-                studyRepository.undoLastImport()
+                runCatching { studyRepository.undoLastImport() }.onFailure(e::addSuppressed)
+            }
+            preferenceSnapshots.forEach { (name, snapshot) ->
+                runCatching {
+                    snapshot.restore(app.getSharedPreferences(name, Context.MODE_PRIVATE))
+                }.onFailure(e::addSuppressed)
             }
             throw e
         } finally {
             prepared.discard()
+        }
+    }
+
+    /** Exact snapshot of a SharedPreferences file, including unknown/future keys. */
+    private data class PreferenceSnapshot(private val values: Map<String, Any?>) {
+        fun restore(preferences: SharedPreferences) {
+            val editor = preferences.edit().clear()
+            values.forEach { (key, value) ->
+                when (value) {
+                    null -> editor.remove(key)
+                    is String -> editor.putString(key, value)
+                    is Boolean -> editor.putBoolean(key, value)
+                    is Int -> editor.putInt(key, value)
+                    is Long -> editor.putLong(key, value)
+                    is Float -> editor.putFloat(key, value)
+                    is Set<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        editor.putStringSet(key, value as Set<String>)
+                    }
+                    else -> throw IllegalStateException("Desteklenmeyen ayar türü: ${value::class.java.name}")
+                }
+            }
+            check(editor.commit()) { "Yedek geri alma işlemi tamamlanamadı." }
+        }
+
+        companion object {
+            fun capture(preferences: SharedPreferences): PreferenceSnapshot =
+                PreferenceSnapshot(preferences.all.toMap())
         }
     }
 
