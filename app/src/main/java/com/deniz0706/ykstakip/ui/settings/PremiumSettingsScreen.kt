@@ -310,6 +310,7 @@ private fun PremiumGoalRow(
     var aytValue by remember { mutableStateOf(ayt) }
     var obpValue by remember { mutableStateOf(obp) }
     var dailyValue by remember { mutableStateOf(daily) }
+    var saveMessage by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.padding(horizontal = 12.dp)) {
         PremiumInputField(
@@ -344,11 +345,29 @@ private fun PremiumGoalRow(
             colorScheme = c
         )
         Spacer(modifier = Modifier.height(16.dp))
+        val tytValid = tytValue.isBlank() || (tytValue.toFloatOrNull()?.let { it in 0f..120f } == true)
+        val aytValid = aytValue.isBlank() || (aytValue.toFloatOrNull()?.let { it in 0f..80f } == true)
+        val obpValid = obpValue.isBlank() || (obpValue.toFloatOrNull()?.let { it in 0f..100f } == true)
+        val dailyValid = dailyValue.isBlank() || (dailyValue.toIntOrNull()?.let { it in 0..5000 } == true)
+        val valuesValid = tytValid && aytValid && obpValid && dailyValid
         androidx.compose.material3.Button(
-            onClick = { onSave(tytValue, aytValue, obpValue, dailyValue) },
+            onClick = {
+                saveMessage = if (!valuesValid) {
+                    "TYT 0–120, AYT 0–80, OBP 0–100 ve günlük hedef 0–5000 aralığında olmalı."
+                } else {
+                    onSave(tytValue, aytValue, obpValue, dailyValue) ?: "Hedefler kaydedildi."
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Kaydet")
+        }
+        saveMessage?.let { message ->
+            Text(
+                message,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (valuesValid) c.primary else c.error
+            )
         }
     }
 }
