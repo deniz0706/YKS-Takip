@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.theme.YksTokens
+import com.deniz0706.ykstakip.ui.theme.clayRaised
 
 /** A single metric display: large number with label and optional detail. */
 @Composable
@@ -32,7 +33,7 @@ fun YksStatTile(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(YksTokens.Shape.input))
-            .background(c.surfaceContainer)
+            .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.input), depth = 5.dp, tint = c.surfaceContainer)
             .padding(YksTokens.Space.md)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
     ) {
