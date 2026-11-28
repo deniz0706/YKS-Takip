@@ -51,8 +51,6 @@ fun PremiumSettingsScreen(
     hasAiKey: Boolean,
     onSaveAi: (String, String, String) -> String?,
     onTestAi: () -> Unit,
-    onExport: () -> Unit,
-    onImport: () -> Unit,
     onImportStudy: () -> Unit,
     onExportStudy: () -> Unit,
     onUndoStudyImport: () -> Unit,
@@ -525,6 +523,44 @@ private fun PremiumDataRow(
             label = "Çalışma geçmişini içe aktar",
             onClick = onImportStudy,
             accent = c.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+        androidx.compose.material3.HorizontalDivider(color = c.outlineVariant)
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Öğrenme Arşivi · ZIP",
+            style = MaterialTheme.typography.titleMedium,
+            color = c.onSurface,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "Kazanımlar, soru kartları ve bağlı fotoğrafları dışa aktarın veya geri yükleyin.",
+            style = MaterialTheme.typography.bodySmall,
+            color = c.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        PremiumActionButton(
+            label = if (learningZipBusy) "Arşiv hazırlanıyor…" else "Öğrenme arşivini dışa aktar",
+            onClick = onExportLearningZip,
+            enabled = !learningZipBusy,
+            accent = c.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        PremiumOutlinedActionButton(
+            label = if (learningZipBusy) "İşlem sürüyor…" else "Öğrenme arşivini içe aktar",
+            onClick = onImportLearningZip,
+            enabled = !learningZipBusy,
+            accent = c.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        PremiumOutlinedActionButton(
+            label = "Son çalışma içe aktarımını geri al",
+            onClick = onUndoStudyImport,
+            accent = c.secondary,
             modifier = Modifier.fillMaxWidth()
         )
     }
