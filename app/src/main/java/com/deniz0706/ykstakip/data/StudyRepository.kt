@@ -1,7 +1,7 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
-import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.StudyDay
 import com.deniz0706.ykstakip.widget.StudySummaryWidgetProvider
 import org.json.JSONArray
 import org.json.JSONObject
@@ -16,10 +16,8 @@ class StudyRepository(context: Context) {
 
         return try {
             val array = JSONArray(raw)
-
             (0 until array.length()).map {
                 val obj = array.getJSONObject(it)
-
                 StudyDay(
                     date = obj.getString("date"),
                     questionCount = obj.getInt("questionCount"),
@@ -27,26 +25,18 @@ class StudyRepository(context: Context) {
                     estimated = obj.optBoolean("estimated", false)
                 )
             }.sortedBy { it.date }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             writeGuard.markUnreadable()
             emptyList()
         }
     }
 
-    fun get(date: String): StudyDay? {
-        return getAll().find { it.date == date }
-    }
+    fun get(date: String): StudyDay? = getAll().find { it.date == date }
 
     fun save(studyDay: StudyDay) {
         val current = getAll().toMutableList()
         val index = current.indexOfFirst { it.date == studyDay.date }
-
-        if (index >= 0) {
-            current[index] = studyDay
-        } else {
-            current.add(studyDay)
-        }
-
+        if (index >= 0) current[index] = studyDay else current.add(studyDay)
         persist(current)
     }
 
@@ -59,21 +49,16 @@ class StudyRepository(context: Context) {
     private fun persist(days: List<StudyDay>) {
         writeGuard.requireWritable()
         val array = JSONArray()
-
         days.sortedBy { it.date }.forEach { day ->
-            array.put(
-                JSONObject().apply {
-                    put("date", day.date)
-                    put("questionCount", day.questionCount)
-                    put("studyMinutes", day.studyMinutes)
-                    put("estimated", day.estimated)
-                }
-            )
+            array.put(JSONObject().apply {
+                put("date", day.date)
+                put("questionCount", day.questionCount)
+                put("studyMinutes", day.studyMinutes)
+                put("estimated", day.estimated)
+            })
         }
-
         prefs.edit()
             .putString(KEY_STUDY_DAYS, array.toString())
-            // A manual edit invalidates the import rollback snapshot.
             .remove(KEY_BEFORE_IMPORT)
             .remove(KEY_AFTER_IMPORT)
             .apply()
@@ -114,7 +99,6 @@ class StudyRepository(context: Context) {
     }
 
     fun canUndoLastImport(): Boolean {
-        // A malformed current store must never be replaced by an older rollback snapshot.
         getAll()
         if (writeGuard.isBlocked) return false
         return StudyBackupManager.canUndoImport(
@@ -125,7 +109,6 @@ class StudyRepository(context: Context) {
     }
 
     fun undoLastImport(): Boolean {
-        // Older backups lack an after-import snapshot: do not restore blindly.
         if (!canUndoLastImport()) return false
         val previous = prefs.getString(KEY_BEFORE_IMPORT, null) ?: return false
         val restored = prefs.edit().putString(KEY_STUDY_DAYS, previous)

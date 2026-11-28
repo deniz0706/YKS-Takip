@@ -1,0 +1,39 @@
+# Built application files
+*.apk
+*.aar
+*.apks
+
+# Gradle
+.gradle/
+.build/
+**/build/
+
+# Kotlin
+.kotlin/
+
+# Local configuration files and secrets
+local.properties
+.env
+.env.*
+!.env.example
+**/.venv/
+**/venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/

@@ -1,7 +1,7 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
-import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.StudyDay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

@@ -2,9 +2,7 @@ package com.deniz0706.ykstakip.data
 
 import android.content.ContentResolver
 import android.net.Uri
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.examFromJson
-import com.deniz0706.ykstakip.model.toJson
+import com.deniz0706.ykstakip.domain.model.Exam
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -26,7 +24,7 @@ object BackupManager {
             val text = resolver.openInputStream(uri)?.use { BufferedReader(InputStreamReader(it)).readText() }
                 ?: return ImportResult.Error("Dosya okunamadı.")
             val array = JSONArray(text)
-            val exams = (0 until array.length()).map { examFromJson(array.getJSONObject(it)) }
+            val exams = (0 until array.length()).map { Exam.fromJson(array.getJSONObject(it)) }
             ImportResult.Success(exams)
         } catch (e: Exception) {
             ImportResult.Error("Geçersiz ya da bozuk yedek dosyası.")

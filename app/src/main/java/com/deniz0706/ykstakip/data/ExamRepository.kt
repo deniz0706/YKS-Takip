@@ -2,9 +2,7 @@ package com.deniz0706.ykstakip.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.examFromJson
-import com.deniz0706.ykstakip.model.toJson
+import com.deniz0706.ykstakip.domain.model.Exam
 import org.json.JSONArray
 
 class ExamRepository(context: Context) {
@@ -25,7 +23,7 @@ class ExamRepository(context: Context) {
             val raw = prefs.getString(KEY_EXAMS, null)
             val loaded = if (raw.isNullOrBlank()) emptyList() else try {
                 val array = JSONArray(raw)
-                (0 until array.length()).map { examFromJson(array.getJSONObject(it)) }.sortedBy { it.date }
+                (0 until array.length()).map { Exam.fromJson(array.getJSONObject(it)) }.sortedBy { it.date }
             } catch (_: Exception) {
                 writeGuard.markUnreadable()
                 emptyList()

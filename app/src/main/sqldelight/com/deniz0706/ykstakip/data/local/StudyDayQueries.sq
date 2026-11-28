@@ -1,0 +1,19 @@
+selectAllStudyDays:
+SELECT * FROM study_days ORDER BY date ASC;
+
+selectStudyDayByDate:
+SELECT * FROM study_days WHERE date = ?;
+
+insertStudyDay:
+INSERT OR REPLACE INTO study_days (date, question_count, study_minutes, estimated)
+VALUES (?, ?, ?, ?);
+
+deleteStudyDay:
+DELETE FROM study_days WHERE date = ?;
+
+replaceAllStudyDays:
+DELETE FROM study_days;
+
+insertStudyDayBulk:
+INSERT OR IGNORE INTO study_days (date, question_count, study_minutes, estimated)
+VALUES (?, ?, ?, ?);

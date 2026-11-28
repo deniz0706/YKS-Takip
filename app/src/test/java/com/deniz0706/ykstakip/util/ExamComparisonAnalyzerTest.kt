@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.util
 
-import com.deniz0706.ykstakip.model.*
+import com.deniz0706.ykstakip.domain.model.*
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -9,8 +9,8 @@ class ExamComparisonAnalyzerTest {
         id = id, title = "Deneme $id", date = "2026-11-${if (id == 1L) "01" else "02"}",
         type = type, aytField = field,
         subjects = listOf(
-            SubjectResult("Matematik", 40, maths, 0, 60),
-            SubjectResult("Türkçe", 40, turkish, 0, 45)
+            SubjectResult("Matematik", maths, 0, 0, 60),
+            SubjectResult("Türkçe", turkish, 0, 0, 45)
         )
     )
 

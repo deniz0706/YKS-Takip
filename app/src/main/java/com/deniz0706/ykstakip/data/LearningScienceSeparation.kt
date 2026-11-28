@@ -1,7 +1,7 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.LearningOutcome
-import com.deniz0706.ykstakip.model.QuestionCard
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.QuestionCard
 
 /** AYT lists in the commercial outline include introductory grades 9-10 topics.
  * Do not mislabel old AYT progress as TYT progress; archive it in place instead.

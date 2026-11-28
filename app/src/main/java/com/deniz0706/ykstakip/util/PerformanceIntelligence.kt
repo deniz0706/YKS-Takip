@@ -1,7 +1,7 @@
 package com.deniz0706.ykstakip.util
-import com.deniz0706.ykstakip.model.AytField
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.ExamType
+import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
 import kotlin.math.sqrt
 
 /** Deterministic, evidence-bounded analysis of recorded exam results. */

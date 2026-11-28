@@ -1,7 +1,7 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.ExamType
-import com.deniz0706.ykstakip.model.SubjectConfig
+import com.deniz0706.ykstakip.domain.model.ExamType
+import com.deniz0706.ykstakip.domain.model.SubjectConfig
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

@@ -24,7 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.ui.components.DashboardPanel
 import com.deniz0706.ykstakip.ui.components.DashboardSectionHeading
 import com.deniz0706.ykstakip.util.Fmt

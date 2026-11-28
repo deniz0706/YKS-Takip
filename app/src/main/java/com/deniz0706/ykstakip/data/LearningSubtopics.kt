@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
 
 /**
  * The supplied curriculum stops at the topic level.

@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.util
 
-import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.domain.model.StudyPlanItem
 
 data class StudyPlanSubjectLoad(val subject: String, val plannedMinutes: Int, val completedMinutes: Int, val sessions: Int)
 data class StudyPlanSummary(

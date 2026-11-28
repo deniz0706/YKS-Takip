@@ -1,12 +1,16 @@
 package com.deniz0706.ykstakip.data
 
-import com.deniz0706.ykstakip.domain.StudyTimeAddition as SharedStudyTimeAddition
-import com.deniz0706.ykstakip.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.StudyDay
 
-/** Android compatibility adapter; daily time arithmetic is shared in commonMain. */
+/** Add real minutes without resetting previous questions or study metadata. */
 internal object StudyTimeAddition {
-    const val DAILY_LIMIT = SharedStudyTimeAddition.DAILY_LIMIT
+    const val DAILY_LIMIT = 1440
 
-    fun add(previous: StudyDay?, date: String, minutes: Int): StudyDay? =
-        SharedStudyTimeAddition.add(previous, date, minutes)
+    fun add(previous: StudyDay?, date: String, minutes: Int): StudyDay? {
+        if (minutes !in 1..DAILY_LIMIT) return null
+        val day = previous ?: StudyDay(date, 0, 0)
+        require(day.date == date)
+        if (day.studyMinutes !in 0..DAILY_LIMIT - minutes) return null
+        return day.copy(studyMinutes = day.studyMinutes + minutes)
+    }
 }
