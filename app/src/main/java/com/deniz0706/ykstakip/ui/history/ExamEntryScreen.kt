@@ -1,5 +1,6 @@
 package com.deniz0706.ykstakip.ui.history
 
+import com.deniz0706.ykstakip.ui.theme.clayCanvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
