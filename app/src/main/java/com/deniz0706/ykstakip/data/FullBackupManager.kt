@@ -4,6 +4,11 @@ import android.content.Context
 import android.net.Uri
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.StudyDay
+import com.deniz0706.ykstakip.data.repository.SqlExamRepository
+import com.deniz0706.ykstakip.data.repository.SqlStudyRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
@@ -79,8 +84,12 @@ object FullBackupManager {
 
     fun exportTo(context: Context, destination: Uri): ExportResult {
         val app = context.applicationContext
-        val exams = ExamRepository.getInstance(app).getAllExams()
-        val studyDays = StudyRepository(app).getAll()
+        LegacyDataMigrator.ensureMigrationReadyForWrites(app)
+        val examRepository = SqlExamRepository.getInstance(app)
+        val studyRepository = SqlStudyRepository.getInstance(app)
+        val (exams, studyDays) = runBlocking(Dispatchers.IO) {
+            examRepository.getAllExams().first() to studyRepository.getAll()
+        }
         val examBytes = BackupManager.exportToJson(exams).toByteArray(Charsets.UTF_8)
         val studyBytes = StudyBackupManager.exportJson(studyDays).toByteArray(Charsets.UTF_8)
         val settingsBytes = SettingsBackupManager.exportJson(app).toByteArray(Charsets.UTF_8)
@@ -267,21 +276,29 @@ object FullBackupManager {
     /** Merge-only restore: existing local records win; no dataset is blindly overwritten. */
     fun merge(context: Context, prepared: PreparedImport): ImportResult {
         val app = context.applicationContext
-        val examRepository = ExamRepository.getInstance(app)
-        val studyRepository = StudyRepository(app)
-        val previousExams = examRepository.getAllExams()
+        LegacyDataMigrator.ensureMigrationReadyForWrites(app)
+        val examRepository = SqlExamRepository.getInstance(app)
+        val studyRepository = SqlStudyRepository.getInstance(app)
+        val (previousExams, previousStudyDays) = runBlocking(Dispatchers.IO) {
+            examRepository.getAllExams().first() to studyRepository.getAll()
+        }
         val existingExamIds = previousExams.map { it.id }.toSet()
         val mergedExams = previousExams + prepared.exams.filterNot { it.id in existingExamIds }
-        var studyChanges = 0
-        var examChangesApplied = false
+        val existingStudyDates = previousStudyDays.map { it.date }.toSet()
+        val mergedStudyDays = previousStudyDays + prepared.studyDays.filterNot { it.date in existingStudyDates }
+        var examsApplied = false
+        var studyApplied = false
         try {
-            studyChanges = studyRepository.importDays(prepared.studyDays, overwrite = false)
-            examRepository.replaceAll(mergedExams)
-            examChangesApplied = true
+            runBlocking(Dispatchers.IO) {
+                examRepository.replaceAll(mergedExams)
+                examsApplied = true
+                studyRepository.replaceAll(mergedStudyDays)
+                studyApplied = true
+            }
             val learningResult = LearningArchiveManager(app).merge(prepared.learning)
             return ImportResult(
                 examsAdded = mergedExams.size - previousExams.size,
-                studyDaysAdded = studyChanges,
+                studyDaysAdded = mergedStudyDays.size - previousStudyDays.size,
                 learning = learningResult,
                 settings = prepared.settings,
                 studyPlan = prepared.studyPlan,
@@ -292,9 +309,9 @@ object FullBackupManager {
                 migratedFromV1 = prepared.migratedFromV1
             )
         } catch (e: Exception) {
-            if (examChangesApplied) examRepository.replaceAll(previousExams)
-            if (studyChanges > 0 && studyRepository.canUndoLastImport()) {
-                studyRepository.undoLastImport()
+            runBlocking(Dispatchers.IO) {
+                if (examsApplied) examRepository.replaceAll(previousExams)
+                if (studyApplied) studyRepository.replaceAll(previousStudyDays)
             }
             throw e
         } finally {
