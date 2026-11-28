@@ -484,6 +484,7 @@ fun YksNavHost(
                 learningZipBusy = true
                 val prepared = com.deniz0706.ykstakip.data.LearningArchiveManager(appContext).prepareImport(it)
                 com.deniz0706.ykstakip.data.LearningArchiveManager(appContext).merge(prepared)
+                refreshLearningData()
             } catch (e: Exception) {
                 // Error feedback handled by caller
             } finally {
