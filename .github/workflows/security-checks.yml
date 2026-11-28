@@ -18,24 +18,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  codeql:
+  codeql-java-kotlin:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [java-kotlin, python]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+          build-mode: manual
+      - name: Build for CodeQL extraction
+        run: gradle --no-daemon :app:compileDebugKotlin :domain:compileKotlinJvm
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:java-kotlin'
+
+  codeql-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: ${{ matrix.language }}
-          # Source-only extraction avoids unreliable Gradle autobuild on Android/KMP
-          # and uses the supported no-build mode for Python.
+          languages: python
           build-mode: none
       - name: Analyze
         uses: github/codeql-action/analyze@v3
         with:
-          category: '/language:${{ matrix.language }}'
+          category: '/language:python'
