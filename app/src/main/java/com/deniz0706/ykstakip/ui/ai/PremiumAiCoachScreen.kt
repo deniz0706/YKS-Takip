@@ -248,6 +248,8 @@ private fun PremiumApiKeyMissingCard(colorScheme: ColorScheme, onApiKeyMissing: 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.input),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.errorContainer)
     ) {
         Column(
@@ -284,6 +286,8 @@ private fun PremiumErrorCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.input),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.errorContainer)
     ) {
         Row(
