@@ -218,7 +218,6 @@ private fun PremiumStatTile(
         modifier = modifier
              .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp)
             .clip(RoundedCornerShape(YksTokens.Shape.panel))
-            .background(c.surfaceContainer)
             .padding(YksTokens.Space.cardContent)
     ) {
         Text(text = label, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
