@@ -39,7 +39,6 @@ fun ThemePreviewSelector(
     val scheme = MaterialTheme.colorScheme
     // Observe UI configuration changes, but read the application-level system
     // configuration: Activity uiMode is deliberately overridden for Aurora/Dark.
-    val activeConfiguration = LocalConfiguration.current
     val appContext = LocalContext.current.applicationContext
     val systemDark = (appContext.resources.configuration.uiMode and
         Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -94,10 +93,26 @@ fun ThemePreviewSelector(
                                 Canvas(Modifier.fillMaxWidth().weight(1f)) {
                                     val line = Path().apply {
                                         moveTo(0f, size.height * .88f)
-                                        lineTo(size.width * .2f, size.height * .56f)
-                                        lineTo(size.width * .43f, size.height * .7f)
-                                        lineTo(size.width * .72f, size.height * .22f)
-                                        lineTo(size.width, size.height * .14f)
+                                        cubicTo(
+                                            size.width * .10f, size.height * .72f,
+                                            size.width * .13f, size.height * .53f,
+                                            size.width * .2f, size.height * .56f
+                                        )
+                                        cubicTo(
+                                            size.width * .30f, size.height * .60f,
+                                            size.width * .34f, size.height * .78f,
+                                            size.width * .43f, size.height * .7f
+                                        )
+                                        cubicTo(
+                                            size.width * .57f, size.height * .57f,
+                                            size.width * .62f, size.height * .25f,
+                                            size.width * .72f, size.height * .22f
+                                        )
+                                        cubicTo(
+                                            size.width * .83f, size.height * .19f,
+                                            size.width * .91f, size.height * .16f,
+                                            size.width, size.height * .14f
+                                        )
                                     }
                                     drawPath(line, option.accent, style = Stroke(2.3.dp.toPx()))
                                     drawCircle(option.accent, radius = 3.dp.toPx(),
