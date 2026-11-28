@@ -271,6 +271,7 @@ object FullBackupManager {
         val mergedExams = previousExams + prepared.exams.filterNot { it.id in existingExamIds }
         val preferenceNames = listOf(
             "yks_takip_prefs",
+            "yks_takip_study",
             "yks_takip_study_plan",
             "yks_focus_session",
             "yks_exam_session_v1",
@@ -364,7 +365,9 @@ object FullBackupManager {
 
         companion object {
             fun capture(preferences: SharedPreferences): PreferenceSnapshot =
-                PreferenceSnapshot(preferences.all.toMap())
+                PreferenceSnapshot(preferences.all.mapValues { (_, value) ->
+                    if (value is Set<*>) value.toSet() else value
+                })
         }
     }
 
