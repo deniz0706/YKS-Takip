@@ -2,6 +2,7 @@ package com.deniz0706.ykstakip.data.repository
 
 import android.content.Context
 import com.deniz0706.ykstakip.data.local.DatabaseHolder
+import com.deniz0706.ykstakip.data.LegacyDataMigrator
 import com.deniz0706.ykstakip.domain.model.StudyDay
 import com.deniz0706.ykstakip.widget.StudySummaryWidgetProvider
 import kotlinx.coroutines.withContext
@@ -35,12 +36,14 @@ class SqlStudyRepository(private val context: Context) {
     }
 
     suspend fun save(studyDay: StudyDay) = withContext(Dispatchers.IO) {
+        LegacyDataMigrator.ensureMigrationReadyForWrites(context)
         val queries = database.studyDayQueriesQueries
         queries.insertStudyDay(studyDay.date, studyDay.questionCount.toLong(), studyDay.studyMinutes.toLong(), if (studyDay.estimated) 1L else 0L)
         StudySummaryWidgetProvider.updateAll(context)
     }
 
     suspend fun delete(date: String) = withContext(Dispatchers.IO) {
+        LegacyDataMigrator.ensureMigrationReadyForWrites(context)
         val queries = database.studyDayQueriesQueries
         queries.deleteStudyDay(date)
         StudySummaryWidgetProvider.updateAll(context)
