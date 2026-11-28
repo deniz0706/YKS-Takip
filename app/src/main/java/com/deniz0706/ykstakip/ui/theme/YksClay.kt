@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.ui.theme
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -44,4 +45,14 @@ fun Modifier.clayInset(shape: Shape = RoundedCornerShape(YksTokens.Shape.pill)):
     val rimBottom = Color.White.copy(alpha = if (dark) 0.06f else 0.70f)
     return this.background(Brush.verticalGradient(listOf(well, lip)), shape)
         .border(1.dp, Brush.verticalGradient(listOf(rimTop, rimBottom)), shape)
+}
+
+
+@Composable
+fun Modifier.clayCanvas(): Modifier {
+    val c = MaterialTheme.colorScheme
+    val dark = c.background.luminance() < 0.5f
+    val upper = lerp(c.background, c.surface, if (dark) 0.18f else 0.42f)
+    val lower = lerp(c.background, c.surface, if (dark) 0.04f else 0.12f)
+    return this.fillMaxSize().background(Brush.verticalGradient(listOf(upper, lower)))
 }
