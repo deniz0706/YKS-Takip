@@ -38,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -146,7 +148,8 @@ fun PremiumHomeDashboard(
                     allCount = all.size,
                     average = average,
                     best = best,
-                    change = change
+                    change = change,
+                    recentNets = all.takeLast(8).map { it.totalNet.toFloat() }
                 )
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
@@ -663,9 +666,15 @@ private fun PremiumPerformanceCard(
     allCount: Int,
     average: Double?,
     best: Double?,
-    change: Double?
+    change: Double?,
+    recentNets: List<Float>
 ) {
     val c = MaterialTheme.colorScheme
+    val chartReveal by animateFloatAsState(
+        targetValue = if (recentNets.size >= 2) 1f else 0f,
+        animationSpec = tween(durationMillis = YksMotion.standardMs),
+        label = "performance-chart-reveal"
+    )
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
@@ -687,6 +696,26 @@ private fun PremiumPerformanceCard(
                 Text(
                     text = "$allCount deneme",
                     style = MaterialTheme.typography.labelMedium,
+                    color = c.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            if (recentNets.size >= 2) {
+                SmoothNetTrendChart(
+                    values = recentNets,
+                    reveal = chartReveal,
+                    modifier = Modifier.fillMaxWidth().height(112.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Son ${recentNets.size} deneme",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = c.onSurfaceVariant
+                )
+            } else {
+                Text(
+                    text = "Grafik için en az 2 deneme kaydı gerekli.",
+                    style = MaterialTheme.typography.bodySmall,
                     color = c.onSurfaceVariant
                 )
             }
@@ -718,6 +747,69 @@ private fun PremiumPerformanceCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SmoothNetTrendChart(
+    values: List<Float>,
+    reveal: Float,
+    modifier: Modifier = Modifier
+) {
+    val c = MaterialTheme.colorScheme
+    Canvas(modifier = modifier) {
+        if (values.size < 2) return@Canvas
+        val low = values.minOrNull() ?: 0f
+        val high = values.maxOrNull() ?: 1f
+        val spread = (high - low).coerceAtLeast(1f)
+        val inset = 8.dp.toPx()
+        val chartWidth = (size.width - inset * 2).coerceAtLeast(1f)
+        val chartHeight = (size.height - inset * 2).coerceAtLeast(1f)
+        val points = values.mapIndexed { index, value ->
+            val x = inset + chartWidth * index / values.lastIndex.toFloat()
+            val y = inset + chartHeight * (1f - (value - low) / spread)
+            androidx.compose.ui.geometry.Offset(x, y)
+        }
+        for (fraction in listOf(0.25f, 0.5f, 0.75f)) {
+            val y = inset + chartHeight * fraction
+            drawLine(
+                color = c.outlineVariant.copy(alpha = 0.55f),
+                start = androidx.compose.ui.geometry.Offset(inset, y),
+                end = androidx.compose.ui.geometry.Offset(size.width - inset, y),
+                strokeWidth = 1.dp.toPx()
+            )
+        }
+        val curve = Path().apply {
+            moveTo(points.first().x, points.first().y)
+            for (index in 0 until points.lastIndex) {
+                val current = points[index]
+                val next = points[index + 1]
+                val controlX = (current.x + next.x) / 2f
+                cubicTo(controlX, current.y, controlX, next.y, next.x, next.y)
+            }
+        }
+        val area = Path().apply {
+            addPath(curve)
+            lineTo(points.last().x, size.height - inset)
+            lineTo(points.first().x, size.height - inset)
+            close()
+        }
+        drawPath(
+            path = area,
+            brush = Brush.verticalGradient(
+                colors = listOf(c.primary.copy(alpha = 0.20f * reveal), c.primary.copy(alpha = 0.01f)),
+                startY = inset,
+                endY = size.height - inset
+            )
+        )
+        drawPath(
+            path = curve,
+            color = c.primary.copy(alpha = reveal),
+            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+        )
+        val last = points.last()
+        drawCircle(color = c.primary.copy(alpha = reveal), radius = 4.dp.toPx(), center = last)
+        drawCircle(color = c.surface, radius = 1.8.dp.toPx(), center = last)
     }
 }
 
