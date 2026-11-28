@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.ui.settings
 
 import com.deniz0706.ykstakip.ui.theme.clayCanvas
+import com.deniz0706.ykstakip.ui.theme.clayRaised
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -209,7 +210,7 @@ private fun PremiumSettingsCard(
 ) {
     val c = colorScheme
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
@@ -281,8 +282,9 @@ private fun PremiumThemeChip(
     val c = colorScheme
     androidx.compose.foundation.layout.Column(
         modifier = modifier
+            .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.input), depth = 5.dp,
+                tint = if (isSelected) c.primaryContainer else c.surfaceContainer)
             .clip(RoundedCornerShape(YksTokens.Shape.input))
-            .background(if (isSelected) c.primaryContainer else c.surfaceContainer)
             .clickable { onSelect() }
             .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
