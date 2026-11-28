@@ -30,11 +30,9 @@ object LegacyDataMigrator {
 
         runBlocking(Dispatchers.IO) {
             migrateExams(app, prefs)
-            migrateStudyDays(app)
-            // Learning/photos and weekly plans intentionally remain on their
-            // legacy repositories until those UI and archive paths are moved
-            // together. Copying them to SQL while the UI still writes JSON
-            // would create two competing sources of truth.
+            // Study history, learning/photos and weekly plans intentionally
+            // remain on their existing repositories until their UI, backup,
+            // timer and archive paths can move together without split storage.
         }
 
         // Set only after every migration step has completed successfully.
@@ -77,9 +75,7 @@ object LegacyDataMigrator {
         val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (prefs.getBoolean(KEY_MIGRATED_TO_SQL, false)) return
         val exams = prefs.getString("exams_json", null)
-        val study = app.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
-            .getString("study_days", null)
-        val hasLegacyPayload = listOf(exams, study).any {
+        val hasLegacyPayload = listOf(exams).any {
             !it.isNullOrBlank() && it.trim() != "[]" && it.trim() != "null"
         }
         check(!hasLegacyPayload) {
