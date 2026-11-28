@@ -72,6 +72,7 @@ import com.deniz0706.ykstakip.domain.repository.LearningRepository
 
 import com.deniz0706.ykstakip.ui.ai.PremiumAiCoachScreen
 import com.deniz0706.ykstakip.ui.history.PremiumExamDetailScreen
+import com.deniz0706.ykstakip.ui.history.ExamEntryScreen
 import com.deniz0706.ykstakip.ui.history.PremiumExamsScreen
 import com.deniz0706.ykstakip.ui.home.PremiumHomeDashboard
 import com.deniz0706.ykstakip.ui.settings.PremiumSettingsScreen
@@ -550,6 +551,28 @@ fun YksNavHost(
                 colorScheme = androidx.compose.material3.MaterialTheme.colorScheme
             )
             onDestinationChange?.invoke(YksNavDestination.Exams)
+        }
+
+        composable(
+            route = "exams/new",
+            arguments = emptyList()
+        ) {
+            ExamEntryScreen(
+                onBack = { navController.popBackStack() },
+                onSave = { exam ->
+                    coroutineScope.launch {
+                        runCatching { examViewModel.saveExam(exam) }
+                            .onSuccess { navController.popBackStack() }
+                            .onFailure { error ->
+                                android.widget.Toast.makeText(
+                                    appContext,
+                                    error.message ?: "Deneme kaydedilemedi.",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                            }
+                    }
+                }
+            )
         }
 
         composable(
