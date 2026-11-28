@@ -14,6 +14,10 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
     val days: MutableLiveData<List<StudyDay>> = _days
 
     init {
+        refresh()
+    }
+
+    fun refresh() {
         viewModelScope.launch {
             _days.value = repository.getAll()
         }
