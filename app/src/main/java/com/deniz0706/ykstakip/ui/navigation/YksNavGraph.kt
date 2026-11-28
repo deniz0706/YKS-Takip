@@ -165,10 +165,10 @@ private fun YksPhoneShell(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            YksBottomNavigation(
+            ClayBottomBar(
                 currentDestination = currentDestination,
-                navController = navController,
-                onDestinationSelected = onDestinationSelected
+                onDestinationSelected = onDestinationSelected,
+                onQuickAdd = { navController.navigate("exams/new") }
             )
         }
     ) { innerPadding ->
