@@ -61,7 +61,6 @@ import com.deniz0706.ykstakip.data.AiMemoryRepository
 import com.deniz0706.ykstakip.data.ExamRepository
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
 import com.deniz0706.ykstakip.data.repository.SqlLearningRepository
-import com.deniz0706.ykstakip.data.repository.SqlStudyRepository
 import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.data.ThemeManager
 import com.deniz0706.ykstakip.domain.model.AytField
@@ -399,7 +398,7 @@ fun YksNavHost(
             coroutineScope.launch {
                 try {
                     val days = withContext(Dispatchers.IO) {
-                        SqlStudyRepository.getInstance(appContext).getAll()
+                        com.deniz0706.ykstakip.data.StudyRepository(appContext).getAll()
                     }
                     val json = com.deniz0706.ykstakip.data.StudyBackupManager.exportJson(days)
                     withContext(Dispatchers.IO) {
@@ -427,7 +426,7 @@ fun YksNavHost(
                         com.deniz0706.ykstakip.data.StudyBackupManager.parseJson(text)
                     }
                     withContext(Dispatchers.IO) {
-                        SqlStudyRepository.getInstance(appContext).importDays(parsed.days, overwrite = false)
+                        com.deniz0706.ykstakip.data.StudyRepository(appContext).importDays(parsed.days, overwrite = false)
                     }
                     studyViewModel.refresh()
                 } catch (_: Exception) {
@@ -645,7 +644,7 @@ fun YksNavHost(
                     val date = java.time.LocalDate.now().toString()
                     coroutineScope.launch {
                         withContext(Dispatchers.IO) {
-                            val studyRepo = SqlStudyRepository.getInstance(appContext)
+                            val studyRepo = com.deniz0706.ykstakip.data.StudyRepository(appContext)
                             if (studyRepo.get(date) == null) {
                                 studyRepo.save(com.deniz0706.ykstakip.domain.model.StudyDay(
                                     date = date,
@@ -665,7 +664,7 @@ fun YksNavHost(
                 onEditDay = { date ->
                     coroutineScope.launch {
                         withContext(Dispatchers.IO) {
-                            SqlStudyRepository.getInstance(appContext).get(date)
+                            com.deniz0706.ykstakip.data.StudyRepository(appContext).get(date)
                         }
                     }
                 },
@@ -810,7 +809,7 @@ fun YksNavHost(
                 onUndoStudyImport = {
                     coroutineScope.launch {
                         withContext(Dispatchers.IO) {
-                            SqlStudyRepository.getInstance(appContext).undoLastImport()
+                            com.deniz0706.ykstakip.data.StudyRepository(appContext).undoLastImport()
                         }
                         studyViewModel.refresh()
                     }
