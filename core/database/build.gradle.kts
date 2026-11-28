@@ -23,7 +23,7 @@ kotlin {
             implementation(kotlin("test"))
         }
         androidMain.dependencies {
-            api("app.cash.sqldelight:android-driver:2.0.2")
+            api("app.cash.sqldelight:android-driver:2.4.1")
         }
         iosMain.dependencies {
             implementation("app.cash.sqldelight:native-driver:2.0.2")
