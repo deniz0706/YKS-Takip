@@ -1,7 +1,9 @@
 package com.deniz0706.ykstakip.ui.home
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -9,7 +11,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +20,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +36,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -78,67 +89,75 @@ fun PremiumHomeDashboard(
     val average = remember(all) { all.map { it.totalNet }.takeIf { it.isNotEmpty() }?.average() }
     val best = remember(all) { all.maxOfOrNull { it.totalNet } }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(c.background),
-        contentPadding = PaddingValues(
-            horizontal = YksTokens.Space.pageHorizontal,
-            vertical = YksTokens.Space.pageVertical
-        ),
-        verticalArrangement = Arrangement.spacedBy(YksTokens.Space.section)
-    ) {
-        item {
-            PremiumHeader(
-                todayQuestions = todayQuestions,
-                dailyGoal = dailyGoal,
-                countdown = countdown,
-                type = type,
-                onTypeChange = { type = ExamType.valueOf(it) }
-            )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(c.background)) {
+        val tabletLayout = maxWidth >= 840.dp
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(if (tabletLayout) 2 else 1),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                horizontal = if (tabletLayout) 28.dp else YksTokens.Space.pageHorizontal,
+                vertical = YksTokens.Space.pageVertical
+            ),
+            horizontalArrangement = Arrangement.spacedBy(if (tabletLayout) 20.dp else 0.dp),
+            verticalArrangement = Arrangement.spacedBy(YksTokens.Space.section)
+        ) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                PremiumHeader(
+                    todayQuestions = todayQuestions,
+                    dailyGoal = dailyGoal,
+                    countdown = countdown,
+                    type = type,
+                    onTypeChange = { type = ExamType.valueOf(it) }
+                )
+            }
+            item {
+                PremiumNetCard(
+                    latest = latest,
+                    change = change,
+                    goal = goal,
+                    type = type
+                )
+            }
+            item {
+                PremiumTodayCard(
+                    todayQuestions = todayQuestions,
+                    dailyGoal = dailyGoal,
+                    onOpenStudy = onOpenStudy,
+                    hasFocusSession = hasFocusSession
+                )
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                PremiumActionRow(
+                    onNewExam = { onNewExam(type) },
+                    onOpenStudy = onOpenStudy,
+                    onOpenAiCoach = onOpenAiCoach,
+                    hasFocusSession = hasFocusSession
+                )
+            }
+            item {
+                PremiumNextStepsCard(
+                    reviewAlertCount = reviewAlertCount,
+                    learningDoneCount = learningDoneCount,
+                    learningTotalCount = learningTotalCount,
+                    aiCoachAdvice = aiCoachAdvice,
+                    aiCoachDate = aiCoachDate,
+                    onOpenLearning = onOpenLearning,
+                    onOpenAiCoach = onOpenAiCoach
+                )
+            }
+            item {
+                PremiumPerformanceCard(
+                    allCount = all.size,
+                    average = average,
+                    best = best,
+                    change = change,
+                    recentNets = all.takeLast(8).map { it.totalNet.toFloat() }
+                )
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Spacer(modifier = Modifier.height(120.dp))
+            }
         }
-        item {
-            PremiumNetCard(
-                latest = latest,
-                change = change,
-                goal = goal,
-                type = type
-            )
-        }
-        item {
-            PremiumActionRow(
-                onNewExam = { onNewExam(type) },
-                onOpenStudy = onOpenStudy,
-                onOpenAiCoach = onOpenAiCoach,
-                hasFocusSession = hasFocusSession
-            )
-        }
-        item(key = "today-focus") {
-            PremiumTodayCard(
-                todayQuestions = todayQuestions,
-                dailyGoal = dailyGoal,
-                onOpenStudy = onOpenStudy,
-                hasFocusSession = hasFocusSession
-            )
-        }
-        item(key = "next-steps") {
-            PremiumNextStepsCard(
-                reviewAlertCount = reviewAlertCount,
-                learningDoneCount = learningDoneCount,
-                learningTotalCount = learningTotalCount,
-                aiCoachAdvice = aiCoachAdvice,
-                aiCoachDate = aiCoachDate,
-                onOpenLearning = onOpenLearning,
-                onOpenAiCoach = onOpenAiCoach
-            )
-        }
-        item(key = "performance") {
-            PremiumPerformanceCard(
-                allCount = all.size,
-                average = average,
-                best = best,
-                change = change
-            )
-        }
-        item { Spacer(modifier = Modifier.height(120.dp)) }
     }
 }
 
@@ -151,26 +170,31 @@ private fun PremiumHeader(
     onTypeChange: (String) -> Unit
 ) {
     val c = MaterialTheme.colorScheme
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "Bugün",
-                style = MaterialTheme.typography.headlineMedium,
-                color = c.onSurface
-            )
-            val goalText = dailyGoal?.let { "Günlük hedef: $it soru" } ?: "Hedefi ayarlayın"
-            Text(
-                text = "$todayQuestions soru · $goalText",
-                style = MaterialTheme.typography.bodyMedium,
-                color = c.onSurfaceVariant
-            )
-        }
-        if (countdown != null && countdown >= 0) {
-            CountdownBox(countdown = countdown)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Bugün",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = c.onSurface
+                )
+                val goalText = dailyGoal?.let { "Günlük hedef: $it soru" } ?: "Hedefi ayarlayın"
+                Text(
+                    text = "$todayQuestions soru · $goalText",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = c.onSurfaceVariant
+                )
+            }
+            if (countdown != null && countdown >= 0) {
+                CountdownBox(countdown = countdown)
+            }
         }
         ExamTypeToggle(
             type = type,
@@ -374,22 +398,115 @@ private fun PremiumTodayCard(
 ) {
     val c = MaterialTheme.colorScheme
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(YksTokens.Shape.panel))
+            .background(c.surfaceContainer)
+            .padding(YksTokens.Space.cardContent),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        PremiumStatColumn(
-            label = "Bugünkü Soru",
-            value = todayQuestions.toString(),
-            detail = if (dailyGoal != null && dailyGoal > 0) "Hedef: $dailyGoal" else "Hedef ayarlanmadı",
-            modifier = Modifier.fillMaxHeight().weight(1f)
+        DailyGoalRing(
+            questions = todayQuestions,
+            goal = dailyGoal
         )
-        PremiumActionColumn(
-            label = if (hasFocusSession) "Devam Ediyor" else "Hazır",
-            actionText = if (hasFocusSession) "Seansa Dön →" else "Başlat →",
-            accent = if (hasFocusSession) c.primary else c.onSurface,
-            onClick = onOpenStudy,
-            modifier = Modifier.fillMaxHeight().weight(1f)
-        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Bugünkü ilerleme",
+                style = MaterialTheme.typography.labelLarge,
+                color = c.onSurface
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = if (dailyGoal != null && dailyGoal > 0) "$todayQuestions / $dailyGoal soru" else "$todayQuestions soru",
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.onSurfaceVariant
+            )
+            if (dailyGoal == null || dailyGoal <= 0) {
+                Text(
+                    text = "Hedef ayarlanmadı",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.onSurfaceVariant
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(YksTokens.Shape.control))
+                .clickable(onClick = onOpenStudy)
+                .padding(horizontal = 10.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = if (hasFocusSession) "Devam" else "Başlat",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = c.primary
+            )
+            Text(
+                text = "Çalışma →",
+                style = MaterialTheme.typography.labelSmall,
+                color = c.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun DailyGoalRing(
+    questions: Int,
+    goal: Int?
+) {
+    val c = MaterialTheme.colorScheme
+    val progress = if (goal != null && goal > 0) {
+        (questions.coerceAtLeast(0).toFloat() / goal.toFloat()).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = YksMotion.standardMs),
+        label = "daily-goal-ring"
+    )
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier.width(88.dp).height(88.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val strokeWidth = 9.dp.toPx()
+            drawArc(
+                color = c.outlineVariant,
+                startAngle = -90f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+            )
+            if (animatedProgress > 0f) {
+                drawArc(
+                    color = c.primary,
+                    startAngle = -90f,
+                    sweepAngle = 360f * animatedProgress,
+                    useCenter = false,
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                )
+            }
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = if (goal != null && goal > 0) (progress * 100).toInt().toString() + "%" else "—",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = c.onSurface
+            )
+            Text(
+                text = "HEDEF",
+                style = MaterialTheme.typography.labelSmall,
+                color = c.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -551,9 +668,15 @@ private fun PremiumPerformanceCard(
     allCount: Int,
     average: Double?,
     best: Double?,
-    change: Double?
+    change: Double?,
+    recentNets: List<Float>
 ) {
     val c = MaterialTheme.colorScheme
+    val chartReveal by animateFloatAsState(
+        targetValue = if (recentNets.size >= 2) 1f else 0f,
+        animationSpec = tween(durationMillis = YksMotion.standardMs),
+        label = "performance-chart-reveal"
+    )
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
@@ -575,6 +698,31 @@ private fun PremiumPerformanceCard(
                 Text(
                     text = "$allCount deneme",
                     style = MaterialTheme.typography.labelMedium,
+                    color = c.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            if (recentNets.size >= 2) {
+                SmoothNetTrendChart(
+                    values = recentNets,
+                    reveal = chartReveal,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(112.dp)
+                        .semantics {
+                            contentDescription = "Son ${recentNets.size} denemenin net grafiği. En düşük net: ${recentNets.minOrNull()}, en yüksek net: ${recentNets.maxOrNull()}."
+                        }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Son ${recentNets.size} deneme · En düşük ${Fmt.net(recentNets.minOrNull()?.toDouble())} · En yüksek ${Fmt.net(recentNets.maxOrNull()?.toDouble())}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = c.onSurfaceVariant
+                )
+            } else {
+                Text(
+                    text = "Grafik için en az 2 deneme kaydı gerekli.",
+                    style = MaterialTheme.typography.bodySmall,
                     color = c.onSurfaceVariant
                 )
             }
@@ -605,6 +753,72 @@ private fun PremiumPerformanceCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SmoothNetTrendChart(
+    values: List<Float>,
+    reveal: Float,
+    modifier: Modifier = Modifier
+) {
+    val c = MaterialTheme.colorScheme
+    Canvas(modifier = modifier) {
+        if (values.size < 2) return@Canvas
+        val low = values.minOrNull() ?: 0f
+        val high = values.maxOrNull() ?: 1f
+        val spread = (high - low).coerceAtLeast(1f)
+        val inset = 8.dp.toPx()
+        val chartWidth = (size.width - inset * 2).coerceAtLeast(1f)
+        val chartHeight = (size.height - inset * 2).coerceAtLeast(1f)
+        val points = values.mapIndexed { index, value ->
+            val x = inset + chartWidth * index / values.lastIndex.toFloat()
+            val y = inset + chartHeight * (1f - (value - low) / spread)
+            androidx.compose.ui.geometry.Offset(x, y)
+        }
+        for (fraction in listOf(0.25f, 0.5f, 0.75f)) {
+            val y = inset + chartHeight * fraction
+            drawLine(
+                color = c.outlineVariant.copy(alpha = 0.55f),
+                start = androidx.compose.ui.geometry.Offset(inset, y),
+                end = androidx.compose.ui.geometry.Offset(size.width - inset, y),
+                strokeWidth = 1.dp.toPx()
+            )
+        }
+        val curve = Path().apply {
+            moveTo(points.first().x, points.first().y)
+            for (index in 0 until points.lastIndex) {
+                val current = points[index]
+                val next = points[index + 1]
+                val controlX = (current.x + next.x) / 2f
+                cubicTo(controlX, current.y, controlX, next.y, next.x, next.y)
+            }
+        }
+        val area = Path().apply {
+            addPath(curve)
+            lineTo(points.last().x, size.height - inset)
+            lineTo(points.first().x, size.height - inset)
+            close()
+        }
+        // Reveal the filled area and curve from left to right instead of only fading them in.
+        clipRect(right = inset + chartWidth * reveal) {
+            drawPath(
+                path = area,
+                brush = Brush.verticalGradient(
+                    colors = listOf(c.primary.copy(alpha = 0.20f), c.primary.copy(alpha = 0.01f)),
+                    startY = inset,
+                    endY = size.height - inset
+                )
+            )
+            drawPath(
+                path = curve,
+                color = c.primary,
+                style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+            )
+            val last = points.last()
+            drawCircle(color = c.primary, radius = 4.dp.toPx(), center = last)
+            drawCircle(color = c.surface, radius = 1.8.dp.toPx(), center = last)
         }
     }
 }

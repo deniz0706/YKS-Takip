@@ -2,12 +2,11 @@ package com.deniz0706.ykstakip.ui.settings
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import android.content.res.Configuration
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +28,7 @@ private data class PreviewOption(
     val splitPreview: Boolean = false
 )
 
-/** Two-column, tappable theme gallery. Each preview reflects its real palette. */
+/** Adaptive, tappable theme gallery. Each preview reflects its real palette. */
 @Composable
 fun ThemePreviewSelector(
     selected: String,
@@ -39,7 +38,6 @@ fun ThemePreviewSelector(
     val scheme = MaterialTheme.colorScheme
     // Observe UI configuration changes, but read the application-level system
     // configuration: Activity uiMode is deliberately overridden for Aurora/Dark.
-    val activeConfiguration = LocalConfiguration.current
     val appContext = LocalContext.current.applicationContext
     val systemDark = (appContext.resources.configuration.uiMode and
         Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -50,6 +48,14 @@ fun ThemePreviewSelector(
             Color(0xFF0D1012), Color(0xFF171B1D), Color(0xFFF0F2EF), Color(0xFFA9C9B9)),
         PreviewOption("aurora", "Aurora", "Lacivert · mint",
             Color(0xFF0B1220), Color(0xFF172337), Color(0xFFF3F8FF), Color(0xFF57D6C1)),
+        PreviewOption("lavender", "Lavanta", "Yumuşak mor",
+            Color(0xFFF7F4FC), Color(0xFFFFFCFF), Color(0xFF292333), Color(0xFF8064B5)),
+        PreviewOption("mint", "Nane", "Pastel yeşil",
+            Color(0xFFF1F8F4), Color(0xFFFBFFFC), Color(0xFF1E3027), Color(0xFF36866A)),
+        PreviewOption("ocean", "Okyanus", "Derin mavi",
+            Color(0xFF101A2B), Color(0xFF19283D), Color(0xFFF0F5FF), Color(0xFF75A7F7)),
+        PreviewOption("rose", "Gül", "Bordo · pudra",
+            Color(0xFF1C151A), Color(0xFF292027), Color(0xFFF8F0F4), Color(0xFFD48BA8)),
         PreviewOption("system", "Sistem", "Otomatik",
             if (systemDark) Color(0xFF0D1012) else Color(0xFFF3F5F2),
             if (systemDark) Color(0xFF171B1D) else Color(0xFFFBFCFA),
@@ -57,8 +63,10 @@ fun ThemePreviewSelector(
             if (systemDark) Color(0xFFA9C9B9) else Color(0xFF28685D),
             splitPreview = true)
     )
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        options.chunked(2).forEach { row ->
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val columns = if (maxWidth >= 840.dp) 4 else 2
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        options.chunked(columns).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 row.forEach { option ->
                     val isSelected = selected == option.id
@@ -94,10 +102,26 @@ fun ThemePreviewSelector(
                                 Canvas(Modifier.fillMaxWidth().weight(1f)) {
                                     val line = Path().apply {
                                         moveTo(0f, size.height * .88f)
-                                        lineTo(size.width * .2f, size.height * .56f)
-                                        lineTo(size.width * .43f, size.height * .7f)
-                                        lineTo(size.width * .72f, size.height * .22f)
-                                        lineTo(size.width, size.height * .14f)
+                                        cubicTo(
+                                            size.width * .10f, size.height * .72f,
+                                            size.width * .13f, size.height * .53f,
+                                            size.width * .2f, size.height * .56f
+                                        )
+                                        cubicTo(
+                                            size.width * .30f, size.height * .60f,
+                                            size.width * .34f, size.height * .78f,
+                                            size.width * .43f, size.height * .7f
+                                        )
+                                        cubicTo(
+                                            size.width * .57f, size.height * .57f,
+                                            size.width * .62f, size.height * .25f,
+                                            size.width * .72f, size.height * .22f
+                                        )
+                                        cubicTo(
+                                            size.width * .83f, size.height * .19f,
+                                            size.width * .91f, size.height * .16f,
+                                            size.width, size.height * .14f
+                                        )
                                     }
                                     drawPath(line, option.accent, style = Stroke(2.3.dp.toPx()))
                                     drawCircle(option.accent, radius = 3.dp.toPx(),
@@ -115,6 +139,7 @@ fun ThemePreviewSelector(
                     }
                 }
             }
+        }
         }
     }
 }

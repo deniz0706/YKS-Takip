@@ -15,7 +15,7 @@ object ThemeManager {
     private const val PREFS = "yks_takip_prefs"
     private const val KEY_THEME = "theme_mode"
     private const val KEY_PALETTE_V2 = "theme_palette_v2"
-    private val modes = setOf("light", "dark", "aurora", "system")
+    private val modes = setOf("light", "dark", "aurora", "lavender", "mint", "ocean", "rose", "system")
 
     // Read by Compose themes: switching between Aurora and Dark (both uiMode night)
     // must repaint all retained pages without recreating the Activity.
@@ -35,8 +35,8 @@ object ThemeManager {
         read(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE))
 
     private fun desiredNightMode(mode: String): Int = when (mode) {
-        "aurora", "dark" -> AppCompatDelegate.MODE_NIGHT_YES
-        "light" -> AppCompatDelegate.MODE_NIGHT_NO
+        "aurora", "dark", "ocean", "rose" -> AppCompatDelegate.MODE_NIGHT_YES
+        "light", "lavender", "mint" -> AppCompatDelegate.MODE_NIGHT_NO
         else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
     }
 
@@ -95,8 +95,29 @@ object ThemeManager {
         "#AAB5B2", "#A9C9B9", "#303A37", "#30483D"
     )
 
+    private val lavenderPalette = palette(
+        "#F7F4FC", "#FFFCFF", "#EEE8F8", "#292333",
+        "#71677E", "#8064B5", "#DED5EA", "#E9DDF8"
+    )
+    private val mintPalette = palette(
+        "#F1F8F4", "#FBFFFC", "#E4F1E9", "#1E3027",
+        "#5D7466", "#36866A", "#CFE0D4", "#D5EFE1"
+    )
+    private val oceanPalette = palette(
+        "#101A2B", "#19283D", "#253A55", "#F0F5FF",
+        "#A7B8D0", "#75A7F7", "#354B68", "#294B78"
+    )
+    private val rosePalette = palette(
+        "#1C151A", "#292027", "#392B34", "#F8F0F4",
+        "#C2AEB9", "#D48BA8", "#4B3944", "#593747"
+    )
+
     fun nativePalette(context: Context): NativePalette = when (currentTheme(context)) {
         "light" -> lightPalette
+        "lavender" -> lavenderPalette
+        "mint" -> mintPalette
+        "ocean" -> oceanPalette
+        "rose" -> rosePalette
         "aurora" -> auroraPalette
         "dark" -> darkPalette
         else -> if ((context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
