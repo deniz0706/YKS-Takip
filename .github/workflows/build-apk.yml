@@ -22,7 +22,7 @@ jobs:
     # Only trusted branch pushes/maintainer dispatches trigger this workflow.
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
