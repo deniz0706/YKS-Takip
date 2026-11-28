@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -56,6 +57,7 @@ import com.deniz0706.ykstakip.ui.theme.YksTokens
 import com.deniz0706.ykstakip.util.Fmt
 
 /** Premium study planning and tracking screen for YKS Takip 4.0. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PremiumStudyScreen(
     days: List<StudyDay>,
@@ -88,10 +90,11 @@ fun PremiumStudyScreen(
     onEditPlan: (StudyPlanItem) -> Unit,
     onTogglePlan: (Long) -> Unit,
     onOpenLearningFromPlan: (StudyPlanItem) -> Unit,
-    onDeletePlan: (StudyPlanItem) -> Unit
+    onDeletePlan: (StudyPlanItem) -> Unit,
+    initialSection: String = "today"
 ) {
     val c = MaterialTheme.colorScheme
-    var section by remember { mutableStateOf("today") }
+    var section by remember(initialSection) { mutableStateOf(initialSection) }
     var selectedDate by remember { mutableStateOf(java.time.LocalDate.now().toString()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showDayEditor by remember { mutableStateOf(false) }
