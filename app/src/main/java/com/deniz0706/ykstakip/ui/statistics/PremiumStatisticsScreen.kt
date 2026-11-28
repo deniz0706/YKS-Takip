@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,22 +16,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.domain.model.Exam
@@ -80,66 +88,28 @@ fun PremiumStatisticsScreen(
             )
         }
 
-        // Overview stats row
+        // Responsive overview metrics: two columns on phones, three on wide screens.
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
-            ) {
-                PremiumStatTile(
-                    label = "Genel Ortalama",
-                    value = Fmt.net(overallAverage),
-                    detail = "tüm sınavlar",
-                    accent = c.primary,
-                    modifier = Modifier.weight(1f)
+            PremiumStatGrid(
+                tiles = listOf(
+                    PremiumStatData("Genel Ortalama", Fmt.net(overallAverage), "tüm sınavlar", c.primary),
+                    PremiumStatData("TYT Ortalama", Fmt.net(tytAverage), "${tytExams.size} deneme", c.secondary),
+                    PremiumStatData("AYT Ortalama", Fmt.net(aytAverage), "${aytExams.size} deneme", c.tertiary)
                 )
-                PremiumStatTile(
-                    label = "TYT Ortalama",
-                    value = Fmt.net(tytAverage),
-                    detail = "${tytExams.size} deneme",
-                    accent = c.secondary,
-                    modifier = Modifier.weight(1f)
-                )
-                PremiumStatTile(
-                    label = "AYT Ortalama",
-                    value = Fmt.net(aytAverage),
-                    detail = "${aytExams.size} deneme",
-                    accent = c.tertiary,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            )
         }
 
         item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
 
-        // Best scores row
+        // Personal records and OBP use the same responsive metric grid.
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
-            ) {
-                PremiumStatTile(
-                    label = "TYT En İyi",
-                    value = Fmt.net(tytBest),
-                    detail = "kişisel rekor",
-                    accent = c.primary,
-                    modifier = Modifier.weight(1f)
+            PremiumStatGrid(
+                tiles = listOf(
+                    PremiumStatData("TYT En İyi", Fmt.net(tytBest), "kişisel rekor", c.primary),
+                    PremiumStatData("AYT En İyi", Fmt.net(aytBest), "kişisel rekor", c.secondary),
+                    PremiumStatData("OBP", obp?.let { it.toInt().toString() } ?: "—", "0–100", c.tertiary)
                 )
-                PremiumStatTile(
-                    label = "AYT En İyi",
-                    value = Fmt.net(aytBest),
-                    detail = "kişisel rekor",
-                    accent = c.secondary,
-                    modifier = Modifier.weight(1f)
-                )
-                PremiumStatTile(
-                    label = "OBP",
-                    value = obp?.let { it.toInt().toString() } ?: "—",
-                    detail = "0–100",
-                    accent = c.tertiary,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            )
         }
 
         item { Spacer(modifier = Modifier.height(YksTokens.Space.md)) }
@@ -165,7 +135,7 @@ fun PremiumStatisticsScreen(
         // Recent exams trend
         item {
             PremiumRecentTrendCard(
-                exams = exams.takeLast(10).reversed()
+                exams = exams.sortedByDescending { it.date }.take(10).reversed()
             )
         }
 
@@ -196,6 +166,39 @@ private fun PremiumSectionHeader(
                 style = MaterialTheme.typography.bodyMedium,
                 color = c.onSurfaceVariant
             )
+        }
+    }
+}
+
+private data class PremiumStatData(
+    val label: String,
+    val value: String,
+    val detail: String,
+    val accent: Color
+)
+
+@Composable
+private fun PremiumStatGrid(tiles: List<PremiumStatData>) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val columns = if (maxWidth >= 840.dp) 3 else 2
+        Column(verticalArrangement = Arrangement.spacedBy(YksTokens.Space.md)) {
+            tiles.chunked(columns).forEach { row ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
+                ) {
+                    row.forEach { tile ->
+                        PremiumStatTile(
+                            label = tile.label,
+                            value = tile.value,
+                            detail = tile.detail,
+                            accent = tile.accent,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
         }
     }
 }
@@ -252,37 +255,49 @@ private fun PremiumTargetsCard(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
-            ) {
-                PremiumProgressTile(
-                    label = "TYT Hedef Neti",
-                    current = tytAverage,
-                    target = targetTyt?.toDouble(),
-                    unit = "net",
-                    range = "0–120",
-                    accent = c.primary,
-                    modifier = Modifier.weight(1f)
+            PremiumProgressGrid(
+                tiles = listOf(
+                    PremiumProgressData("TYT Hedef Neti", tytAverage, targetTyt?.toDouble(), "net", "0–120", c.primary),
+                    PremiumProgressData("AYT Hedef Neti", aytAverage, targetAyt?.toDouble(), "net", "0–80", c.secondary),
+                    PremiumProgressData("OBP", obp ?: 0.0, null, "", "0–100", c.tertiary)
                 )
-                PremiumProgressTile(
-                    label = "AYT Hedef Neti",
-                    current = aytAverage,
-                    target = targetAyt?.toDouble(),
-                    unit = "net",
-                    range = "0–80",
-                    accent = c.secondary,
-                    modifier = Modifier.weight(1f)
-                )
-                PremiumProgressTile(
-                    label = "OBP",
-                    current = obp ?: 0.0,
-                    target = null,
-                    unit = "",
-                    range = "0–100",
-                    accent = c.tertiary,
-                    modifier = Modifier.weight(1f)
-                )
+            )
+        }
+    }
+}
+
+private data class PremiumProgressData(
+    val label: String,
+    val current: Double,
+    val target: Double?,
+    val unit: String,
+    val range: String,
+    val accent: Color
+)
+
+@Composable
+private fun PremiumProgressGrid(tiles: List<PremiumProgressData>) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val columns = if (maxWidth >= 840.dp) 3 else 2
+        Column(verticalArrangement = Arrangement.spacedBy(YksTokens.Space.md)) {
+            tiles.chunked(columns).forEach { row ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
+                ) {
+                    row.forEach { tile ->
+                        PremiumProgressTile(
+                            label = tile.label,
+                            current = tile.current,
+                            target = tile.target,
+                            unit = tile.unit,
+                            range = tile.range,
+                            accent = tile.accent,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                }
             }
         }
     }
@@ -328,7 +343,7 @@ private fun PremiumProgressTile(
         ) {
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier
-                    .width(1000.dp * progress.toFloat()) // approximate visual width
+                    .fillMaxWidth(progress.toFloat())
                     .height(4.dp)
                     .background(accent)
                     .clip(RoundedCornerShape(YksTokens.Shape.pill))
@@ -340,6 +355,14 @@ private fun PremiumProgressTile(
 @Composable
 private fun PremiumRecentTrendCard(exams: List<Exam>) {
     val c = MaterialTheme.colorScheme
+    var selectedFilter by remember { mutableStateOf("Tümü") }
+    val filteredExams = remember(exams, selectedFilter) {
+        when (selectedFilter) {
+            "TYT" -> exams.filter { it.type == ExamType.TYT }
+            "AYT" -> exams.filter { it.type == ExamType.AYT }
+            else -> exams
+        }
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
@@ -353,11 +376,27 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                 style = MaterialTheme.typography.labelLarge,
                 color = c.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Tümü", "TYT", "AYT").forEach { filter ->
+                    FilterChip(
+                        selected = selectedFilter == filter,
+                        onClick = { selectedFilter = filter },
+                        label = { Text(filter) }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
 
-            if (exams.isEmpty()) {
+            val chronological = filteredExams
+            if (chronological.size >= 2) {
+                PremiumStatisticsTrendChart(chronological)
+                Spacer(modifier = Modifier.height(18.dp))
+            }
+
+            if (filteredExams.isEmpty()) {
                 Text(
-                    text = "Henüz deneme kaydı yok",
+                    text = if (exams.isEmpty()) "Henüz deneme kaydı yok" else "Bu filtrede deneme bulunamadı",
                     style = MaterialTheme.typography.bodyMedium,
                     color = c.onSurfaceVariant
                 )
@@ -366,7 +405,7 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    exams.forEach { exam ->
+                    filteredExams.forEach { exam ->
                         PremiumTrendRow(
                             exam = exam,
                             colorScheme = c
@@ -374,6 +413,64 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PremiumStatisticsTrendChart(exams: List<Exam>) {
+    val c = MaterialTheme.colorScheme
+    val values = exams.map { it.totalNet.toFloat() }
+    val low = values.minOrNull() ?: 0f
+    val high = values.maxOrNull() ?: 1f
+    val range = (high - low).coerceAtLeast(1f)
+    Column(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Net gelişimi", style = MaterialTheme.typography.labelLarge, color = c.onSurface)
+            Text("Son ${values.size} deneme", style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(8.dp))
+        Canvas(
+            Modifier.fillMaxWidth().height(112.dp)
+                .semantics {
+                    contentDescription = "Son ${values.size} denemenin net gelişim grafiği. En düşük ${Fmt.net(low.toDouble())}, en yüksek ${Fmt.net(high.toDouble())} net."
+                }
+        ) {
+            val inset = 8.dp.toPx()
+            val chartWidth = size.width - inset * 2
+            val chartHeight = size.height - inset * 2
+            repeat(3) { index ->
+                val y = inset + chartHeight * index / 2f
+                drawLine(
+                    color = c.outlineVariant.copy(alpha = 0.55f),
+                    start = androidx.compose.ui.geometry.Offset(inset, y),
+                    end = androidx.compose.ui.geometry.Offset(size.width - inset, y),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+            val points = values.mapIndexed { index, value ->
+                androidx.compose.ui.geometry.Offset(
+                    x = inset + chartWidth * index / (values.lastIndex).coerceAtLeast(1),
+                    y = inset + chartHeight * (1f - (value - low) / range)
+                )
+            }
+            val path = Path().apply {
+                moveTo(points.first().x, points.first().y)
+                for (index in 1 until points.size) {
+                    val previous = points[index - 1]
+                    val current = points[index]
+                    val middle = (previous.x + current.x) / 2f
+                    cubicTo(middle, previous.y, middle, current.y, current.x, current.y)
+                }
+            }
+            drawPath(path, color = c.primary, style = Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+            val last = points.last()
+            drawCircle(c.primary, radius = 4.dp.toPx(), center = last)
+            drawCircle(c.surface, radius = 1.8.dp.toPx(), center = last)
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(exams.first().date, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
+            Text(exams.last().date, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
         }
     }
 }
