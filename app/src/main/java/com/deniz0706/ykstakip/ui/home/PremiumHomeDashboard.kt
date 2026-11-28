@@ -378,51 +378,60 @@ private fun PremiumTodayCard(
 ) {
     val c = MaterialTheme.colorScheme
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(YksTokens.Shape.panel))
+            .background(c.surfaceContainer)
+            .padding(YksTokens.Space.cardContent),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .clip(RoundedCornerShape(YksTokens.Shape.panel))
-                .background(c.surfaceContainer)
-                .padding(YksTokens.Space.cardContent),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
+        DailyGoalRing(
+            questions = todayQuestions,
+            goal = dailyGoal
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
         ) {
-            DailyGoalRing(
-                questions = todayQuestions,
-                goal = dailyGoal
+            Text(
+                text = "Bugünkü ilerleme",
+                style = MaterialTheme.typography.labelLarge,
+                color = c.onSurface
             )
-            Column(verticalArrangement = Arrangement.Center) {
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = if (dailyGoal != null && dailyGoal > 0) "$todayQuestions / $dailyGoal soru" else "$todayQuestions soru",
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.onSurfaceVariant
+            )
+            if (dailyGoal == null || dailyGoal <= 0) {
                 Text(
-                    text = "Bugünkü ilerleme",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = c.onSurface
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = if (dailyGoal != null && dailyGoal > 0) "$todayQuestions / $dailyGoal soru" else "$todayQuestions soru",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Hedef ayarlanmadı",
+                    style = MaterialTheme.typography.bodySmall,
                     color = c.onSurfaceVariant
                 )
-                if (dailyGoal == null || dailyGoal <= 0) {
-                    Text(
-                        text = "Hedef ayarlanmadı",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = c.onSurfaceVariant
-                    )
-                }
             }
         }
-        PremiumActionColumn(
-            label = if (hasFocusSession) "Devam Ediyor" else "Hazır",
-            actionText = if (hasFocusSession) "Seansa Dön →" else "Başlat →",
-            accent = if (hasFocusSession) c.primary else c.onSurface,
-            onClick = onOpenStudy,
-            modifier = Modifier.fillMaxHeight().weight(1f)
-        )
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(YksTokens.Shape.control))
+                .clickable(onClick = onOpenStudy)
+                .padding(horizontal = 10.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = if (hasFocusSession) "Devam" else "Başlat",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = c.primary
+            )
+            Text(
+                text = "Çalışma →",
+                style = MaterialTheme.typography.labelSmall,
+                color = c.onSurfaceVariant
+            )
+        }
     }
 }
 
