@@ -31,8 +31,10 @@ object LegacyDataMigrator {
         runBlocking(Dispatchers.IO) {
             migrateExams(app, prefs)
             migrateStudyDays(app)
-            migrateStudyPlan(app)
-            migrateLearning(app)
+            // Learning/photos and weekly plans intentionally remain on their
+            // legacy repositories until those UI and archive paths are moved
+            // together. Copying them to SQL while the UI still writes JSON
+            // would create two competing sources of truth.
         }
 
         // Set only after every migration step has completed successfully.
@@ -70,8 +72,23 @@ object LegacyDataMigrator {
         }
     }
 
+    fun ensureMigrationReadyForWrites(context: Context) {
+        val app = context.applicationContext
+        val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_MIGRATED_TO_SQL, false)) return
+        val exams = prefs.getString("exams_json", null)
+        val study = app.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
+            .getString("study_days", null)
+        val hasLegacyPayload = listOf(exams, study).any {
+            !it.isNullOrBlank() && it.trim() != "[]" && it.trim() != "null"
+        }
+        check(!hasLegacyPayload) {
+            "Eski kayıtların aktarımı tamamlanmadı. Veri güvenliği için yeni kayıt işlemi durduruldu."
+        }
+    }
+
     private fun migrateExams(app: Context, prefs: android.content.SharedPreferences) {
-        val raw = prefs.getString("exams_json", null) ?: return
+        val raw = prefs.getString("exams_json", null)?.takeIf { it.isNotBlank() } ?: return
         val exams = parseLegacyArray(raw, "Deneme kayıtları", ::parseExam)
         if (exams.isEmpty()) return
         val queries = DatabaseHolder.get(app).examQueriesQueries
@@ -155,7 +172,7 @@ object LegacyDataMigrator {
 
     private fun migrateStudyDays(app: Context) {
         val prefs = app.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
-        val raw = prefs.getString("study_days", null) ?: return
+        val raw = prefs.getString("study_days", null)?.takeIf { it.isNotBlank() } ?: return
         val days = parseLegacyArray(raw, "Çalışma geçmişi") { obj ->
             StudyDay(
                 date = obj.getString("date"),
