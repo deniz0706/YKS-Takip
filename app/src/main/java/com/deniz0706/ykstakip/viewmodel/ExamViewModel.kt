@@ -26,4 +26,10 @@ class ExamViewModel(application: Application) : AndroidViewModel(application) {
             repository.deleteExam(id)
         }
     }
+
+    fun refresh() {
+        viewModelScope.launch {
+            repository.getAllExams().collect { _exams.value = it }
+        }
+    }
 }
