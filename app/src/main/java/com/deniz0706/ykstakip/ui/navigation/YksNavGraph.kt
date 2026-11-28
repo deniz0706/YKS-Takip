@@ -508,6 +508,35 @@ fun YksNavHost(
         }
 
         composable(
+            route = "exams/{examId}/edit",
+            arguments = listOf(navArgument("examId") { type = androidx.navigation.NavType.LongType })
+        ) { backStackEntry ->
+            val examId = backStackEntry.arguments?.getLong("examId") ?: -1L
+            val editingExam = exams.firstOrNull { it.id == examId }
+            if (editingExam == null) {
+                navController.popBackStack()
+            } else {
+                ExamEntryScreen(
+                    initialExam = editingExam,
+                    onBack = { navController.popBackStack() },
+                    onSave = { updated ->
+                        coroutineScope.launch {
+                            runCatching { examViewModel.saveExam(updated) }
+                                .onSuccess { navController.popBackStack() }
+                                .onFailure { error ->
+                                    android.widget.Toast.makeText(
+                                        appContext,
+                                        error.message ?: "Deneme güncellenemedi.",
+                                        android.widget.Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                        }
+                    }
+                )
+            }
+        }
+
+        composable(
             route = "exams/{examId}",
             arguments = listOf(navArgument("examId") { type = androidx.navigation.NavType.LongType }),
             deepLinks = listOf(
@@ -533,6 +562,7 @@ fun YksNavHost(
                 onDelete = {
                     coroutineScope.launch {
                         examViewModel.deleteExam(exam.id)
+                        navController.popBackStack()
                     }
                 },
                 onOpenLearning = { subject, topic, title ->
