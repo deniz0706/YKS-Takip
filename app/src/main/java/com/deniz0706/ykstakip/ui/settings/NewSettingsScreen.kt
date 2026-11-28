@@ -272,6 +272,8 @@ private fun AiRow(
     modifier: Modifier
 ) {
     val c = MaterialTheme.colorScheme
+    var baseUrlValue by remember(aiBaseUrl) { mutableStateOf(aiBaseUrl) }
+    var modelValue by remember(aiModel) { mutableStateOf(aiModel) }
     Column(modifier.padding(horizontal = 12.dp)) {
         Text(
             text = "API anahtarı ${if (hasAiKey) "bu cihazda kayıtlı." else "henüz eklenmedi."}",
@@ -280,15 +282,15 @@ private fun AiRow(
         )
         Spacer(modifier = Modifier.height(8.dp))
         androidx.compose.material3.OutlinedTextField(
-            value = aiBaseUrl,
-            onValueChange = {},
+            value = baseUrlValue,
+            onValueChange = { baseUrlValue = it },
             label = { Text("Base URL") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         androidx.compose.material3.OutlinedTextField(
-            value = aiModel,
-            onValueChange = {},
+            value = modelValue,
+            onValueChange = { modelValue = it },
             label = { Text("Model adı") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -298,7 +300,7 @@ private fun AiRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             androidx.compose.material3.Button(
-                onClick = { onSaveAi("", aiBaseUrl, aiModel) },
+                onClick = { onSaveAi("", baseUrlValue, modelValue) },
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Kaydet")
