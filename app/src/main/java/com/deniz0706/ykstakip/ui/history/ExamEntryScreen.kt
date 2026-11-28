@@ -89,6 +89,8 @@ fun ExamEntryScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(YksTokens.Shape.panel),
+            elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
             colors = CardDefaults.cardColors(containerColor = colors.surfaceContainer)
         ) {
             Column(Modifier.padding(YksTokens.Space.cardContent), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -168,6 +170,8 @@ fun ExamEntryScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(YksTokens.Shape.panel),
+            elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
             colors = CardDefaults.cardColors(containerColor = colors.surfaceContainer)
         ) {
             Column(Modifier.padding(YksTokens.Space.cardContent)) {
@@ -228,6 +232,8 @@ private fun SubjectEntryCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.card),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = CardDefaults.cardColors(containerColor = colors.surfaceContainerLow)
     ) {
         Column(Modifier.padding(YksTokens.Space.cardContent), verticalArrangement = Arrangement.spacedBy(8.dp)) {
