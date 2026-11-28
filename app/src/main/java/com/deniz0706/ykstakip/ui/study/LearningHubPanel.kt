@@ -741,7 +741,7 @@ fun LearningHubPanel(
                                 actionFeedback = "Soru oluşturuldu. Fotoğraf çekimini iptal etsen de soru defterinde kalacak."
                                 onCapture(id)
                             }
-                        }) { Text("📷 Çekerek ekle", style = MaterialTheme.typography.labelSmall) }
+                        }) { Text(" Çekerek ekle", style = MaterialTheme.typography.labelSmall) }
                         OutlinedButton(enabled = selectedOutcome != null, onClick = {
                             selectedOutcome?.let {
                                 val id = onCreateQuestion(it.id, title, notes, status)
@@ -943,7 +943,7 @@ private fun QuestionJournalCard(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             OutlinedButton(onClick = { onCapture(card.id) },
                 contentPadding = PaddingValues(horizontal = 9.dp),
-                modifier = Modifier.weight(1f)) { Text("📷 Kamera", maxLines = 1,
+                modifier = Modifier.weight(1f)) { Text(" Kamera", maxLines = 1,
                     style = MaterialTheme.typography.labelMedium) }
             OutlinedButton(onClick = { onGallery(card.id) },
                 contentPadding = PaddingValues(horizontal = 9.dp),
