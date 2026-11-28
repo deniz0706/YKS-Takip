@@ -867,7 +867,7 @@ private class HomeViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         val examRepo: com.deniz0706.ykstakip.domain.repository.ExamRepository = SqlExamRepository(application)
-        val learningRepo: com.deniz0706.ykstakip.domain.repository.LearningRepository = SqlLearningRepository(application)
+        val learningRepo: com.deniz0706.ykstakip.domain.repository.LearningRepository = LegacyLearningRepositoryAdapter(application)
         return HomeViewModel(application, examRepo, learningRepo) as T
     }
 }
