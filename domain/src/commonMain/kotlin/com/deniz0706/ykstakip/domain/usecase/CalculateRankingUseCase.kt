@@ -3,7 +3,6 @@ package com.deniz0706.ykstakip.domain.usecase
 import com.deniz0706.ykstakip.domain.model.AytField
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
-import kotlin.math.absoluteValue
 
 /** Protected: ranking calculation orchestration.
  *
@@ -48,9 +47,7 @@ class CalculateRankingUseCase {
 
     private fun daysBetween(first: String, second: String): Long {
         return try {
-            java.time.temporal.ChronoUnit.DAYS.between(
-                java.time.LocalDate.parse(first), java.time.LocalDate.parse(second)
-            ).absoluteValue
+            DateDistance.daysBetween(first, second)
         } catch (_: Exception) {
             Long.MAX_VALUE
         }
