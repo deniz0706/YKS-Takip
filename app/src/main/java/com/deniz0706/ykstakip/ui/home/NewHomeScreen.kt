@@ -198,7 +198,7 @@ fun NewHomeScreen(
                 Spacer(Modifier.height(8.dp))
                 if (change != null) {
                     Text(
-                        text = if (change >= 0) "↗ ${Fmt.netWithSign(change)} net" else "↘ ${Fmt.netWithSign(change)} net",
+                        text = if (change >= 0) " ${Fmt.netWithSign(change)} net" else " ${Fmt.netWithSign(change)} net",
                         color = if (change >= 0) c.primary else c.error,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold
@@ -358,7 +358,7 @@ fun NewHomeScreen(
                 Text(
                     text = if (recentAvg != null && olderAvg != null) {
                         val trend = recentAvg - olderAvg
-                        if (trend >= 0) "↗ ${Fmt.netWithSign(trend)} net gelişim" else "↘ ${Fmt.netWithSign(trend)} net düşüş"
+                        if (trend >= 0) " ${Fmt.netWithSign(trend)} net gelişim" else " ${Fmt.netWithSign(trend)} net düşüş"
                     } else "Yeterli veri yok",
                     color = c.onSurface,
                     style = MaterialTheme.typography.bodyMedium
