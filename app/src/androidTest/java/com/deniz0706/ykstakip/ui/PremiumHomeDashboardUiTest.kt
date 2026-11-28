@@ -80,7 +80,7 @@ class PremiumHomeDashboardUiTest {
 
         composeRule.onNodeWithText("5 / 10 soru").assertExists()
         composeRule.onNodeWithText("50%").assertExists()
-        composeRule.onNodeWithText("Son 2 deneme").assertExists()
+        composeRule.onNodeWithText("Son 2 deneme", substring = true).assertExists()
     }
 
     @Test
