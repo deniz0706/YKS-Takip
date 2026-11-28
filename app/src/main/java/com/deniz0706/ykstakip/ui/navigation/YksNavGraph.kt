@@ -58,6 +58,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.deniz0706.ykstakip.data.AppSettings
 import com.deniz0706.ykstakip.data.AiMemoryRepository
+import com.deniz0706.ykstakip.data.LegacyLearningRepositoryAdapter
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
 import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.data.ThemeManager
