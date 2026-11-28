@@ -133,7 +133,6 @@ fun YksTakipApp(
             ) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
-                        Text("YKS TAKİP", style = MaterialTheme.typography.labelLarge, color = GraphiteAccent)
                         Text("Bugün", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
                         Text(
                             dashboard.daysUntilExam?.let { "YKS'ye $it gün kaldı" } ?: "Çalışma durumun",
