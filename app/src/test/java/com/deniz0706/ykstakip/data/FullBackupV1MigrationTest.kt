@@ -11,6 +11,8 @@ import org.json.JSONObject
 import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.model.ExamType
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -87,6 +89,9 @@ class FullBackupV1MigrationTest {
     }
     @Test fun prepareImportDoesNotApplySettingsBeforeWholeArchiveIsValidated() {
         AppSettings.setObp(context, 87.5f)
+        AppSettings.setDailyGoal(context, 47)
+        AppSettings.setTargetNet(context, ExamType.TYT, 101.5f)
+        AppSettings.setLearningField(context, AytField.ESIT_AGIRLIK)
         val archive = File(context.cacheDir, "invalid-full-backup-" + System.nanoTime() + ".zip")
         val manifest = JSONObject().apply {
             put("schema", "yks_takip_full_backup")
@@ -101,6 +106,8 @@ class FullBackupV1MigrationTest {
             put("schema", SettingsBackupManager.SCHEMA)
             put("version", 1)
             put("obp", 99.9)
+            put("daily_goal", 88)
+            put("target_net_tyt", 115.0)
             put("learning_field", "SAYISAL")
         }.toString()
 
@@ -128,6 +135,9 @@ class FullBackupV1MigrationTest {
             }
             assertTrue("Invalid learning archive must be rejected", failed)
             assertEquals(87.5f, AppSettings.getObp(context)!!, 0.001f)
+            assertEquals(47, AppSettings.getDailyGoal(context))
+            assertEquals(101.5f, AppSettings.getTargetNet(context, ExamType.TYT)!!, 0.001f)
+            assertEquals(AytField.ESIT_AGIRLIK, AppSettings.getLearningField(context))
         } finally {
             archive.delete()
         }
