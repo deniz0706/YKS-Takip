@@ -138,7 +138,7 @@ fun StudyActivityHeatmap(
                 Text("$total soru · gösterilen dönem", color = colors.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall)
             }
-            Text("Az  ▪ ▪ ▪ ▪  Çok",
+            Text("Az       Çok",
                 color = colors.onSurfaceVariant,
                 style = MaterialTheme.typography.labelSmall)
         }
