@@ -1,0 +1,30 @@
+-- Durable bookkeeping for staged legacy import. This table is not a signal
+-- that migration succeeded until the importer has verified every section.
+CREATE TABLE MigrationCheckpoint (
+    migrationId TEXT NOT NULL PRIMARY KEY,
+    sourceFingerprint TEXT NOT NULL,
+    schemaVersion INTEGER NOT NULL,
+    state TEXT NOT NULL,
+    startedAtEpochMillis INTEGER NOT NULL,
+    completedAtEpochMillis INTEGER,
+    lastError TEXT
+);
+
+getMigrationCheckpoint:
+SELECT * FROM MigrationCheckpoint
+WHERE migrationId = ?;
+
+upsertMigrationCheckpoint:
+INSERT OR REPLACE INTO MigrationCheckpoint(
+    migrationId,
+    sourceFingerprint,
+    schemaVersion,
+    state,
+    startedAtEpochMillis,
+    completedAtEpochMillis,
+    lastError
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteMigrationCheckpoint:
+DELETE FROM MigrationCheckpoint
+WHERE migrationId = ?;

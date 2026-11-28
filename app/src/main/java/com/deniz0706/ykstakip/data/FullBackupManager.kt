@@ -56,8 +56,16 @@ object FullBackupManager {
 
     fun exportTo(context: Context, destination: Uri): ExportResult {
         val app = context.applicationContext
-        val exams = ExamRepository.getInstance(app).getAllExams()
-        val studyDays = StudyRepository(app).getAll()
+        val examRepository = ExamRepository.getInstance(app)
+        val studyRepository = StudyRepository(app)
+        val exams = examRepository.getAllExams()
+        val studyDays = studyRepository.getAll()
+        check(!examRepository.hasUnreadableLegacyData()) {
+            "Deneme verileri okunamadı. Veri kaybını önlemek için tam yedek oluşturma durduruldu."
+        }
+        check(!studyRepository.hasUnreadableLegacyData()) {
+            "Çalışma geçmişi okunamadı. Veri kaybını önlemek için tam yedek oluşturma durduruldu."
+        }
         val examBytes = BackupManager.exportToJson(exams).toByteArray(Charsets.UTF_8)
         val studyBytes = StudyBackupManager.exportJson(studyDays).toByteArray(Charsets.UTF_8)
         if (examBytes.size > MAX_JSON || studyBytes.size > MAX_JSON) {

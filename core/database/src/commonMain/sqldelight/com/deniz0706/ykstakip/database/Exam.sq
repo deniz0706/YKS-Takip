@@ -1,0 +1,68 @@
+CREATE TABLE ExamRecord (
+    id INTEGER NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    examDate TEXT NOT NULL,
+    examType TEXT NOT NULL,
+    aytField TEXT,
+    notes TEXT NOT NULL DEFAULT '',
+    publisher TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE SubjectResultRecord (
+    examId INTEGER NOT NULL,
+    subjectOrder INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    questionCount INTEGER NOT NULL,
+    correct INTEGER NOT NULL,
+    wrong INTEGER NOT NULL,
+    timeMinutes INTEGER NOT NULL,
+    weakTopicsJson TEXT NOT NULL DEFAULT '[]',
+    PRIMARY KEY (examId, subjectOrder),
+    FOREIGN KEY (examId) REFERENCES ExamRecord(id) ON DELETE CASCADE
+);
+
+CREATE INDEX SubjectResultRecord_examId_subjectOrder
+ON SubjectResultRecord(examId, subjectOrder);
+
+selectAllExams:
+SELECT * FROM ExamRecord
+ORDER BY examDate ASC, id ASC;
+
+selectExamById:
+SELECT * FROM ExamRecord
+WHERE id = ?;
+
+selectSubjectsForExam:
+SELECT * FROM SubjectResultRecord
+WHERE examId = ?
+ORDER BY subjectOrder ASC;
+
+-- Separate insert/update statements keep the write path compatible with
+-- SQLDelight's SQLite parser and avoid REPLACE's delete-then-insert semantics.
+insertExam:
+INSERT INTO ExamRecord(id, title, examDate, examType, aytField, notes, publisher)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+updateExam:
+UPDATE ExamRecord
+SET title = ?, examDate = ?, examType = ?, aytField = ?, notes = ?, publisher = ?
+WHERE id = ?;
+
+deleteExamById:
+DELETE FROM ExamRecord
+WHERE id = ?;
+
+deleteAllExams:
+DELETE FROM ExamRecord;
+
+insertSubjectResult:
+INSERT INTO SubjectResultRecord(
+    examId, subjectOrder, subject, questionCount, correct, wrong, timeMinutes, weakTopicsJson
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteSubjectsForExam:
+DELETE FROM SubjectResultRecord
+WHERE examId = ?;
+
+deleteAllSubjectResults:
+DELETE FROM SubjectResultRecord;
