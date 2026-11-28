@@ -37,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Brush
@@ -704,11 +706,16 @@ private fun PremiumPerformanceCard(
                 SmoothNetTrendChart(
                     values = recentNets,
                     reveal = chartReveal,
-                    modifier = Modifier.fillMaxWidth().height(112.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(112.dp)
+                        .semantics {
+                            contentDescription = "Son ${recentNets.size} denemenin net grafiği. En düşük net: ${recentNets.minOrNull()}, en yüksek net: ${recentNets.maxOrNull()}."
+                        }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Son ${recentNets.size} deneme",
+                    text = "Son ${recentNets.size} deneme · En düşük ${Fmt.net(recentNets.minOrNull()?.toDouble())} · En yüksek ${Fmt.net(recentNets.maxOrNull()?.toDouble())}",
                     style = MaterialTheme.typography.labelSmall,
                     color = c.onSurfaceVariant
                 )
@@ -794,22 +801,25 @@ private fun SmoothNetTrendChart(
             lineTo(points.first().x, size.height - inset)
             close()
         }
-        drawPath(
-            path = area,
-            brush = Brush.verticalGradient(
-                colors = listOf(c.primary.copy(alpha = 0.20f * reveal), c.primary.copy(alpha = 0.01f)),
-                startY = inset,
-                endY = size.height - inset
+        // Reveal the filled area and curve from left to right instead of only fading them in.
+        clipRect(right = inset + chartWidth * reveal) {
+            drawPath(
+                path = area,
+                brush = Brush.verticalGradient(
+                    colors = listOf(c.primary.copy(alpha = 0.20f), c.primary.copy(alpha = 0.01f)),
+                    startY = inset,
+                    endY = size.height - inset
+                )
             )
-        )
-        drawPath(
-            path = curve,
-            color = c.primary.copy(alpha = reveal),
-            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
-        )
-        val last = points.last()
-        drawCircle(color = c.primary.copy(alpha = reveal), radius = 4.dp.toPx(), center = last)
-        drawCircle(color = c.surface, radius = 1.8.dp.toPx(), center = last)
+            drawPath(
+                path = curve,
+                color = c.primary,
+                style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+            )
+            val last = points.last()
+            drawCircle(color = c.primary, radius = 4.dp.toPx(), center = last)
+            drawCircle(color = c.surface, radius = 1.8.dp.toPx(), center = last)
+        }
     }
 }
 
