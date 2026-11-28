@@ -2,12 +2,11 @@ package com.deniz0706.ykstakip.ui.settings
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import android.content.res.Configuration
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +28,7 @@ private data class PreviewOption(
     val splitPreview: Boolean = false
 )
 
-/** Two-column, tappable theme gallery. Each preview reflects its real palette. */
+/** Adaptive, tappable theme gallery. Each preview reflects its real palette. */
 @Composable
 fun ThemePreviewSelector(
     selected: String,
@@ -64,8 +63,10 @@ fun ThemePreviewSelector(
             if (systemDark) Color(0xFFA9C9B9) else Color(0xFF28685D),
             splitPreview = true)
     )
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        options.chunked(2).forEach { row ->
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val columns = if (maxWidth >= 840.dp) 4 else 2
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        options.chunked(columns).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 row.forEach { option ->
                     val isSelected = selected == option.id
@@ -138,6 +139,7 @@ fun ThemePreviewSelector(
                     }
                 }
             }
+        }
         }
     }
 }
