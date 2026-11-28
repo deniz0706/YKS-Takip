@@ -205,7 +205,7 @@ private fun PremiumActionCard(
         shape = RoundedCornerShape(YksTokens.Shape.panel),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Row(
             modifier = Modifier.padding(YksTokens.Space.cardContent),
@@ -290,7 +290,7 @@ private fun PremiumExamCard(
         shape = RoundedCornerShape(YksTokens.Shape.card),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Row(
             modifier = Modifier.padding(YksTokens.Space.cardContent),
