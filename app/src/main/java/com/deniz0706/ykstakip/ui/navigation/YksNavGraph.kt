@@ -688,30 +688,18 @@ fun YksNavHost(
                         studyViewModel.refresh()
                     }
                 },
-                onAddPlan = { dayOfWeek ->
+                onAddPlan = { dayOfWeek, start, end, subject, topic ->
                     val newId = (studyPlan.maxByOrNull { it.id }?.id ?: 0L) + 1
-                    val item = com.deniz0706.ykstakip.domain.model.StudyPlanItem(
-                        id = newId,
-                        dayOfWeek = dayOfWeek,
-                        startTime = "09:00",
-                        endTime = "10:00",
-                        subject = "",
-                        topic = ""
+                    studyPlanRepository.save(
+                        com.deniz0706.ykstakip.domain.model.StudyPlanItem(
+                            id = newId,
+                            dayOfWeek = dayOfWeek,
+                            startTime = start,
+                            endTime = end,
+                            subject = subject,
+                            topic = topic
+                        )
                     )
-                    studyPlanRepository.save(item)
-                    refreshStudyPlan()
-                },
-                onAddSuggestedPlan = { dayOfWeek, start, end ->
-                    val newId = (studyPlan.maxByOrNull { it.id }?.id ?: 0L) + 1
-                    val item = com.deniz0706.ykstakip.domain.model.StudyPlanItem(
-                        id = newId,
-                        dayOfWeek = dayOfWeek,
-                        startTime = start,
-                        endTime = end,
-                        subject = "Genel Tekrar",
-                        topic = "Önerilen Çalışma"
-                    )
-                    studyPlanRepository.save(item)
                     refreshStudyPlan()
                 },
                 onEditPlan = { item ->
