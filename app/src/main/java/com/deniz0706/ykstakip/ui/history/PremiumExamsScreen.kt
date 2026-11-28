@@ -87,7 +87,7 @@ fun PremiumExamsScreen(
             PremiumActionCard(
                 label = "+ Yeni Deneme Ekle",
                 subtitle = "Performans takibi için ilk denemenizi kaydedin.",
-                icon = "📝",
+                icon = "Deneme",
                 accent = c.primary,
                 onClick = onNewExam,
                 colorScheme = c,
