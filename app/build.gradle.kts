@@ -5,6 +5,12 @@ plugins {
     id("com.squareup.sqldelight") version "1.5.5"
 }
 
+val ciRunNumber = providers.environmentVariable("GITHUB_RUN_NUMBER").orNull?.toIntOrNull()
+val ciBranchName = providers.environmentVariable("GITHUB_REF_NAME").orNull
+val appVersionFamily = if (ciBranchName == "2.0") "2.0" else "4.0"
+val appVersionCode = 1000 + (ciRunNumber ?: 0)
+val appVersionName = ciRunNumber?.let { "$appVersionFamily.$it" } ?: "4.0-dev"
+
 android {
     namespace = "com.deniz0706.ykstakip"
     compileSdk = 35
@@ -13,8 +19,8 @@ android {
         applicationId = "com.deniz0706.ykstakip"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "4.0.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
