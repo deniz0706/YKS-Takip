@@ -339,9 +339,9 @@ private fun PremiumMessageBubble(
         }
         Column(
             Modifier
+                .background(bg)
                 .clayInset(shape = RoundedCornerShape(YksTokens.Shape.control))
                 .clip(RoundedCornerShape(YksTokens.Shape.control))
-                .background(bg)
                 .padding(horizontal = 12.dp, vertical = 10.dp)
                 .widthIn(max = if (isUser) 260.dp else Dp.Unspecified)
         ) {
