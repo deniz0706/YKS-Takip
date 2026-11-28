@@ -822,17 +822,6 @@ fun YksNavHost(
                         android.widget.Toast.makeText(appContext, message, android.widget.Toast.LENGTH_LONG).show()
                     }
                 },
-                onExport = {
-                    val destination = android.net.Uri.fromFile(java.io.File(appContext.cacheDir, "yks-export.zip"))
-                    coroutineScope.launch {
-                        withContext(Dispatchers.IO) {
-                            com.deniz0706.ykstakip.data.FullBackupManager.exportTo(appContext, destination)
-                        }
-                    }
-                },
-                onImport = {
-                    // No file-based exam import currently supported; exams are managed in-app.
-                },
                 onImportStudy = {
                     importStudyLauncher.launch(arrayOf("application/json"))
                 },
