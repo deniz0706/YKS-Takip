@@ -127,7 +127,7 @@ fun NewAiCoachScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "⚠️ $error",
+                            text = "Uyarı $error",
                             style = MaterialTheme.typography.bodySmall,
                             color = c.onErrorContainer
                         )
@@ -159,7 +159,7 @@ fun NewAiCoachScreen(
                     horizontalArrangement = Arrangement.Start
                 ) {
                     Text(
-                        text = "🤖",
+                        text = "AI",
                         style = MaterialTheme.typography.titleMedium,
                         color = c.primary
                     )
@@ -200,7 +200,7 @@ fun NewAiCoachScreen(
                 enabled = uiState.hasApiKey && !uiState.isSending && draft.isNotBlank()
             ) {
                 androidx.compose.material3.Text(
-                    text = "📤",
+                    text = "Gönder",
                     style = MaterialTheme.typography.labelMedium
                 )
             }
@@ -234,7 +234,7 @@ private fun MessageBubble(
     ) {
         if (!isUser) {
             Text(
-                text = "🤖",
+                text = "AI",
                 style = MaterialTheme.typography.titleMedium,
                 color = c.primary
             )
@@ -256,7 +256,7 @@ private fun MessageBubble(
         if (isUser) {
             Spacer(Modifier.width(8.dp))
             Text(
-                text = "👤",
+                text = "Sen",
                 style = MaterialTheme.typography.titleMedium,
                 color = c.primary
             )
