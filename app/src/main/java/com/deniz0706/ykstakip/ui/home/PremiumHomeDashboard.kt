@@ -137,7 +137,7 @@ private fun ClayGaugeCard(todayQuestions: Int, dailyGoal: Int?, todayMinutes: In
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(questionLabel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = c.primary, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(4.dp))
-                Text("⏱ $timeLabel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = c.secondary)
+                Text("Süre $timeLabel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = c.secondary)
             }
         }
         Text(if (hasFocusSession) "Odak seansına devam et →" else "Çalışmaya başla →", style = MaterialTheme.typography.labelLarge, color = c.onSurfaceVariant)
@@ -184,7 +184,7 @@ private fun ClayNetCard(title: String, exams: List<Exam>, goal: Float?, accent: 
         Text(title, style = MaterialTheme.typography.labelLarge, color = c.onSurfaceVariant)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(Fmt.net(latest), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = c.onSurface)
-            if (change != null) Text(if (change >= 0) "↗" else "↘", color = if (change >= 0) GainColor else c.error, fontWeight = FontWeight.Bold)
+            if (change != null) Text(if (change >= 0) "" else "", color = if (change >= 0) GainColor else c.error, fontWeight = FontWeight.Bold)
         }
         if (recent.size >= 2) ClaySparkline(recent, reveal, accent, Modifier.fillMaxWidth().height(72.dp))
         else Text("Grafik için en az 2 deneme gerekli.", style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, modifier = Modifier.height(72.dp))
