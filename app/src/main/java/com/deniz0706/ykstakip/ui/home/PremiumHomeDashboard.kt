@@ -155,26 +155,31 @@ private fun PremiumHeader(
     onTypeChange: (String) -> Unit
 ) {
     val c = MaterialTheme.colorScheme
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "Bugün",
-                style = MaterialTheme.typography.headlineMedium,
-                color = c.onSurface
-            )
-            val goalText = dailyGoal?.let { "Günlük hedef: $it soru" } ?: "Hedefi ayarlayın"
-            Text(
-                text = "$todayQuestions soru · $goalText",
-                style = MaterialTheme.typography.bodyMedium,
-                color = c.onSurfaceVariant
-            )
-        }
-        if (countdown != null && countdown >= 0) {
-            CountdownBox(countdown = countdown)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Bugün",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = c.onSurface
+                )
+                val goalText = dailyGoal?.let { "Günlük hedef: $it soru" } ?: "Hedefi ayarlayın"
+                Text(
+                    text = "$todayQuestions soru · $goalText",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = c.onSurfaceVariant
+                )
+            }
+            if (countdown != null && countdown >= 0) {
+                CountdownBox(countdown = countdown)
+            }
         }
         ExamTypeToggle(
             type = type,
