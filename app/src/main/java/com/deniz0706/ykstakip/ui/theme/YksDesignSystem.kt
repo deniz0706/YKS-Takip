@@ -37,9 +37,9 @@ object YksTokens {
     object Shape {
         val control = 12.dp     // buttons, chips, toggles
         val input = 16.dp       // text fields
-        val card = 20.dp        // cards and panels
-        val panel = 24.dp       // large containers
-        val floating = 28.dp    // FAB, bottom sheets
+        val card = 24.dp        // cards and panels
+        val panel = 28.dp       // large containers
+        val floating = 32.dp    // FAB, bottom sheets
         val pill = 100.dp       // fully rounded
         val circle = 50.dp      // avatars, circular icons
     }
@@ -60,7 +60,7 @@ object YksTokens {
         val compactIcon = 18.dp
         val standardIcon = 22.dp
         val largeIcon = 28.dp
-        val navigationBarHeight = 80.dp
+        val navigationBarHeight = 84.dp
         val topBarHeight = 56.dp
         val bottomSheetHandle = 4.dp
         val avatarSmall = 32.dp
