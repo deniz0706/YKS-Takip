@@ -352,7 +352,13 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                 style = MaterialTheme.typography.labelLarge,
                 color = c.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            val chronological = exams.reversed().take(10).reversed()
+            if (chronological.size >= 2) {
+                PremiumStatisticsTrendChart(chronological)
+                Spacer(modifier = Modifier.height(18.dp))
+            }
 
             if (exams.isEmpty()) {
                 Text(
@@ -373,6 +379,61 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PremiumStatisticsTrendChart(exams: List<Exam>) {
+    val c = MaterialTheme.colorScheme
+    val values = exams.map { it.totalNet.toFloat() }
+    val low = values.minOrNull() ?: 0f
+    val high = values.maxOrNull() ?: 1f
+    val range = (high - low).coerceAtLeast(1f)
+    Column(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Net gelişimi", style = MaterialTheme.typography.labelLarge, color = c.onSurface)
+            Text("Son ${values.size} deneme", style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(8.dp))
+        Canvas(
+            Modifier.fillMaxWidth().height(112.dp)
+        ) {
+            val inset = 8.dp.toPx()
+            val chartWidth = size.width - inset * 2
+            val chartHeight = size.height - inset * 2
+            repeat(3) { index ->
+                val y = inset + chartHeight * index / 2f
+                drawLine(
+                    color = c.outlineVariant.copy(alpha = 0.55f),
+                    start = androidx.compose.ui.geometry.Offset(inset, y),
+                    end = androidx.compose.ui.geometry.Offset(size.width - inset, y),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+            val points = values.mapIndexed { index, value ->
+                androidx.compose.ui.geometry.Offset(
+                    x = inset + chartWidth * index / (values.lastIndex).coerceAtLeast(1),
+                    y = inset + chartHeight * (1f - (value - low) / range)
+                )
+            }
+            val path = Path().apply {
+                moveTo(points.first().x, points.first().y)
+                for (index in 1 until points.size) {
+                    val previous = points[index - 1]
+                    val current = points[index]
+                    val middle = (previous.x + current.x) / 2f
+                    cubicTo(middle, previous.y, middle, current.y, current.x, current.y)
+                }
+            }
+            drawPath(path, color = c.primary, style = Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+            val last = points.last()
+            drawCircle(c.primary, radius = 4.dp.toPx(), center = last)
+            drawCircle(c.surface, radius = 1.8.dp.toPx(), center = last)
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(exams.first().date, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
+            Text(exams.last().date, style = MaterialTheme.typography.labelSmall, color = c.onSurfaceVariant)
         }
     }
 }
