@@ -87,20 +87,25 @@ object LegacyDataMigrator {
         val raw = prefs.getString("exams_json", null)?.takeIf { it.isNotBlank() } ?: return
         val exams = parseLegacyArray(raw, "Deneme kayıtları", ::parseExam)
         if (exams.isEmpty()) return
-        val queries = DatabaseHolder.get(app).examQueriesQueries
+        val database = DatabaseHolder.get(app)
+        val queries = database.examQueriesQueries
         exams.forEach { exam ->
-            // Ignore existing rows so a retry cannot overwrite edits made after
-            // an interrupted migration. A missing subject set is filled once.
-            queries.insertExamBulk(
-                exam.id, exam.title, exam.date, exam.type.name,
-                exam.aytField?.name, exam.notes, exam.publisher
-            )
-            if (queries.selectSubjectsForExam(exam.id).executeAsList().isEmpty()) {
-                exam.subjects.forEach { subject ->
-                    queries.insertExamSubjects(
-                        exam.id, subject.subject, subject.correct.toLong(),
-                        subject.wrong.toLong(), subject.blank.toLong(), subject.timeMinutes.toLong()
-                    )
+            // Parent and all subject rows commit together. A retry can repair
+            // an incomplete earlier migration without replacing user edits.
+            database.transaction {
+                queries.insertExamBulk(
+                    exam.id, exam.title, exam.date, exam.type.name,
+                    exam.aytField?.name, exam.notes, exam.publisher
+                )
+                val existingSubjects = queries.selectSubjectsForExam(exam.id).executeAsList()
+                if (existingSubjects.size != exam.subjects.size) {
+                    queries.deleteExamSubjects(exam.id)
+                    exam.subjects.forEach { subject ->
+                        queries.insertExamSubjects(
+                            exam.id, subject.subject, subject.correct.toLong(),
+                            subject.wrong.toLong(), subject.blank.toLong(), subject.timeMinutes.toLong()
+                        )
+                    }
                 }
             }
         }
