@@ -1,0 +1,154 @@
+-- Offline-first records beyond the initial exam/study-day slice.
+-- Photo paths stay as app-private file references; image bytes never enter SQLite.
+CREATE TABLE LearningOutcomeRecord (
+    id TEXT NOT NULL PRIMARY KEY,
+    examType TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    topic TEXT NOT NULL,
+    title TEXT NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 0,
+    reviewRequested INTEGER NOT NULL DEFAULT 0,
+    wrongCount INTEGER NOT NULL DEFAULT 0,
+    acknowledgedWrongCount INTEGER NOT NULL DEFAULT 0,
+    nextReviewDate TEXT NOT NULL DEFAULT '',
+    reviewLevel INTEGER NOT NULL DEFAULT 0,
+    lastReviewedDate TEXT NOT NULL DEFAULT '',
+    custom INTEGER NOT NULL DEFAULT 0,
+    completedSubtopicsJson TEXT NOT NULL DEFAULT '[]',
+    completedDate TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE QuestionCardRecord (
+    id TEXT NOT NULL PRIMARY KEY,
+    outcomeId TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT '',
+    notes TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    dueDate TEXT NOT NULL DEFAULT '',
+    reviewCount INTEGER NOT NULL DEFAULT 0,
+    photoPathsJson TEXT NOT NULL DEFAULT '[]',
+    FOREIGN KEY (outcomeId) REFERENCES LearningOutcomeRecord(id) ON DELETE RESTRICT
+);
+
+CREATE INDEX QuestionCardRecord_outcomeId ON QuestionCardRecord(outcomeId);
+CREATE INDEX QuestionCardRecord_dueDate ON QuestionCardRecord(dueDate);
+
+selectAllLearningOutcomes:
+SELECT * FROM LearningOutcomeRecord ORDER BY examType, subject, topic, id;
+
+insertLearningOutcome:
+INSERT INTO LearningOutcomeRecord(
+    id, examType, subject, topic, title, completed, reviewRequested,
+    wrongCount, acknowledgedWrongCount, nextReviewDate, reviewLevel,
+    lastReviewedDate, custom, completedSubtopicsJson, completedDate
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateLearningOutcome:
+UPDATE LearningOutcomeRecord SET
+    examType = ?, subject = ?, topic = ?, title = ?, completed = ?, reviewRequested = ?,
+    wrongCount = ?, acknowledgedWrongCount = ?, nextReviewDate = ?, reviewLevel = ?,
+    lastReviewedDate = ?, custom = ?, completedSubtopicsJson = ?, completedDate = ?
+WHERE id = ?;
+
+deleteLearningOutcome:
+DELETE FROM LearningOutcomeRecord WHERE id = ?;
+
+selectAllQuestionCards:
+SELECT * FROM QuestionCardRecord ORDER BY createdAt, id;
+
+selectQuestionsForOutcome:
+SELECT * FROM QuestionCardRecord WHERE outcomeId = ? ORDER BY createdAt, id;
+
+insertQuestionCard:
+INSERT INTO QuestionCardRecord(
+    id, outcomeId, title, notes, status, createdAt, dueDate, reviewCount, photoPathsJson
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateQuestionCard:
+UPDATE QuestionCardRecord SET
+    outcomeId = ?, title = ?, notes = ?, status = ?, createdAt = ?, dueDate = ?,
+    reviewCount = ?, photoPathsJson = ?
+WHERE id = ?;
+
+deleteQuestionCard:
+DELETE FROM QuestionCardRecord WHERE id = ?;
+
+-- A weekly plan's completedWeek is retained so old checkmarks do not
+-- accidentally become permanent when the week changes.
+CREATE TABLE StudyPlanRecord (
+    id INTEGER NOT NULL PRIMARY KEY,
+    dayOfWeek INTEGER NOT NULL,
+    startTime TEXT NOT NULL,
+    endTime TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    topic TEXT NOT NULL DEFAULT '',
+    completed INTEGER NOT NULL DEFAULT 0,
+    completedWeek TEXT
+);
+
+CREATE INDEX StudyPlanRecord_day_start ON StudyPlanRecord(dayOfWeek, startTime);
+
+selectAllStudyPlanItems:
+SELECT * FROM StudyPlanRecord ORDER BY dayOfWeek, startTime, id;
+
+insertStudyPlanItem:
+INSERT INTO StudyPlanRecord(
+    id, dayOfWeek, startTime, endTime, subject, topic, completed, completedWeek
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+updateStudyPlanItem:
+UPDATE StudyPlanRecord SET
+    dayOfWeek = ?, startTime = ?, endTime = ?, subject = ?, topic = ?, completed = ?,
+    completedWeek = ?
+WHERE id = ?;
+
+deleteStudyPlanItem:
+DELETE FROM StudyPlanRecord WHERE id = ?;
+
+-- Exactly one durable focus timer. startedAtEpochMillis is nullable when paused;
+-- accumulatedMs and carry fields preserve sub-minute time across saves/restarts.
+CREATE TABLE FocusTimerState (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    durationMinutes INTEGER NOT NULL,
+    accumulatedMs INTEGER NOT NULL DEFAULT 0,
+    startedAtEpochMillis INTEGER,
+    stopwatchMode INTEGER NOT NULL DEFAULT 0,
+    carryDate TEXT,
+    carryMs INTEGER NOT NULL DEFAULT 0
+);
+
+selectFocusTimerState:
+SELECT * FROM FocusTimerState WHERE singletonId = 1;
+
+insertFocusTimerState:
+INSERT INTO FocusTimerState(
+    singletonId, durationMinutes, accumulatedMs, startedAtEpochMillis,
+    stopwatchMode, carryDate, carryMs
+) VALUES (1, ?, ?, ?, ?, ?, ?);
+
+updateFocusTimerState:
+UPDATE FocusTimerState SET
+    durationMinutes = ?, accumulatedMs = ?, startedAtEpochMillis = ?, stopwatchMode = ?,
+    carryDate = ?, carryMs = ?
+WHERE singletonId = 1;
+
+-- Exam-mode metadata and lap splits are separate from the single shared timer.
+CREATE TABLE ExamSessionState (
+    singletonId INTEGER NOT NULL PRIMARY KEY CHECK (singletonId = 1),
+    examType TEXT NOT NULL,
+    durationMinutes INTEGER NOT NULL,
+    splitsJson TEXT NOT NULL DEFAULT '[]'
+);
+
+selectExamSessionState:
+SELECT * FROM ExamSessionState WHERE singletonId = 1;
+
+insertExamSessionState:
+INSERT INTO ExamSessionState(singletonId, examType, durationMinutes, splitsJson)
+VALUES (1, ?, ?, ?);
+
+updateExamSessionState:
+UPDATE ExamSessionState SET
+    examType = ?, durationMinutes = ?, splitsJson = ?
+WHERE singletonId = 1;

@@ -4,6 +4,10 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val ciRunNumber = providers.environmentVariable("GITHUB_RUN_NUMBER").orNull?.toIntOrNull()
+val appVersionCode = 1000 + (ciRunNumber ?: 0)
+val appVersionName = ciRunNumber?.let { "4.0.$it" } ?: "4.0-dev"
+
 android {
     namespace = "com.deniz0706.ykstakip"
     compileSdk = 35
@@ -12,12 +16,10 @@ android {
         applicationId = "com.deniz0706.ykstakip"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3"
+        versionCode = appVersionCode
+        versionName = appVersionName
     }
 
-    // Android Studio retains its normal debug configuration.
-    // Only CI explicitly supplies this stable preview development keystore.
     signingConfigs {
         getByName("debug") {
             val ciPreviewKeystore = System.getenv("YKS_PREVIEW_DEBUG_KEYSTORE")
@@ -55,7 +57,19 @@ android {
     }
 }
 
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "androidx.lifecycle") {
+            useVersion("2.9.4")
+            because("Align Lifecycle lint checks and runtime artifacts to avoid Kotlin Analysis API binary mismatch.")
+        }
+    }
+}
+
 dependencies {
+    implementation(project(":core:domain"))
+    implementation(project(":core:database"))
+    implementation(project(":composeApp"))
     implementation(platform("androidx.compose:compose-bom:2024.10.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")
@@ -66,14 +80,13 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.fragment:fragment-ktx:1.8.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("androidx.activity:activity-ktx:1.9.1")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
-    // Android's org.json methods are not functional in host-JVM unit tests.
     testImplementation("org.json:json:20240303")
 }

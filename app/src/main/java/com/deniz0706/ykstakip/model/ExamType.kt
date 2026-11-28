@@ -1,6 +1,4 @@
 package com.deniz0706.ykstakip.model
 
-enum class ExamType(val label: String, val totalTimeMinutes: Int) {
-    TYT("TYT", 165),
-    AYT("AYT", 180)
-}
+/** Android source-compatibility alias for the shared exam type. */
+typealias ExamType = com.deniz0706.ykstakip.domain.ExamType

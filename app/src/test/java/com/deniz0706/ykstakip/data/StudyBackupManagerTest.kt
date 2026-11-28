@@ -68,4 +68,33 @@ class StudyBackupManagerTest {
                 """{"schema":"exam_backup","version":1,"days":[]}""", asOf)
         }
     }
+
+
+    @Test fun legacyArrayFormatRemainsReadableWithEstimatedDefaultingToFalse() {
+        val json = """[{"date":"2026-09-08","questionCount":287,"studyMinutes":465}]"""
+        val parsed = StudyBackupManager.parseJson(json, asOf)
+        assertEquals(1, parsed.days.size)
+        assertTrue(!parsed.days.single().estimated)
+        assertEquals(0, parsed.estimatedDays)
+    }
+
+    @Test fun perDayEstimatedFlagOverridesEnvelopeDefault() {
+        val json = """{"schema":"yks_takip_study_backup","version":1,"estimated":true,
+            "days":[
+                {"date":"2026-09-08","questionCount":287,"studyMinutes":465,"estimated":false},
+                {"date":"2026-09-09","questionCount":290,"studyMinutes":470}
+            ]}"""
+        val parsed = StudyBackupManager.parseJson(json, asOf)
+        assertTrue(!parsed.days[0].estimated)
+        assertTrue(parsed.days[1].estimated)
+        assertEquals(1, parsed.estimatedDays)
+    }
+
+    @Test fun unsupportedEnvelopeVersionIsRejected() {
+        val json = """{"schema":"yks_takip_study_backup","version":2,"days":[]}"""
+        assertThrows(IllegalArgumentException::class.java) {
+            StudyBackupManager.parseJson(json, asOf)
+        }
+    }
+
 }
