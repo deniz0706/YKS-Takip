@@ -1,5 +1,6 @@
 package com.deniz0706.ykstakip.ui.settings
 
+import com.deniz0706.ykstakip.ui.theme.clayCanvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -65,7 +66,7 @@ fun PremiumSettingsScreen(
     val c = colorScheme
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(c.background),
+        modifier = Modifier.clayCanvas(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
             horizontal = YksTokens.Space.pageHorizontal,
             vertical = YksTokens.Space.pageVertical
