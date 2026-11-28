@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
 import com.deniz0706.ykstakip.domain.model.Exam
+import kotlinx.coroutines.flow.first
 import com.deniz0706.ykstakip.domain.repository.ExamRepository
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -19,6 +20,11 @@ class ExamViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.getAllExams().collect { _exams.value = it }
         }
+    }
+
+    suspend fun saveExam(exam: Exam) {
+        repository.saveExam(exam)
+        _exams.value = repository.getAllExams().first()
     }
 
     fun deleteExam(id: Long) {
