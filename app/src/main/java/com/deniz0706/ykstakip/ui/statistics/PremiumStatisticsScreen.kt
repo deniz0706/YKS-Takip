@@ -244,6 +244,8 @@ private fun PremiumTargetsCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
         androidx.compose.foundation.layout.Column(
@@ -367,6 +369,8 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
         androidx.compose.foundation.layout.Column(
