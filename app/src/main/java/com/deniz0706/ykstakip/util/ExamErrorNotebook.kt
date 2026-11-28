@@ -1,8 +1,8 @@
 package com.deniz0706.ykstakip.util
 
-import com.deniz0706.ykstakip.model.Exam
-import com.deniz0706.ykstakip.model.LearningOutcome
-import com.deniz0706.ykstakip.model.QuestionCard
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.QuestionCard
 import java.util.Locale
 
 /** Converts user-tagged mock-exam weak topics into safe learning-center import suggestions. */

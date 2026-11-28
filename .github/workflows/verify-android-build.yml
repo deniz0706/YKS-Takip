@@ -8,17 +8,20 @@ on:
       - 'v3.0-test/product-foundation'
       - 'v3.0/ui-foundation'
       - 'integration/complete-mainline'
+      - 'feat/4.0-*'
+      - 'main'
   pull_request:
     branches:
       - '2.0'
       - 'main'
+      - 'feat/4.0-*'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: verify-android-${{ github.ref }}
+  group: verify-android-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -37,5 +40,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - name: Run unit tests and build debug APK
-        run: gradle --no-daemon testDebugUnitTest assembleDebug
+      - name: Run unit tests
+        run: gradle --no-daemon :domain:jvmTest :core:domain:jvmTest :core:database:jvmTest :core:database:compileDebugKotlinAndroid testDebugUnitTest
+      - name: Assemble debug APK
+        run: gradle --no-daemon assembleDebug
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yks-takip-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

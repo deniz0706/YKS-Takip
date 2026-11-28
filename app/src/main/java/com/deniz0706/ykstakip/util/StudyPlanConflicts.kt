@@ -1,6 +1,6 @@
 package com.deniz0706.ykstakip.util
 
-import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.domain.model.StudyPlanItem
 
 /** Finds every scheduled item that overlaps another item on the same day. */
 object StudyPlanConflicts {

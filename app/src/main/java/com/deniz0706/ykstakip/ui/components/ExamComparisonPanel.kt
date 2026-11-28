@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.deniz0706.ykstakip.model.Exam
+import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.util.Fmt
 import com.deniz0706.ykstakip.util.ExamComparisonAnalyzer
 

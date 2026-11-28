@@ -1,8 +1,8 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
-import com.deniz0706.ykstakip.model.StudyDay
-import com.deniz0706.ykstakip.model.StudyPlanItem
+import com.deniz0706.ykstakip.domain.model.StudyDay
+import com.deniz0706.ykstakip.domain.model.StudyPlanItem
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue

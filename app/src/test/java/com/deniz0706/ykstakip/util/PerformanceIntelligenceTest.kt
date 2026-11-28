@@ -1,9 +1,9 @@
 package com.deniz0706.ykstakip.util
-import com.deniz0706.ykstakip.model.*
+import com.deniz0706.ykstakip.domain.model.*
 import org.junit.Assert.*
 import org.junit.Test
 class PerformanceIntelligenceTest {
- private fun exam(id:Long,date:String,net:Int,field:AytField?=null)=Exam(id,"Deneme $id",date,if(field==null)ExamType.TYT else ExamType.AYT,field,listOf(SubjectResult("Matematik",40,net,0,60,listOf("Problemler")) ))
+ private fun exam(id:Long,date:String,net:Int,field:AytField?=null)=Exam(id,"Deneme $id",date,if(field==null)ExamType.TYT else ExamType.AYT,field,listOf(SubjectResult("Matematik", net, 0, 0, 60, listOf("Problemler")) ))
  @Test fun comparesWindowsAndDoesNotMixExamTypes(){
   val xs=listOf(exam(1,"2026-01-01",20),exam(2,"2026-01-02",22),exam(3,"2026-01-03",24),exam(4,"2026-01-04",30),exam(5,"2026-01-05",32),exam(6,"2026-01-06",34),exam(7,"2026-01-07",39,AytField.SAYISAL))
   val r=PerformanceIntelligence.analyze(xs,ExamType.TYT,window=2)

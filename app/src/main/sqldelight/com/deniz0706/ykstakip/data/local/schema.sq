@@ -1,0 +1,69 @@
+CREATE TABLE exams (
+  id INTEGER NOT NULL PRIMARY KEY,
+  title TEXT NOT NULL,
+  date TEXT NOT NULL,
+  type TEXT NOT NULL,
+  ayt_field TEXT,
+  notes TEXT DEFAULT "",
+  publisher TEXT DEFAULT ""
+);
+
+CREATE TABLE exam_subjects (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  exam_id INTEGER NOT NULL,
+  subject TEXT NOT NULL,
+  correct INTEGER NOT NULL DEFAULT 0,
+  wrong INTEGER NOT NULL DEFAULT 0,
+  blank INTEGER NOT NULL DEFAULT 0,
+  time_minutes INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE
+);
+
+CREATE TABLE study_days (
+  date TEXT NOT NULL PRIMARY KEY,
+  question_count INTEGER NOT NULL DEFAULT 0,
+  study_minutes INTEGER NOT NULL DEFAULT 0,
+  estimated INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE study_plan_items (
+  id INTEGER NOT NULL PRIMARY KEY,
+  day_of_week INTEGER NOT NULL,
+  start_time TEXT NOT NULL,
+  end_time TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  topic TEXT DEFAULT "",
+  completed INTEGER NOT NULL DEFAULT 0,
+  completed_week TEXT DEFAULT ""
+);
+
+CREATE TABLE learning_outcomes (
+  id TEXT NOT NULL PRIMARY KEY,
+  exam_type TEXT NOT NULL DEFAULT 'TYT',
+  subject TEXT NOT NULL DEFAULT '',
+  topic TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  completed INTEGER NOT NULL DEFAULT 0,
+  review_requested INTEGER NOT NULL DEFAULT 0,
+  wrong_count INTEGER NOT NULL DEFAULT 0,
+  acknowledged_wrong_count INTEGER NOT NULL DEFAULT 0,
+  next_review_date TEXT DEFAULT '',
+  review_level INTEGER NOT NULL DEFAULT 0,
+  last_reviewed_date TEXT DEFAULT '',
+  custom INTEGER NOT NULL DEFAULT 0,
+  completed_date TEXT DEFAULT '',
+  completed_subtopics TEXT DEFAULT '[]'
+);
+
+CREATE TABLE question_cards (
+  id TEXT NOT NULL PRIMARY KEY,
+  outcome_id TEXT NOT NULL,
+  title TEXT NOT NULL DEFAULT '',
+  notes TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'GERI_DON',
+  created_at TEXT NOT NULL DEFAULT '',
+  due_date TEXT NOT NULL DEFAULT '',
+  review_count INTEGER NOT NULL DEFAULT 0,
+  photos TEXT DEFAULT '[]',
+  FOREIGN KEY (outcome_id) REFERENCES learning_outcomes(id)
+);

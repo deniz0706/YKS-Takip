@@ -3,9 +3,9 @@ package com.deniz0706.ykstakip.data
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
-import com.deniz0706.ykstakip.model.LearningOutcome
-import com.deniz0706.ykstakip.model.QuestionCard
-import com.deniz0706.ykstakip.model.QuestionStatus
+import com.deniz0706.ykstakip.domain.model.LearningOutcome
+import com.deniz0706.ykstakip.domain.model.QuestionCard
+import com.deniz0706.ykstakip.domain.model.QuestionStatus
 import org.json.JSONArray
 import java.io.File
 import java.io.IOException

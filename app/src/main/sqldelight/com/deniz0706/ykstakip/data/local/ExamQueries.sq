@@ -1,0 +1,29 @@
+selectAllExams:
+SELECT * FROM exams ORDER BY date ASC;
+
+selectExamById:
+SELECT * FROM exams WHERE id = ?;
+
+insertExam:
+INSERT INTO exams (id, title, date, type, ayt_field, notes, publisher)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+insertExamBulk:
+INSERT OR IGNORE INTO exams (id, title, date, type, ayt_field, notes, publisher)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteExam:
+DELETE FROM exams WHERE id = ?;
+
+replaceAllExams:
+DELETE FROM exams;
+
+insertExamSubjects:
+INSERT INTO exam_subjects (exam_id, subject, correct, wrong, blank, time_minutes)
+VALUES (?, ?, ?, ?, ?, ?);
+
+deleteExamSubjects:
+DELETE FROM exam_subjects WHERE exam_id = ?;
+
+selectSubjectsForExam:
+SELECT subject, correct, wrong, blank, time_minutes FROM exam_subjects WHERE exam_id = ?;

@@ -1,14 +1,16 @@
 package com.deniz0706.ykstakip.data
 
 import android.content.Context
-import com.deniz0706.ykstakip.model.ExamType
-import com.deniz0706.ykstakip.model.AytField
+import com.deniz0706.ykstakip.domain.model.AytField
+import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.PerformanceIntelligence
 import java.time.LocalDate
 
 /** Builds a compact, read-only snapshot. It never triggers network requests. */
 object AiContextBuilder {
+
     fun build(context: Context): String {
         val app = context.applicationContext
         val exams = ExamRepository.getInstance(app).getAllExams().sortedBy { it.date }
