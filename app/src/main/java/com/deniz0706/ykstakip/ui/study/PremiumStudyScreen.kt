@@ -290,14 +290,14 @@ private fun PremiumTodaySection(
         ) {
             PremiumActionTile(
                 label = "Düzenle",
-                icon = "✏️",
+                icon = "",
                 accent = c.primary,
                 onClick = onEditToday,
                 modifier = Modifier.weight(1f)
             )
             PremiumActionTile(
                 label = "Gün Seç",
-                icon = "📅",
+                icon = "Takvim",
                 accent = c.secondary,
                 onClick = onPickDay,
                 modifier = Modifier.weight(1f)
