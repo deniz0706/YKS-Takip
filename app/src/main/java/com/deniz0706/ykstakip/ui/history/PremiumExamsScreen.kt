@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.ui.history
 
 import com.deniz0706.ykstakip.ui.theme.clayCanvas
+import com.deniz0706.ykstakip.ui.theme.clayRaised
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -198,6 +199,7 @@ private fun PremiumActionCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp)
             .clip(RoundedCornerShape(YksTokens.Shape.panel))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
@@ -241,7 +243,7 @@ private fun PremiumEmptyState(
 ) {
     val c = colorScheme
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
@@ -282,6 +284,7 @@ private fun PremiumExamCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.card), depth = 8.dp)
             .clip(RoundedCornerShape(YksTokens.Shape.card))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(YksTokens.Shape.card),
