@@ -9,10 +9,10 @@ import com.deniz0706.ykstakip.data.StudyPlanRepository
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.domain.model.SubjectResult
-import com.deniz0706.ykstakip.ui.navigation.YksNavHost
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import org.junit.Assert.assertNotNull
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
@@ -26,27 +26,22 @@ class YksNavGraphDataWiringTest {
     fun exam_repository_can_read_exams() = runBlocking {
         val repo = SqlExamRepository(context.applicationContext)
         val exams = repo.getAllExams().first()
-        assert(exams != null)
+        assertNotNull(exams)
     }
 
     @Test
     fun study_repository_can_read_study_days() = runBlocking {
         val repo = SqlStudyRepository(context.applicationContext)
         val days = repo.getAll()
-        assert(days != null)
+        assertNotNull(days)
     }
 
     @Test
     fun learning_repository_can_read_outcomes() {
-        try {
-            runBlocking {
-                val repo = SqlLearningRepository(context.applicationContext)
-                val outcomes = repo.getOutcomes().first()
-                assert(outcomes != null)
-            }
-        } catch (_: Exception) {
-            // Database may not be initialized in test environment
-            assert(true)
+        runBlocking {
+            val repo = SqlLearningRepository(context.applicationContext)
+            val outcomes = repo.getOutcomes().first()
+            assertNotNull(outcomes)
         }
     }
 
@@ -54,7 +49,7 @@ class YksNavGraphDataWiringTest {
     fun study_plan_repository_can_read_plan() = runBlocking {
         val repo = StudyPlanRepository(context.applicationContext)
         val plan = repo.getAll()
-        assert(plan != null)
+        assertNotNull(plan)
     }
 
     @Test
@@ -79,7 +74,7 @@ class YksNavGraphDataWiringTest {
         val original = com.deniz0706.ykstakip.data.AppSettings.getObp(appContext)
         com.deniz0706.ykstakip.data.AppSettings.setObp(appContext, 450.0f)
         val after = com.deniz0706.ykstakip.data.AppSettings.getObp(appContext)
-        assert(after == 450.0f)
+        org.junit.Assert.assertEquals(450.0f, after!!, 0.001f)
         com.deniz0706.ykstakip.data.AppSettings.setObp(appContext, original)
     }
 
@@ -89,7 +84,7 @@ class YksNavGraphDataWiringTest {
         val original = com.deniz0706.ykstakip.data.AppSettings.getTargetNet(appContext, ExamType.TYT)
         com.deniz0706.ykstakip.data.AppSettings.setTargetNet(appContext, ExamType.TYT, 300.0f)
         val after = com.deniz0706.ykstakip.data.AppSettings.getTargetNet(appContext, ExamType.TYT)
-        assert(after == 300.0f)
+        org.junit.Assert.assertEquals(300.0f, after!!, 0.001f)
         original?.let { com.deniz0706.ykstakip.data.AppSettings.setTargetNet(appContext, ExamType.TYT, it) }
     }
 
@@ -99,7 +94,7 @@ class YksNavGraphDataWiringTest {
         val original = com.deniz0706.ykstakip.data.AppSettings.getDailyGoal(appContext)
         com.deniz0706.ykstakip.data.AppSettings.setDailyGoal(appContext, 10)
         val after = com.deniz0706.ykstakip.data.AppSettings.getDailyGoal(appContext)
-        assert(after == 10)
+        org.junit.Assert.assertEquals(10, after)
         original?.let { com.deniz0706.ykstakip.data.AppSettings.setDailyGoal(appContext, it) }
     }
 
@@ -107,11 +102,7 @@ class YksNavGraphDataWiringTest {
     fun ai_memory_repository_all_returns_list() {
         val repo = com.deniz0706.ykstakip.data.AiMemoryRepository(context.applicationContext)
         val memories = repo.all()
-        assert(memories != null)
+        assertNotNull(memories)
     }
 
-    @Test
-    fun nav_host_composable_exists() {
-        assert(true)
-    }
 }
