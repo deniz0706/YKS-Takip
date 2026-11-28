@@ -505,7 +505,6 @@ private fun PremiumLearningRow(
         }
         androidx.compose.material3.IconButton(
             onClick = onComplete,
-            enabled = !outcome.completed
         ) {
             Text(
                 text = if (outcome.completed) "✓" else "□",
