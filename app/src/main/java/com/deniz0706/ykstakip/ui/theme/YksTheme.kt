@@ -23,13 +23,17 @@ import com.deniz0706.ykstakip.data.ThemeManager
 fun YksTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val palette = when (ThemeManager.selectedMode.value) {
         "light" -> YksColorSystem.Light
+        "lavender" -> YksColorSystem.Lavender
+        "mint" -> YksColorSystem.Mint
+        "ocean" -> YksColorSystem.Ocean
+        "rose" -> YksColorSystem.Rose
         "aurora" -> YksColorSystem.Aurora
         "dark" -> YksColorSystem.Dark
         else -> if (darkTheme) YksColorSystem.Dark else YksColorSystem.Light
     }
 
     val colorScheme = when (val name = palette.name) {
-        "light" -> lightColorScheme(
+        "light", "lavender", "mint" -> lightColorScheme(
             primary = palette.primary, onPrimary = palette.onPrimary,
             primaryContainer = palette.primaryContainer, onPrimaryContainer = palette.onPrimaryContainer,
             secondary = palette.secondary, onSecondary = palette.onSecondary,
@@ -139,8 +143,8 @@ private val YksShapes = androidx.compose.material3.Shapes(
 fun activeDarkTheme(context: Context): Boolean {
     val configuration = LocalConfiguration.current
     return when (ThemeManager.selectedMode.value) {
-        "dark", "aurora" -> true
-        "light" -> false
+        "dark", "aurora", "ocean", "rose" -> true
+        "light", "lavender", "mint" -> false
         else -> (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
     }
 }
