@@ -60,6 +60,10 @@ fun PremiumAiCoachScreen(
     var draft by remember { mutableStateOf(uiState.draft) }
     val listState = rememberLazyListState()
 
+    LaunchedEffect(uiState.draft) {
+        draft = uiState.draft
+    }
+
     LaunchedEffect(
         uiState.messages.size,
         uiState.isStreaming,
