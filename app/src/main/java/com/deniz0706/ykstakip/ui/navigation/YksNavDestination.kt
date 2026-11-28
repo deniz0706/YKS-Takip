@@ -61,7 +61,7 @@ val BOTTOM_NAV_DESTINATIONS = listOf(
     YksNavDestination.Settings,
 )
 
-/** Maps each destination to its tab label and icon (emoji). */
+/** Maps each destination to its tab label and monochrome symbol. */
 fun destinationLabel(destination: YksNavDestination): String = when (destination) {
     YksNavDestination.Home -> "Ana Sayfa"
     YksNavDestination.Exams -> "Denemeler"
@@ -73,13 +73,13 @@ fun destinationLabel(destination: YksNavDestination): String = when (destination
 }
 
 fun destinationIcon(destination: YksNavDestination): String = when (destination) {
-    YksNavDestination.Home -> "🏠"
-    YksNavDestination.Exams -> "📝"
-    YksNavDestination.Statistics -> "📊"
-    YksNavDestination.Study -> "📚"
-    YksNavDestination.AiCoach -> "🤖"
-    YksNavDestination.Settings -> "⚙️"
-    is YksNavDestination.ExamDetail -> "🔍"
+    YksNavDestination.Home -> "⌂"
+    YksNavDestination.Exams -> "▤"
+    YksNavDestination.Statistics -> "▥"
+    YksNavDestination.Study -> "◷"
+    YksNavDestination.AiCoach -> "✧"
+    YksNavDestination.Settings -> "⚙"
+    is YksNavDestination.ExamDetail -> "⌕"
 }
 
 /** Whether a destination should appear in the bottom navigation shell. */
