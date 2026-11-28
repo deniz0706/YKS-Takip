@@ -2,6 +2,7 @@ package com.deniz0706.ykstakip.data.repository
 
 import android.content.Context
 import com.deniz0706.ykstakip.data.local.DatabaseHolder
+import com.deniz0706.ykstakip.data.LegacyDataMigrator
 import com.deniz0706.ykstakip.domain.model.AytField
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
@@ -62,32 +63,51 @@ class SqlExamRepository(private val context: Context) : ExamRepository {
     }
 
     override suspend fun saveExam(exam: Exam) = withContext(Dispatchers.IO) {
+        LegacyDataMigrator.ensureMigrationReadyForWrites(context)
         val queries = db.examQueriesQueries
-        queries.insertExam(
-            exam.id, exam.title, exam.date, exam.type.name,
-            exam.aytField?.name, exam.notes, exam.publisher
-        )
-        queries.deleteExamSubjects(exam.id)
-        exam.subjects.forEach { subject ->
-            queries.insertExamSubjects(exam.id, subject.subject, subject.correct.toLong(), subject.wrong.toLong(), subject.blank.toLong(), subject.timeMinutes.toLong())
+        db.transaction {
+            if (queries.selectExamById(exam.id).executeAsOneOrNull() == null) {
+                queries.insertExam(
+                    exam.id, exam.title, exam.date, exam.type.name,
+                    exam.aytField?.name, exam.notes, exam.publisher
+                )
+            } else {
+                queries.updateExam(
+                    exam.title, exam.date, exam.type.name,
+                    exam.aytField?.name, exam.notes, exam.publisher, exam.id
+                )
+            }
+            queries.deleteExamSubjects(exam.id)
+            exam.subjects.forEach { subject ->
+                queries.insertExamSubjects(exam.id, subject.subject, subject.correct.toLong(), subject.wrong.toLong(), subject.blank.toLong(), subject.timeMinutes.toLong())
+            }
         }
     }
 
     override suspend fun deleteExam(id: Long) = withContext(Dispatchers.IO) {
+        LegacyDataMigrator.ensureMigrationReadyForWrites(context)
         val queries = db.examQueriesQueries
-        queries.deleteExam(id)
+        db.transaction {
+            queries.deleteExamSubjects(id)
+            queries.deleteExam(id)
+        }
     }
 
     override suspend fun replaceAll(exams: List<Exam>) = withContext(Dispatchers.IO) {
+        LegacyDataMigrator.ensureMigrationReadyForWrites(context)
+        require(exams.map { it.id }.distinct().size == exams.size) { "Deneme kimlikleri benzersiz olmalı." }
         val queries = db.examQueriesQueries
-        queries.replaceAllExams()
-        exams.forEach { exam ->
-            queries.insertExam(
-                exam.id, exam.title, exam.date, exam.type.name,
-                exam.aytField?.name, exam.notes, exam.publisher
-            )
-            exam.subjects.forEach { subject ->
-                queries.insertExamSubjects(exam.id, subject.subject, subject.correct.toLong(), subject.wrong.toLong(), subject.blank.toLong(), subject.timeMinutes.toLong())
+        db.transaction {
+            queries.deleteAllExamSubjects()
+            queries.replaceAllExams()
+            exams.forEach { exam ->
+                queries.insertExam(
+                    exam.id, exam.title, exam.date, exam.type.name,
+                    exam.aytField?.name, exam.notes, exam.publisher
+                )
+                exam.subjects.forEach { subject ->
+                    queries.insertExamSubjects(exam.id, subject.subject, subject.correct.toLong(), subject.wrong.toLong(), subject.blank.toLong(), subject.timeMinutes.toLong())
+                }
             }
         }
     }
