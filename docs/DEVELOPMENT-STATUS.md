@@ -279,3 +279,12 @@ Updated: 2026-11-26
 5. Verify camera/gallery, full backup restore, AI connection test and settings behavior on a real Android device.
 6. Verify the installed APK signing certificate before recommending any in-place update; do not uninstall the existing app as a troubleshooting shortcut.
 7. Keep the ranking engine frozen unless a separately approved regression-tested change is required.
+
+
+## Compose Multiplatform UI reality check — 2026-11-28
+
+- Android production entry point remains `MainActivity -> YksShell -> YksNavGraph`, which renders the current Android Compose screens and reads the existing Android repositories/ViewModels.
+- The `:composeApp` module is included as an Android app dependency, but its shared `YksTakipApp` is not the Android production shell.
+- The current iOS entry point `MainViewController()` calls `YksTakipApp()` with default empty `DashboardUiState` and default no-op callbacks. It is therefore a cross-platform UI prototype, not an iOS app with real exam/study data or feature parity.
+- The current shared dashboard contract and trend card are useful starting components, but the shared UI needs a platform repository/state adapter and real navigation/actions before it can replace any production screen.
+- Do not mark the iOS product UI as complete based only on successful target compilation. The next UI slice should be a real-data dashboard contract plus explicit platform callbacks, tested with fixtures and empty/loading/error states; then wire Android and iOS hosts separately.
