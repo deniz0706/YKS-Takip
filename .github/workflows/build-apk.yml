@@ -97,13 +97,13 @@ jobs:
 
       - name: Upload debug APK
         if: steps.preview_signing.outputs.ready == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: YKS-Takip-Debug
           path: app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload release APK (unsigned)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: YKS-Takip-Release-Unsigned
           path: app/build/outputs/apk/release/app-release-unsigned.apk
