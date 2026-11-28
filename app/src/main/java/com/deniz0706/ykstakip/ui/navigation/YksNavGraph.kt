@@ -826,24 +826,32 @@ fun YksNavHost(
                 aiModel = AppSettings.getAiModel(appContext),
                 hasAiKey = hasAiKey,
                 onSaveAi = { baseUrl, model, key ->
-                    try {
-                        AppSettings.setAiBaseUrl(appContext, baseUrl)
-                        AppSettings.setAiModel(appContext, model)
-                        if (key.isNotBlank()) com.deniz0706.ykstakip.data.AiSecretStore.saveApiKey(appContext, key)
-                        hasAiKey = AiSecretStoreHasApiKey(appContext)
-                        null
-                    } catch (error: Exception) {
-                        error.message ?: "AI ayarları kaydedilemedi."
+                    val normalizedBaseUrl = baseUrl.trim().trimEnd('/')
+                    when {
+                        !normalizedBaseUrl.startsWith("https://") -> "Base URL https:// ile başlamalı."
+                        model.isBlank() -> "Model adı boş olamaz."
+                        key.isNotBlank() && key.trim().length < 12 -> "API anahtarı çok kısa görünüyor."
+                        else -> try {
+                            if (key.isNotBlank()) com.deniz0706.ykstakip.data.AiSecretStore.saveApiKey(appContext, key)
+                            AppSettings.setAiBaseUrl(appContext, normalizedBaseUrl)
+                            AppSettings.setAiModel(appContext, model.trim())
+                            hasAiKey = AiSecretStoreHasApiKey(appContext)
+                            null
+                        } catch (error: Exception) {
+                            error.message ?: "AI ayarları kaydedilemedi."
+                        }
                     }
                 },
                 onTestAi = {
-                    try {
-                        val key = com.deniz0706.ykstakip.data.AiSecretStore.readApiKey(appContext)
-                        if (key == null || key.isBlank()) {
-                            // No key stored; test would fail
+                    coroutineScope.launch {
+                        val result = runCatching {
+                            com.deniz0706.ykstakip.data.NvidiaAiService(appContext).testConnection()
                         }
-                    } catch (_: Exception) {
-                        // Key present but could not be decrypted — stored key is invalid/corrupt
+                        val message = result.fold(
+                            { "AI bağlantısı başarılı: " + it.take(100) },
+                            { "AI bağlantısı başarısız: " + (it.message ?: "Bilinmeyen hata") }
+                        )
+                        android.widget.Toast.makeText(appContext, message, android.widget.Toast.LENGTH_LONG).show()
                     }
                 },
                 onExport = {
