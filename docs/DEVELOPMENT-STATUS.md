@@ -257,3 +257,25 @@ Updated: 2026-11-26
 - Updated AGP from 8.7.3 to 8.10.1. Kotlin 2.2.21's supported AGP range includes 8.10.1, and AGP 8.10 requires Gradle 8.11.1, which remains the CI version.
 - Updated Android Lifecycle ViewModel/Runtime dependencies to 2.9.4 and aligned all resolved `androidx.lifecycle` artifacts to 2.9.4 to avoid an older transitive lint detector re-entering the graph.
 - Lint has not been disabled or suppressed. The repair remains unverified until the latest Android APK workflow completes successfully.
+
+
+## Mainline checkpoint — 2026-11-28
+
+- PR #60 (unified 4.0 integration) is merged into main.
+- PR #61 (backup restore atomicity, learning-state refresh/photo flows, AI settings and test cleanup) is merged into main at squash commit `00d870d3789e382ea9f0f69313355b7461c5e80d`.
+- The latest PR #61 head `5324acaa491f1638db9e5a3edf35acbd84f88fe5` completed all five PR CI workflows successfully: Android build, Python AI service, security checks, shared iOS targets, and Kotlin Multiplatform shared JVM/iOS compilation.
+- PR #51 (`4.0/architecture-audit`) was closed without merging. Its architecture and signing documents were already present in main; its older workflow/Gradle patch was superseded by newer mainline configuration.
+- Historical feature candidates for weekly study analytics, AI plan actions, exam error notebook, exam-session controls, home-screen study widget, weekly-plan analytics, and performance intelligence were compared against main. The inspected implementations are already present in main; the remaining differences in several utility files are package migrations from legacy `model` to shared `domain.model`, not missing features.
+- The ranking estimator, official lookup tables, and calibration fixtures were not changed by PR #61.
+- The SQLDelight stores remain a foundation only; production repositories have not yet been switched to the new database. Do not claim legacy-data migration is complete.
+- iOS target compilation has passed, but a complete iOS app launch, Xcode archive, Apple signing, and App Store release have not been validated.
+
+## Immediate next engineering gates
+
+1. Inventory the current Compose Multiplatform shell and decide which real product screen to migrate first; no static demo screen should be treated as feature parity.
+2. Finish the source-of-truth inventory for learning outcomes/questions, weekly plans, timers, AI cache/memory, theme and photo ownership before designing the full SQLDelight migration.
+3. Implement a staged, idempotent legacy importer with raw-source preservation, checksums, rollback and post-import parity tests. Keep existing repositories authoritative until verification succeeds.
+4. Add repository interfaces and connect the SQLDelight stores only behind an explicit migration gate.
+5. Verify camera/gallery, full backup restore, AI connection test and settings behavior on a real Android device.
+6. Verify the installed APK signing certificate before recommending any in-place update; do not uninstall the existing app as a troubleshooting shortcut.
+7. Keep the ranking engine frozen unless a separately approved regression-tested change is required.
