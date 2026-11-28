@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.deniz0706.ykstakip.ui.theme.YksTokens
+import com.deniz0706.ykstakip.ui.theme.clayRaised
+import com.deniz0706.ykstakip.ui.theme.clayInset
 
 /** Primary action button: filled, high-contrast, full-width by default. */
 @Composable
@@ -35,7 +37,7 @@ fun YksButton(
             .then(if (fullWidth) Modifier.fillMaxWidth() else Modifier)
             .height(YksTokens.Size.minimumTouchTarget)
             .clip(RoundedCornerShape(YksTokens.Shape.control))
-            .background(bg)
+            .then(if (enabled) Modifier.clayRaised(shape = RoundedCornerShape(YksTokens.Shape.control), depth = 5.dp, tint = bg) else Modifier.background(bg))
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = YksTokens.Space.md, vertical = YksTokens.Space.xs)
     ) {
