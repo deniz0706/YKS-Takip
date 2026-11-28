@@ -528,7 +528,7 @@ private fun PremiumDayCard(
             .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Column(modifier = Modifier.padding(YksTokens.Space.cardContent)) {
             Row(
