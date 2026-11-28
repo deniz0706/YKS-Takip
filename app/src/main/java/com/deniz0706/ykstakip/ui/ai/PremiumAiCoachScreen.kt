@@ -60,12 +60,22 @@ fun PremiumAiCoachScreen(
     var draft by remember { mutableStateOf(uiState.draft) }
     val listState = rememberLazyListState()
 
-    LaunchedEffect(uiState.messages.size, uiState.isStreaming) {
-        val lastIndex = uiState.messages.lastIndex
-        if (lastIndex >= 0) {
-            listState.animateScrollToItem(
-                if (uiState.isStreaming) lastIndex + 1 else lastIndex
-            )
+    LaunchedEffect(
+        uiState.messages.size,
+        uiState.isStreaming,
+        uiState.hasApiKey,
+        uiState.error
+    ) {
+        if (uiState.messages.isNotEmpty()) {
+            val fixedItems = 1 +
+                (if (!uiState.hasApiKey) 1 else 0) +
+                (if (uiState.error != null) 1 else 0)
+            val targetIndex = if (uiState.isStreaming) {
+                fixedItems + uiState.messages.size
+            } else {
+                fixedItems + uiState.messages.lastIndex
+            }
+            listState.animateScrollToItem(targetIndex)
         }
     }
 
