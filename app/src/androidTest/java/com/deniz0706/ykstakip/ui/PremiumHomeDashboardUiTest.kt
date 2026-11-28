@@ -51,7 +51,8 @@ class PremiumHomeDashboardUiTest {
     @Test
     fun home_dashboard_shows_exam_count() {
         val exams = listOf(
-            Exam(id = 1, title = "TYT Deneme", date = "2024-01-01", type = ExamType.TYT, subjects = emptyList())
+            Exam(id = 1, title = "TYT Deneme 1", date = "2024-01-01", type = ExamType.TYT, subjects = emptyList()),
+            Exam(id = 2, title = "TYT Deneme 2", date = "2024-01-08", type = ExamType.TYT, subjects = emptyList())
         )
         composeRule.setContent {
             YksTheme {
@@ -79,6 +80,7 @@ class PremiumHomeDashboardUiTest {
 
         composeRule.onNodeWithText("5 / 10 soru").assertExists()
         composeRule.onNodeWithText("50%").assertExists()
+        composeRule.onNodeWithText("Son 2 deneme").assertExists()
     }
 
     @Test
