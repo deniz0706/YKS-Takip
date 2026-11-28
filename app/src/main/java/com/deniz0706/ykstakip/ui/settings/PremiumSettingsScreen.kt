@@ -152,8 +152,6 @@ fun PremiumSettingsScreen(
                 colorScheme = c
             ) {
                 PremiumDataRow(
-                    onExport = onExport,
-                    onImport = onImport,
                     onImportStudy = onImportStudy,
                     onExportStudy = onExportStudy,
                     onUndoStudyImport = onUndoStudyImport,
@@ -473,8 +471,6 @@ private fun PremiumAiRow(
 
 @Composable
 private fun PremiumDataRow(
-    onExport: () -> Unit,
-    onImport: () -> Unit,
     onImportStudy: () -> Unit,
     onExportStudy: () -> Unit,
     onUndoStudyImport: () -> Unit,
