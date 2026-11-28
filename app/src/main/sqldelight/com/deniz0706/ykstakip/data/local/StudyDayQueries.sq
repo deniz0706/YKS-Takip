@@ -5,7 +5,7 @@ selectStudyDayByDate:
 SELECT * FROM study_days WHERE date = ?;
 
 insertStudyDay:
-INSERT INTO study_days (date, question_count, study_minutes, estimated)
+INSERT OR REPLACE INTO study_days (date, question_count, study_minutes, estimated)
 VALUES (?, ?, ?, ?);
 
 deleteStudyDay:
