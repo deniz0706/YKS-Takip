@@ -8,6 +8,14 @@ insertExam:
 INSERT INTO exams (id, title, date, type, ayt_field, notes, publisher)
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
+updateExam:
+UPDATE exams
+SET title = ?, date = ?, type = ?, ayt_field = ?, notes = ?, publisher = ?
+WHERE id = ?;
+
+deleteAllExamSubjects:
+DELETE FROM exam_subjects;
+
 insertExamBulk:
 INSERT OR IGNORE INTO exams (id, title, date, type, ayt_field, notes, publisher)
 VALUES (?, ?, ?, ?, ?, ?, ?);
