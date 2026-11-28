@@ -56,7 +56,7 @@ fun YksDeltaChip(change: Double?, modifier: Modifier = Modifier) {
         else -> c.error.copy(alpha = .13f)
     }
     val label = if (change == null) "İlk deneme"
-        else (if (change >= 0) "↗ " else "↘ ") + Fmt.netWithSign(change) + " net"
+        else (if (change >= 0) " " else " ") + Fmt.netWithSign(change) + " net"
     Surface(modifier = modifier, shape = RoundedCornerShape(YksShape.pill), color = fill) {
         Text(label, Modifier.padding(horizontal = 10.dp, vertical = 6.dp), color = tint,
             style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
