@@ -189,6 +189,7 @@ private fun YksPhoneShell(
 }
 
 /** Tablet shell with left NavigationRail and content area. */
+/** Tablet shell: content first, floating dock at the bottom on every orientation. */
 @Composable
 private fun YksTabletShell(
     navController: NavHostController,
@@ -197,123 +198,41 @@ private fun YksTabletShell(
     context: Context,
     onDestinationChange: ((YksNavDestination) -> Unit)?
 ) {
-    val c = MaterialTheme.colorScheme
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-
     Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        // Two-pane layout for tablets: rail + content
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            // NavigationRail with adaptive width (icon-only on compact, labels when wide enough)
-            Column(
-                modifier = Modifier
-                    .width(if (isLandscape) 96.dp else 80.dp)
-                    .fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                YksTabletRail(
-                    currentDestination = currentDestination,
-                    onDestinationSelected = onDestinationSelected,
-                    showLabels = isLandscape
-                )
-            }
-
-            // Divider
-            androidx.compose.foundation.layout.Spacer(
-                modifier = Modifier
-                    .width(1.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.outlineVariant)
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            ClayBottomBar(
+                currentDestination = currentDestination,
+                onDestinationSelected = onDestinationSelected,
+                onQuickAdd = { navController.navigate("exams/new") }
             )
-
-            // Content area with max-width constraint for readability
-            Surface(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(bottom = innerPadding.calculateBottomPadding()),
-                color = c.surface
+        }
+    ) { innerPadding ->
+        Surface(
+            modifier = Modifier.fillMaxSize()
+                .padding(bottom = innerPadding.calculateBottomPadding()),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(
+                    horizontal = if (isLandscape) YksTokens.Space.pageHorizontal else 12.dp,
+                    vertical = YksTokens.Space.pageVertical
+                ),
+                contentAlignment = Alignment.TopCenter
             ) {
-                // Constrain content width on very wide tablets for comfortable reading
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            horizontal = if (isLandscape) YksTokens.Space.pageHorizontal else 0.dp,
-                            vertical = YksTokens.Space.pageVertical
-                        ),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        .widthIn(max = YksTokens.Space.maxContentWidth)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .width(if (isLandscape) YksTokens.Space.maxContentWidth else YksTokens.Space.maxContentWidth)
-                            .fillMaxHeight(),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        YksNavHost(
-                            navController = navController,
-                            onDestinationChange = onDestinationChange,
-                            context = context
-                        )
-                    }
+                    YksNavHost(
+                        navController = navController,
+                        onDestinationChange = onDestinationChange,
+                        context = context
+                    )
                 }
             }
-        }
-    }
-}
-
-/** Tablet navigation rail with adaptive label support. */
-@Composable
-fun YksTabletRail(
-    currentDestination: YksNavDestination,
-    onDestinationSelected: (YksNavDestination) -> Unit,
-    showLabels: Boolean = false
-) {
-    val c = MaterialTheme.colorScheme
-
-    NavigationRail(
-        modifier = Modifier.fillMaxHeight()
-            .padding(vertical = 12.dp, horizontal = 8.dp)
-            .clayRaised(shape = RoundedCornerShape(28.dp), depth = 9.dp),
-        containerColor = Color.Transparent
-    ) {
-        BOTTOM_NAV_DESTINATIONS.forEach { destination ->
-            val selected = currentDestination == destination ||
-                (currentDestination is YksNavDestination.ExamDetail && destination == YksNavDestination.Exams)
-            NavigationRailItem(
-                icon = {
-                    Text(
-                        text = destinationIcon(destination),
-                        fontSize = 24.sp,
-                        color = if (selected) c.primary else c.onSurfaceVariant
-                    )
-                },
-                label = {
-                    if (showLabels) {
-                        Text(
-                            text = destinationLabel(destination),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (selected) c.primary else c.onSurfaceVariant
-                        )
-                    }
-                },
-                selected = selected,
-                onClick = { onDestinationSelected(destination) },
-                colors = androidx.compose.material3.NavigationRailItemDefaults.colors(
-                    selectedIconColor = c.primary,
-                    unselectedIconColor = c.onSurfaceVariant,
-                    selectedTextColor = c.primary,
-                    unselectedTextColor = c.onSurfaceVariant,
-                    indicatorColor = c.primaryContainer
-                )
-            )
         }
     }
 }
