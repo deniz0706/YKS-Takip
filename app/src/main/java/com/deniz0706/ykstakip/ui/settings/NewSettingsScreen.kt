@@ -14,6 +14,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -192,6 +196,10 @@ private fun GoalRow(
     modifier: Modifier
 ) {
     val c = MaterialTheme.colorScheme
+    var tytValue by remember(tyt) { mutableStateOf(tyt) }
+    var aytValue by remember(ayt) { mutableStateOf(ayt) }
+    var obpValue by remember(obp) { mutableStateOf(obp) }
+    var dailyValue by remember(daily) { mutableStateOf(daily) }
     Column(modifier.padding(horizontal = 12.dp)) {
         Text(
             text = "TYT net hedefi · 0–120",
@@ -199,8 +207,8 @@ private fun GoalRow(
             color = c.onSurfaceVariant
         )
         androidx.compose.material3.OutlinedTextField(
-            value = tyt,
-            onValueChange = {},
+            value = tytValue,
+            onValueChange = { tytValue = it },
             label = { Text("TYT") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -212,8 +220,8 @@ private fun GoalRow(
             color = c.onSurfaceVariant
         )
         androidx.compose.material3.OutlinedTextField(
-            value = ayt,
-            onValueChange = {},
+            value = aytValue,
+            onValueChange = { aytValue = it },
             label = { Text("AYT") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -225,8 +233,8 @@ private fun GoalRow(
             color = c.onSurfaceVariant
         )
         androidx.compose.material3.OutlinedTextField(
-            value = obp,
-            onValueChange = {},
+            value = obpValue,
+            onValueChange = { obpValue = it },
             label = { Text("OBP") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -238,15 +246,15 @@ private fun GoalRow(
             color = c.onSurfaceVariant
         )
         androidx.compose.material3.OutlinedTextField(
-            value = daily,
-            onValueChange = {},
+            value = dailyValue,
+            onValueChange = { dailyValue = it },
             label = { Text("Günlük") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(12.dp))
 
         androidx.compose.material3.Button(
-            onClick = { onSave(tyt, ayt, obp, daily) },
+            onClick = { onSave(tytValue, aytValue, obpValue, dailyValue) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Kaydet")
