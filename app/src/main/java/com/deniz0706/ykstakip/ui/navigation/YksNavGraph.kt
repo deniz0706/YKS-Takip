@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import com.deniz0706.ykstakip.ui.theme.clayRaised
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -277,6 +280,9 @@ fun YksTabletRail(
 
     NavigationRail(
         modifier = Modifier.fillMaxHeight()
+            .padding(vertical = 12.dp, horizontal = 8.dp)
+            .clayRaised(shape = RoundedCornerShape(28.dp), depth = 9.dp),
+        containerColor = Color.Transparent
     ) {
         BOTTOM_NAV_DESTINATIONS.forEach { destination ->
             val selected = currentDestination == destination ||
@@ -299,7 +305,14 @@ fun YksTabletRail(
                     }
                 },
                 selected = selected,
-                onClick = { onDestinationSelected(destination) }
+                onClick = { onDestinationSelected(destination) },
+                colors = androidx.compose.material3.NavigationRailItemDefaults.colors(
+                    selectedIconColor = c.primary,
+                    unselectedIconColor = c.onSurfaceVariant,
+                    selectedTextColor = c.primary,
+                    unselectedTextColor = c.onSurfaceVariant,
+                    indicatorColor = c.primaryContainer
+                )
             )
         }
     }
