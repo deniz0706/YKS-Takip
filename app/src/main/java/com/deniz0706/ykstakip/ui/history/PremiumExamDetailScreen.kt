@@ -181,6 +181,8 @@ private fun PremiumMetricCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
     ) {
         Column(
@@ -218,6 +220,8 @@ private fun PremiumNotesCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surfaceContainer)
     ) {
         Column(
@@ -249,6 +253,8 @@ private fun PremiumSubjectRow(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.card),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
+
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
         Column(
