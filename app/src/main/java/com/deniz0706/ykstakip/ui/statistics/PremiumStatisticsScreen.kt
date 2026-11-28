@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.ui.statistics
 
 import com.deniz0706.ykstakip.ui.theme.clayCanvas
+import com.deniz0706.ykstakip.ui.theme.clayRaised
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -215,7 +216,8 @@ private fun PremiumStatTile(
     val c = MaterialTheme.colorScheme
     Column(
         modifier = modifier
-             .clip(RoundedCornerShape(YksTokens.Shape.panel))
+             .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp)
+            .clip(RoundedCornerShape(YksTokens.Shape.panel))
             .background(c.surfaceContainer)
             .padding(YksTokens.Space.cardContent)
     ) {
@@ -242,7 +244,7 @@ private fun PremiumTargetsCard(
 ) {
     val c = MaterialTheme.colorScheme
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
@@ -367,7 +369,7 @@ private fun PremiumRecentTrendCard(exams: List<Exam>) {
         }
     }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
