@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,8 +86,7 @@ fun PremiumStudyScreen(
     onQuestionPhotoRemove: (String, String) -> Unit,
     onRequestReviewNotifications: () -> Unit,
     onSaveDay: (String, Int, Int) -> Unit,
-    onAddPlan: (Int) -> Unit,
-    onAddSuggestedPlan: (Int, String, String) -> Unit,
+    onAddPlan: (Int, String, String, String, String) -> Unit,
     onEditPlan: (StudyPlanItem) -> Unit,
     onTogglePlan: (Long) -> Unit,
     onOpenLearningFromPlan: (StudyPlanItem) -> Unit,
@@ -388,43 +388,125 @@ private fun PremiumTodaySection(
 @Composable
 private fun PremiumPlanSection(
     plan: List<StudyPlanItem>,
-    onAddPlan: (Int) -> Unit,
+    onAddPlan: (Int, String, String, String, String) -> Unit,
     onEditPlan: (StudyPlanItem) -> Unit,
     onTogglePlan: (Long) -> Unit,
     onDeletePlan: (StudyPlanItem) -> Unit,
     onOpenLearningFromPlan: (StudyPlanItem) -> Unit
 ) {
     val c = MaterialTheme.colorScheme
-    val weekdays = listOf(2 to "Pazartesi", 3 to "Salı", 4 to "Çarşamba", 5 to "Perşembe", 6 to "Cuma", 7 to "Cumartesi", 1 to "Pazar")
+    val weekdays = listOf(
+        2 to "Pazartesi", 3 to "Salı", 4 to "Çarşamba", 5 to "Perşembe",
+        6 to "Cuma", 7 to "Cumartesi", 1 to "Pazar"
+    )
+    var addingDay by remember { mutableStateOf<Int?>(null) }
+    var editingItem by remember { mutableStateOf<StudyPlanItem?>(null) }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
     ) {
+        Text("Haftalık Plan", style = MaterialTheme.typography.titleMedium, color = c.onSurfaceVariant)
         Text(
-            text = "Haftalık Plan",
-            style = MaterialTheme.typography.titleMedium,
-            color = c.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Derslerinizin tekrarlayan haftalık programı",
+            "Haftanın her günü için ders, konu ve saat ekleyin. Tamamlanan görevler haftalık olarak işaretlenir.",
             style = MaterialTheme.typography.bodySmall,
             color = c.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        weekdays.forEachIndexed { index, (day, label) ->
-            val dayItems = plan.filter { it.dayOfWeek == day }
-            if (dayItems.isNotEmpty()) {
-                PremiumDayCard(
-                    label = label,
-                    items = dayItems,
-                    colorScheme = c
-                )
-                Spacer(modifier = Modifier.height(YksTokens.Space.sm))
-            }
+        weekdays.forEach { (day, label) ->
+            PremiumDayCard(
+                label = label,
+                items = plan.filter { it.dayOfWeek == day }.sortedBy { it.startTime },
+                onAdd = { addingDay = day },
+                onEdit = { editingItem = it },
+                onToggle = onTogglePlan,
+                onDelete = onDeletePlan,
+                onOpenLearning = onOpenLearningFromPlan,
+                colorScheme = c
+            )
         }
+    }
+
+    if (addingDay != null || editingItem != null) {
+        val targetDay = editingItem?.dayOfWeek ?: addingDay ?: 2
+        var startTime by remember(editingItem, addingDay) {
+            mutableStateOf(editingItem?.startTime ?: "09:00")
+        }
+        var endTime by remember(editingItem, addingDay) {
+            mutableStateOf(editingItem?.endTime ?: "10:00")
+        }
+        var subject by remember(editingItem, addingDay) {
+            mutableStateOf(editingItem?.subject.orEmpty())
+        }
+        var topic by remember(editingItem, addingDay) {
+            mutableStateOf(editingItem?.topic.orEmpty())
+        }
+        val timePattern = Regex("(?:[01]\\d|2[0-3]):[0-5]\\d")
+        val valid = timePattern.matches(startTime) && timePattern.matches(endTime) &&
+            startTime < endTime && subject.isNotBlank()
+        AlertDialog(
+            onDismissRequest = { addingDay = null; editingItem = null },
+            title = { Text(if (editingItem == null) "Programa ders ekle" else "Programı düzenle") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = subject,
+                        onValueChange = { subject = it },
+                        label = { Text("Ders") },
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = topic,
+                        onValueChange = { topic = it },
+                        label = { Text("Konu (isteğe bağlı)") },
+                        singleLine = true
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = startTime,
+                            onValueChange = { startTime = it.take(5) },
+                            label = { Text("Başlangıç") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = endTime,
+                            onValueChange = { endTime = it.take(5) },
+                            label = { Text("Bitiş") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Text(
+                        "Saat biçimi SS:DD olmalı. Bitiş saati başlangıçtan sonra olmalı.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = c.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = valid,
+                    onClick = {
+                        val existing = editingItem
+                        if (existing == null) {
+                            onAddPlan(targetDay, startTime, endTime, subject.trim(), topic.trim())
+                        } else {
+                            onEditPlan(existing.copy(
+                                startTime = startTime,
+                                endTime = endTime,
+                                subject = subject.trim(),
+                                topic = topic.trim()
+                            ))
+                        }
+                        addingDay = null
+                        editingItem = null
+                    }
+                ) { Text("Kaydet") }
+            },
+            dismissButton = {
+                TextButton(onClick = { addingDay = null; editingItem = null }) { Text("Vazgeç") }
+            }
+        )
     }
 }
 
@@ -432,32 +514,46 @@ private fun PremiumPlanSection(
 private fun PremiumDayCard(
     label: String,
     items: List<StudyPlanItem>,
+    onAdd: () -> Unit,
+    onEdit: (StudyPlanItem) -> Unit,
+    onToggle: (Long) -> Unit,
+    onDelete: (StudyPlanItem) -> Unit,
+    onOpenLearning: (StudyPlanItem) -> Unit,
     colorScheme: ColorScheme
 ) {
     val c = colorScheme
     Card(
-        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
+        modifier = Modifier.fillMaxWidth()
+            .clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
         shape = RoundedCornerShape(YksTokens.Shape.panel),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
-
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = c.surface)
     ) {
-        androidx.compose.foundation.layout.Column(
-            modifier = Modifier.padding(YksTokens.Space.cardContent)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.titleMedium,
-                color = c.onSurface,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            items.forEach { item ->
-                PremiumPlanItemRow(
-                    item = item,
-                    colorScheme = c
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(YksTokens.Space.cardContent)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(label, style = MaterialTheme.typography.titleMedium,
+                    color = c.onSurface, fontWeight = FontWeight.SemiBold)
+                TextButton(onClick = onAdd) { Text("Ders ekle +") }
+            }
+            if (items.isEmpty()) {
+                Text("Bu gün için plan yok.", style = MaterialTheme.typography.bodySmall,
+                    color = c.onSurfaceVariant)
+            } else {
+                items.forEach { item ->
+                    PremiumPlanItemRow(
+                        item = item,
+                        onToggle = { onToggle(item.id) },
+                        onEdit = { onEdit(item) },
+                        onDelete = { onDelete(item) },
+                        onOpenLearning = { onOpenLearning(item) },
+                        colorScheme = c
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
@@ -466,33 +562,42 @@ private fun PremiumDayCard(
 @Composable
 private fun PremiumPlanItemRow(
     item: StudyPlanItem,
+    onToggle: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onOpenLearning: () -> Unit,
     colorScheme: ColorScheme
 ) {
     val c = colorScheme
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.sm)
+    Column(
+        modifier = Modifier.fillMaxWidth()
+            .clayInset(shape = RoundedCornerShape(YksTokens.Shape.control))
+            .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        Text(
-            text = "${item.startTime} - ${item.endTime}",
-            style = MaterialTheme.typography.labelMedium,
-            color = c.onSurfaceVariant,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.width(110.dp)
-        )
-        Text(
-            text = item.subject,
-            style = MaterialTheme.typography.bodyMedium,
-            color = c.onSurface,
-            modifier = Modifier.weight(1f)
-        )
-        if (item.topic.isNotBlank()) {
-            Text(
-                text = "· ${item.topic}",
-                style = MaterialTheme.typography.bodySmall,
-                color = c.onSurfaceVariant
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    item.subject,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = c.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    item.startTime + " – " + item.endTime +
+                        if (item.topic.isNotBlank()) " · " + item.topic else "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.onSurfaceVariant
+                )
+            }
+            Checkbox(checked = item.completed, onCheckedChange = { onToggle() })
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(onClick = onOpenLearning) { Text("Konuya git") }
+            TextButton(onClick = onEdit) { Text("Düzenle") }
+            TextButton(onClick = onDelete) { Text("Sil") }
         }
     }
 }
