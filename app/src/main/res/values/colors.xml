@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default light palette for devices that do not use the night qualifier. -->
+    <color name="background">#F7F8FC</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_background">#171A23</color>
+    <color name="on_surface_secondary">#697386</color>
+    <color name="border">#E5E8EF</color>
+    <color name="accent">#9B6B3F</color>
+    <color name="accent_soft">#F3E8DC</color>
+    <color name="positive">#21866F</color>
+    <color name="negative">#C94D67</color>
+    <color name="nav_island_bg">#FFFFFF</color>
+    <color name="nav_island_selected">#9B6B3F</color>
+    <color name="input_bg">#F1F3F7</color>
+</resources>
