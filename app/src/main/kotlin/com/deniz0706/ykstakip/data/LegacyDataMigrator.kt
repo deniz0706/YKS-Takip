@@ -36,23 +36,43 @@ object LegacyDataMigrator {
         }
 
         // Set only after every migration step has completed successfully.
-        prefs.edit().putBoolean(KEY_MIGRATED_TO_SQL, true).commit()
+        check(prefs.edit().putBoolean(KEY_MIGRATED_TO_SQL, true).commit()) {
+            "Veri aktarımı tamamlandı işareti kaydedilemedi; güvenli tekrar deneme yapılacak."
+        }
+    }
+
+    /**
+     * Parse every legacy row before writing any row from that collection.
+     * A malformed record must never be silently skipped and then marked migrated.
+     * Inserts remain idempotent, so a later retry can safely resume other collections.
+     */
+    private fun <T> parseLegacyArray(
+        raw: String,
+        label: String,
+        parse: (JSONObject) -> T
+    ): List<T> {
+        val array = try {
+            JSONArray(raw)
+        } catch (error: Exception) {
+            throw IllegalStateException("$label verisi okunamadı; özgün kayıtlar korunuyor.", error)
+        }
+        return (0 until array.length()).map { index ->
+            val item = try {
+                array.getJSONObject(index)
+            } catch (error: Exception) {
+                throw IllegalStateException("$label içindeki ${index + 1}. kayıt okunamadı.", error)
+            }
+            try {
+                parse(item)
+            } catch (error: Exception) {
+                throw IllegalStateException("$label içindeki ${index + 1}. kayıt geçersiz.", error)
+            }
+        }
     }
 
     private fun migrateExams(app: Context, prefs: android.content.SharedPreferences) {
         val raw = prefs.getString("exams_json", null) ?: return
-        val exams = try {
-            val array = JSONArray(raw)
-            (0 until array.length()).mapNotNull { index ->
-                try {
-                    parseExam(array.getJSONObject(index))
-                } catch (_: Exception) {
-                    null
-                }
-            }
-        } catch (_: Exception) {
-            return
-        }
+        val exams = parseLegacyArray(raw, "Deneme kayıtları", ::parseExam)
         if (exams.isEmpty()) return
         val queries = DatabaseHolder.get(app).examQueriesQueries
         exams.forEach { exam ->
@@ -136,23 +156,13 @@ object LegacyDataMigrator {
     private fun migrateStudyDays(app: Context) {
         val prefs = app.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
         val raw = prefs.getString("study_days", null) ?: return
-        val days = try {
-            val array = JSONArray(raw)
-            (0 until array.length()).mapNotNull { index ->
-                try {
-                    val obj = array.getJSONObject(index)
-                    StudyDay(
-                        date = obj.getString("date"),
-                        questionCount = obj.getInt("questionCount"),
-                        studyMinutes = obj.getInt("studyMinutes"),
-                        estimated = obj.optBoolean("estimated", false)
-                    )
-                } catch (_: Exception) {
-                    null
-                }
-            }
-        } catch (_: Exception) {
-            return
+        val days = parseLegacyArray(raw, "Çalışma geçmişi") { obj ->
+            StudyDay(
+                date = obj.getString("date"),
+                questionCount = obj.getInt("questionCount"),
+                studyMinutes = obj.getInt("studyMinutes"),
+                estimated = obj.optBoolean("estimated", false)
+            )
         }
         if (days.isEmpty()) return
         val db = DatabaseHolder.get(app)
@@ -169,27 +179,17 @@ object LegacyDataMigrator {
     private fun migrateStudyPlan(app: Context) {
         val prefs = app.getSharedPreferences("yks_takip_study_plan", Context.MODE_PRIVATE)
         val raw = prefs.getString("study_plan_items", null) ?: return
-        val items = try {
-            val array = JSONArray(raw)
-            (0 until array.length()).mapNotNull { index ->
-                try {
-                    val obj = array.getJSONObject(index)
-                    StudyPlanItem(
-                        id = obj.getLong("id"),
-                        dayOfWeek = obj.getInt("dayOfWeek"),
-                        startTime = obj.getString("startTime"),
-                        endTime = obj.getString("endTime"),
-                        subject = obj.getString("subject"),
-                        topic = obj.optString("topic", ""),
-                        completed = obj.optBoolean("completed", false),
-                        completedWeek = obj.optString("completedWeek", "")
-                    )
-                } catch (_: Exception) {
-                    null
-                }
-            }
-        } catch (_: Exception) {
-            return
+        val items = parseLegacyArray(raw, "Haftalık çalışma planı") { obj ->
+            StudyPlanItem(
+                id = obj.getLong("id"),
+                dayOfWeek = obj.getInt("dayOfWeek"),
+                startTime = obj.getString("startTime"),
+                endTime = obj.getString("endTime"),
+                subject = obj.getString("subject"),
+                topic = obj.optString("topic", ""),
+                completed = obj.optBoolean("completed", false),
+                completedWeek = obj.optString("completedWeek", "")
+            )
         }
         if (items.isEmpty()) return
         val db = DatabaseHolder.get(app)
@@ -212,31 +212,8 @@ object LegacyDataMigrator {
         val outcomesRaw = prefs.getString("outcomes", "[]") ?: "[]"
         val questionsRaw = prefs.getString("questions", "[]") ?: "[]"
 
-        val outcomes = try {
-            val array = JSONArray(outcomesRaw)
-            (0 until array.length()).mapNotNull { index ->
-                try {
-                    parseLearningOutcome(array.getJSONObject(index))
-                } catch (_: Exception) {
-                    null
-                }
-            }
-        } catch (_: Exception) {
-            emptyList()
-        }
-
-        val questions = try {
-            val array = JSONArray(questionsRaw)
-            (0 until array.length()).mapNotNull { index ->
-                try {
-                    parseQuestionCard(array.getJSONObject(index))
-                } catch (_: Exception) {
-                    null
-                }
-            }
-        } catch (_: Exception) {
-            emptyList()
-        }
+        val outcomes = parseLegacyArray(outcomesRaw, "Öğrenme kayıtları", ::parseLearningOutcome)
+        val questions = parseLegacyArray(questionsRaw, "Soru kartları", ::parseQuestionCard)
 
         if (outcomes.isEmpty() && questions.isEmpty()) return
 
