@@ -281,7 +281,6 @@ object FullBackupManager {
         val examRepository = SqlExamRepository.getInstance(app)
         val studyRepository = StudyRepository(app)
         val previousExams = runBlocking(Dispatchers.IO) { examRepository.getAllExams().first() }
-        val previousStudyDays = studyRepository.getAll()
         val existingExamIds = previousExams.map { it.id }.toSet()
         val mergedExams = previousExams + prepared.exams.filterNot { it.id in existingExamIds }
         var examsApplied = false
