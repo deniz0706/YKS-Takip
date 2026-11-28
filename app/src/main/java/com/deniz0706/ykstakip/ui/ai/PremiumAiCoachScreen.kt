@@ -1,6 +1,8 @@
 package com.deniz0706.ykstakip.ui.ai
 
 import com.deniz0706.ykstakip.ui.theme.clayCanvas
+import com.deniz0706.ykstakip.ui.theme.clayRaised
+import com.deniz0706.ykstakip.ui.theme.clayInset
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -246,7 +248,7 @@ private fun PremiumAiHeader(colorScheme: ColorScheme) {
 private fun PremiumApiKeyMissingCard(colorScheme: ColorScheme, onApiKeyMissing: () -> Unit) {
     val c = colorScheme
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.input), depth = 8.dp),
         shape = RoundedCornerShape(YksTokens.Shape.input),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
@@ -337,6 +339,7 @@ private fun PremiumMessageBubble(
         }
         Column(
             Modifier
+                .clayInset(shape = RoundedCornerShape(YksTokens.Shape.control))
                 .clip(RoundedCornerShape(YksTokens.Shape.control))
                 .background(bg)
                 .padding(horizontal = 12.dp, vertical = 10.dp)
