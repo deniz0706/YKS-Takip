@@ -1,5 +1,6 @@
 package com.deniz0706.ykstakip.ui.study
 
+import com.deniz0706.ykstakip.ui.theme.clayCanvas
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -89,7 +90,7 @@ fun PremiumStudyScreen(
     var section by remember { mutableStateOf("today") }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(c.background),
+        modifier = Modifier.clayCanvas(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
             horizontal = YksTokens.Space.pageHorizontal,
             vertical = YksTokens.Space.pageVertical
