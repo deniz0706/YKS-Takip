@@ -5,9 +5,9 @@ import androidx.compose.ui.graphics.Color
 /**
  * Premium color system for YKS Takip 4.0.
  *
- * Three palettes: Light (warm paper), Dark Graphite (near-black neutral), and Aurora
- * (deep navy with vivid accents). Each defines semantic roles used consistently across
- * every surface, so components never pick raw values.
+ * A family of coordinated palettes: Light, Graphite, Aurora, Lavender, Mint, Ocean,
+ * and Rose. Each defines semantic roles used consistently across every surface, so
+ * components never need to pick raw colors.
  *
  * Tonal structure (per palette):
  *   - background        : page canvas
