@@ -1,5 +1,6 @@
 package com.deniz0706.ykstakip.ui.ai
 
+import com.deniz0706.ykstakip.ui.theme.clayCanvas
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -86,9 +87,7 @@ fun PremiumAiCoachScreen(
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(c.background)
+        modifier = Modifier.clayCanvas()
     ) {
         LazyColumn(
             state = listState,
