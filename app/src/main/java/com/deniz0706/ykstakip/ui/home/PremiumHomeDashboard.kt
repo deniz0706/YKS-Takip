@@ -1,7 +1,9 @@
 package com.deniz0706.ykstakip.ui.home
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -33,6 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -377,12 +381,41 @@ private fun PremiumTodayCard(
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        PremiumStatColumn(
-            label = "Bugünkü Soru",
-            value = todayQuestions.toString(),
-            detail = if (dailyGoal != null && dailyGoal > 0) "Hedef: $dailyGoal" else "Hedef ayarlanmadı",
-            modifier = Modifier.fillMaxHeight().weight(1f)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .clip(RoundedCornerShape(YksTokens.Shape.panel))
+                .background(c.surfaceContainer)
+                .padding(YksTokens.Space.cardContent),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            DailyGoalRing(
+                questions = todayQuestions,
+                goal = dailyGoal
+            )
+            Column(verticalArrangement = Arrangement.Center) {
+                Text(
+                    text = "Bugünkü ilerleme",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = c.onSurface
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = if (dailyGoal != null && dailyGoal > 0) "$todayQuestions / $dailyGoal soru" else "$todayQuestions soru",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = c.onSurfaceVariant
+                )
+                if (dailyGoal == null || dailyGoal <= 0) {
+                    Text(
+                        text = "Hedef ayarlanmadı",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = c.onSurfaceVariant
+                    )
+                }
+            }
+        }
         PremiumActionColumn(
             label = if (hasFocusSession) "Devam Ediyor" else "Hazır",
             actionText = if (hasFocusSession) "Seansa Dön →" else "Başlat →",
@@ -390,6 +423,61 @@ private fun PremiumTodayCard(
             onClick = onOpenStudy,
             modifier = Modifier.fillMaxHeight().weight(1f)
         )
+    }
+}
+
+@Composable
+private fun DailyGoalRing(
+    questions: Int,
+    goal: Int?
+) {
+    val c = MaterialTheme.colorScheme
+    val progress = if (goal != null && goal > 0) {
+        (questions.coerceAtLeast(0).toFloat() / goal.toFloat()).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = YksMotion.standardMs),
+        label = "daily-goal-ring"
+    )
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier.width(88.dp).height(88.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val strokeWidth = 9.dp.toPx()
+            drawArc(
+                color = c.outlineVariant,
+                startAngle = -90f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+            )
+            if (animatedProgress > 0f) {
+                drawArc(
+                    color = c.primary,
+                    startAngle = -90f,
+                    sweepAngle = 360f * animatedProgress,
+                    useCenter = false,
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                )
+            }
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = if (goal != null && goal > 0) "\${(progress * 100).toInt()}%" else "—",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = c.onSurface
+            )
+            Text(
+                text = "HEDEF",
+                style = MaterialTheme.typography.labelSmall,
+                color = c.onSurfaceVariant
+            )
+        }
     }
 }
 
