@@ -5,7 +5,6 @@ import android.net.Uri
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.StudyDay
 import com.deniz0706.ykstakip.data.repository.SqlExamRepository
-import com.deniz0706.ykstakip.data.repository.SqlStudyRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -86,9 +85,11 @@ object FullBackupManager {
         val app = context.applicationContext
         LegacyDataMigrator.ensureMigrationReadyForWrites(app)
         val examRepository = SqlExamRepository.getInstance(app)
-        val studyRepository = SqlStudyRepository.getInstance(app)
-        val (exams, studyDays) = runBlocking(Dispatchers.IO) {
-            examRepository.getAllExams().first() to studyRepository.getAll()
+        val exams = runBlocking(Dispatchers.IO) { examRepository.getAllExams().first() }
+        val studyRepository = StudyRepository(app)
+        val studyDays = studyRepository.getAll()
+        check(!studyRepository.hasUnreadableLegacyData()) {
+            "Çalışma geçmişi okunamadı. Veri kaybını önlemek için tam yedek oluşturma durduruldu."
         }
         val examBytes = BackupManager.exportToJson(exams).toByteArray(Charsets.UTF_8)
         val studyBytes = StudyBackupManager.exportJson(studyDays).toByteArray(Charsets.UTF_8)
@@ -278,27 +279,23 @@ object FullBackupManager {
         val app = context.applicationContext
         LegacyDataMigrator.ensureMigrationReadyForWrites(app)
         val examRepository = SqlExamRepository.getInstance(app)
-        val studyRepository = SqlStudyRepository.getInstance(app)
-        val (previousExams, previousStudyDays) = runBlocking(Dispatchers.IO) {
-            examRepository.getAllExams().first() to studyRepository.getAll()
-        }
+        val studyRepository = StudyRepository(app)
+        val previousExams = runBlocking(Dispatchers.IO) { examRepository.getAllExams().first() }
+        val previousStudyDays = studyRepository.getAll()
         val existingExamIds = previousExams.map { it.id }.toSet()
         val mergedExams = previousExams + prepared.exams.filterNot { it.id in existingExamIds }
-        val existingStudyDates = previousStudyDays.map { it.date }.toSet()
-        val mergedStudyDays = previousStudyDays + prepared.studyDays.filterNot { it.date in existingStudyDates }
         var examsApplied = false
-        var studyApplied = false
+        var studyChanges = 0
         try {
+            studyChanges = studyRepository.importDays(prepared.studyDays, overwrite = false)
             runBlocking(Dispatchers.IO) {
                 examRepository.replaceAll(mergedExams)
                 examsApplied = true
-                studyRepository.replaceAll(mergedStudyDays)
-                studyApplied = true
             }
             val learningResult = LearningArchiveManager(app).merge(prepared.learning)
             return ImportResult(
                 examsAdded = mergedExams.size - previousExams.size,
-                studyDaysAdded = mergedStudyDays.size - previousStudyDays.size,
+                studyDaysAdded = studyChanges,
                 learning = learningResult,
                 settings = prepared.settings,
                 studyPlan = prepared.studyPlan,
@@ -309,9 +306,11 @@ object FullBackupManager {
                 migratedFromV1 = prepared.migratedFromV1
             )
         } catch (e: Exception) {
-            runBlocking(Dispatchers.IO) {
-                if (examsApplied) examRepository.replaceAll(previousExams)
-                if (studyApplied) studyRepository.replaceAll(previousStudyDays)
+            if (examsApplied) {
+                runBlocking(Dispatchers.IO) { examRepository.replaceAll(previousExams) }
+            }
+            if (studyChanges > 0 && studyRepository.canUndoLastImport()) {
+                studyRepository.undoLastImport()
             }
             throw e
         } finally {
