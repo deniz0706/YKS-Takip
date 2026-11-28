@@ -670,36 +670,19 @@ fun YksNavHost(
                 onRequestReviewNotifications = {
                     com.deniz0706.ykstakip.data.ReviewReminderScheduler.rescheduleAll(appContext, learningOutcomes)
                 },
-                onEditToday = {
-                    val date = java.time.LocalDate.now().toString()
+                onSaveDay = { date, questions, minutes ->
                     coroutineScope.launch {
                         withContext(Dispatchers.IO) {
-                            val studyRepo = com.deniz0706.ykstakip.data.StudyRepository(appContext)
-                            if (studyRepo.get(date) == null) {
-                                studyRepo.save(com.deniz0706.ykstakip.domain.model.StudyDay(
+                            com.deniz0706.ykstakip.data.StudyRepository(appContext).save(
+                                com.deniz0706.ykstakip.domain.model.StudyDay(
                                     date = date,
-                                    questionCount = 0,
-                                    studyMinutes = 0
-                                ))
-                            }
+                                    questionCount = questions,
+                                    studyMinutes = minutes
+                                )
+                            )
                         }
                         studyViewModel.refresh()
                     }
-                    navController.navigate("study")
-                },
-                onFocusSaved = {
-                    val focusRepo = com.deniz0706.ykstakip.data.FocusSessionRepository(appContext)
-                    focusRepo.saveToToday()
-                },
-                onEditDay = { date ->
-                    coroutineScope.launch {
-                        withContext(Dispatchers.IO) {
-                            com.deniz0706.ykstakip.data.StudyRepository(appContext).get(date)
-                        }
-                    }
-                },
-                onPickDay = {
-                    navController.navigate("study")
                 },
                 onAddPlan = { dayOfWeek ->
                     val newId = (studyPlan.maxByOrNull { it.id }?.id ?: 0L) + 1
