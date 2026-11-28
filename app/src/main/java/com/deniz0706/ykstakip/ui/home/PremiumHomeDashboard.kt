@@ -21,7 +21,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -82,67 +85,74 @@ fun PremiumHomeDashboard(
     val average = remember(all) { all.map { it.totalNet }.takeIf { it.isNotEmpty() }?.average() }
     val best = remember(all) { all.maxOfOrNull { it.totalNet } }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(c.background),
-        contentPadding = PaddingValues(
-            horizontal = YksTokens.Space.pageHorizontal,
-            vertical = YksTokens.Space.pageVertical
-        ),
-        verticalArrangement = Arrangement.spacedBy(YksTokens.Space.section)
-    ) {
-        item {
-            PremiumHeader(
-                todayQuestions = todayQuestions,
-                dailyGoal = dailyGoal,
-                countdown = countdown,
-                type = type,
-                onTypeChange = { type = ExamType.valueOf(it) }
-            )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(c.background)) {
+        val tabletLayout = maxWidth >= 840.dp
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(if (tabletLayout) 2 else 1),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                horizontal = if (tabletLayout) 28.dp else YksTokens.Space.pageHorizontal,
+                vertical = YksTokens.Space.pageVertical
+            ),
+            horizontalArrangement = Arrangement.spacedBy(if (tabletLayout) 20.dp else 0.dp),
+            verticalArrangement = Arrangement.spacedBy(YksTokens.Space.section)
+        ) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                PremiumHeader(
+                    todayQuestions = todayQuestions,
+                    dailyGoal = dailyGoal,
+                    countdown = countdown,
+                    type = type,
+                    onTypeChange = { type = ExamType.valueOf(it) }
+                )
+            }
+            item {
+                PremiumNetCard(
+                    latest = latest,
+                    change = change,
+                    goal = goal,
+                    type = type
+                )
+            }
+            item {
+                PremiumTodayCard(
+                    todayQuestions = todayQuestions,
+                    dailyGoal = dailyGoal,
+                    onOpenStudy = onOpenStudy,
+                    hasFocusSession = hasFocusSession
+                )
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                PremiumActionRow(
+                    onNewExam = { onNewExam(type) },
+                    onOpenStudy = onOpenStudy,
+                    onOpenAiCoach = onOpenAiCoach,
+                    hasFocusSession = hasFocusSession
+                )
+            }
+            item {
+                PremiumNextStepsCard(
+                    reviewAlertCount = reviewAlertCount,
+                    learningDoneCount = learningDoneCount,
+                    learningTotalCount = learningTotalCount,
+                    aiCoachAdvice = aiCoachAdvice,
+                    aiCoachDate = aiCoachDate,
+                    onOpenLearning = onOpenLearning,
+                    onOpenAiCoach = onOpenAiCoach
+                )
+            }
+            item {
+                PremiumPerformanceCard(
+                    allCount = all.size,
+                    average = average,
+                    best = best,
+                    change = change
+                )
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Spacer(modifier = Modifier.height(120.dp))
+            }
         }
-        item {
-            PremiumNetCard(
-                latest = latest,
-                change = change,
-                goal = goal,
-                type = type
-            )
-        }
-        item {
-            PremiumActionRow(
-                onNewExam = { onNewExam(type) },
-                onOpenStudy = onOpenStudy,
-                onOpenAiCoach = onOpenAiCoach,
-                hasFocusSession = hasFocusSession
-            )
-        }
-        item(key = "today-focus") {
-            PremiumTodayCard(
-                todayQuestions = todayQuestions,
-                dailyGoal = dailyGoal,
-                onOpenStudy = onOpenStudy,
-                hasFocusSession = hasFocusSession
-            )
-        }
-        item(key = "next-steps") {
-            PremiumNextStepsCard(
-                reviewAlertCount = reviewAlertCount,
-                learningDoneCount = learningDoneCount,
-                learningTotalCount = learningTotalCount,
-                aiCoachAdvice = aiCoachAdvice,
-                aiCoachDate = aiCoachDate,
-                onOpenLearning = onOpenLearning,
-                onOpenAiCoach = onOpenAiCoach
-            )
-        }
-        item(key = "performance") {
-            PremiumPerformanceCard(
-                allCount = all.size,
-                average = average,
-                best = best,
-                change = change
-            )
-        }
-        item { Spacer(modifier = Modifier.height(120.dp)) }
     }
 }
 
