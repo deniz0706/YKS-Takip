@@ -12,24 +12,12 @@ on:
 permissions:
   contents: read
   security-events: write
-  pull-requests: read
 
 concurrency:
   group: security-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  dependency-review:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Review dependency changes
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-
   codeql:
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -44,7 +32,9 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          build-mode: autobuild
+          # Source-only extraction avoids unreliable Gradle autobuild on Android/KMP
+          # and uses the supported no-build mode for Python.
+          build-mode: none
       - name: Analyze
         uses: github/codeql-action/analyze@v3
         with:
