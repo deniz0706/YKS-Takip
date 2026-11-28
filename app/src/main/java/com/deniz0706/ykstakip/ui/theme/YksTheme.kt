@@ -7,6 +7,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
 import android.content.Context
 import android.content.res.Configuration
@@ -132,10 +133,10 @@ private val YksTypography = androidx.compose.material3.Typography(
 
 /** Shapes for the design system. */
 private val YksShapes = androidx.compose.material3.Shapes(
-    small = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.control),
-    medium = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.input),
-    large = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.card),
-    extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(YksTokens.Shape.panel)
+    small = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+    medium = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+    large = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+    extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(34.dp)
 )
 
 /** Returns whether the active theme is dark. */
