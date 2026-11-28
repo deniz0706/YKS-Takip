@@ -108,7 +108,7 @@ class PremiumHomeDashboardUiTest {
             }
         }
 
-        composeRule.onNodeWithText("Çalışmaya Başla").performClick()
+        composeRule.onNodeWithText("Başlat").performClick()
         assert(studyOpened)
     }
 }
