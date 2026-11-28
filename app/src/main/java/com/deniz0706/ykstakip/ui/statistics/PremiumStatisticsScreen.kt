@@ -32,6 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -251,37 +253,49 @@ private fun PremiumTargetsCard(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
-            ) {
-                PremiumProgressTile(
-                    label = "TYT Hedef Neti",
-                    current = tytAverage,
-                    target = targetTyt?.toDouble(),
-                    unit = "net",
-                    range = "0–120",
-                    accent = c.primary,
-                    modifier = Modifier.weight(1f)
+            PremiumProgressGrid(
+                tiles = listOf(
+                    PremiumProgressData("TYT Hedef Neti", tytAverage, targetTyt?.toDouble(), "net", "0–120", c.primary),
+                    PremiumProgressData("AYT Hedef Neti", aytAverage, targetAyt?.toDouble(), "net", "0–80", c.secondary),
+                    PremiumProgressData("OBP", obp ?: 0.0, null, "", "0–100", c.tertiary)
                 )
-                PremiumProgressTile(
-                    label = "AYT Hedef Neti",
-                    current = aytAverage,
-                    target = targetAyt?.toDouble(),
-                    unit = "net",
-                    range = "0–80",
-                    accent = c.secondary,
-                    modifier = Modifier.weight(1f)
-                )
-                PremiumProgressTile(
-                    label = "OBP",
-                    current = obp ?: 0.0,
-                    target = null,
-                    unit = "",
-                    range = "0–100",
-                    accent = c.tertiary,
-                    modifier = Modifier.weight(1f)
-                )
+            )
+        }
+    }
+}
+
+private data class PremiumProgressData(
+    val label: String,
+    val current: Double,
+    val target: Double?,
+    val unit: String,
+    val range: String,
+    val accent: Color
+)
+
+@Composable
+private fun PremiumProgressGrid(tiles: List<PremiumProgressData>) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val columns = if (maxWidth >= 840.dp) 3 else 2
+        Column(verticalArrangement = Arrangement.spacedBy(YksTokens.Space.md)) {
+            tiles.chunked(columns).forEach { row ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
+                ) {
+                    row.forEach { tile ->
+                        PremiumProgressTile(
+                            label = tile.label,
+                            current = tile.current,
+                            target = tile.target,
+                            unit = tile.unit,
+                            range = tile.range,
+                            accent = tile.accent,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                }
             }
         }
     }
@@ -398,6 +412,9 @@ private fun PremiumStatisticsTrendChart(exams: List<Exam>) {
         Spacer(Modifier.height(8.dp))
         Canvas(
             Modifier.fillMaxWidth().height(112.dp)
+                .semantics {
+                    contentDescription = "Son ${values.size} denemenin net gelişim grafiği. En düşük ${Fmt.net(low.toDouble())}, en yüksek ${Fmt.net(high.toDouble())} net."
+                }
         ) {
             val inset = 8.dp.toPx()
             val chartWidth = size.width - inset * 2
