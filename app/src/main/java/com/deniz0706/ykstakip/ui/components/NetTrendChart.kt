@@ -83,8 +83,8 @@ fun NetTrendChart(
                 if (previous != null) {
                     val delta = current - previous
                     Text(
-                        if (delta >= 0) "↗ +${Fmt.net(delta)} önceki denemeye göre"
-                        else "↘ ${Fmt.net(delta)} önceki denemeye göre",
+                        if (delta >= 0) " +${Fmt.net(delta)} önceki denemeye göre"
+                        else " ${Fmt.net(delta)} önceki denemeye göre",
                         color = if (delta >= 0) colors.primary else colors.error,
                         style = MaterialTheme.typography.labelSmall
                     )
