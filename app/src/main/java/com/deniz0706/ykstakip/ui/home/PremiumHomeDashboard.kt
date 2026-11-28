@@ -467,7 +467,7 @@ private fun DailyGoalRing(
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = if (goal != null && goal > 0) "\${(progress * 100).toInt()}%" else "—",
+                text = if (goal != null && goal > 0) (progress * 100).toInt().toString() + "%" else "—",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = c.onSurface
