@@ -21,6 +21,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -75,10 +81,7 @@ fun PremiumStudyScreen(
     onQuestionGallery: (String) -> Unit,
     onQuestionPhotoRemove: (String, String) -> Unit,
     onRequestReviewNotifications: () -> Unit,
-    onEditToday: () -> Unit,
-    onFocusSaved: () -> Unit,
-    onEditDay: (String) -> Unit,
-    onPickDay: () -> Unit,
+    onSaveDay: (String, Int, Int) -> Unit,
     onAddPlan: (Int) -> Unit,
     onAddSuggestedPlan: (Int, String, String) -> Unit,
     onEditPlan: (StudyPlanItem) -> Unit,
@@ -88,6 +91,10 @@ fun PremiumStudyScreen(
 ) {
     val c = MaterialTheme.colorScheme
     var section by remember { mutableStateOf("today") }
+    var selectedDate by remember { mutableStateOf(java.time.LocalDate.now().toString()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showDayEditor by remember { mutableStateOf(false) }
+    val selectedDay = days.firstOrNull { it.date == selectedDate }
 
     LazyColumn(
         modifier = Modifier.clayCanvas(),
@@ -128,9 +135,9 @@ fun PremiumStudyScreen(
                 PremiumTodaySection(
                     days = days,
                     goal = goal,
-                    onEditToday = onEditToday,
-                    onPickDay = onPickDay,
-                    onEditDay = onEditDay
+                    date = selectedDate,
+                    onEditToday = { showDayEditor = true },
+                    onPickDay = { showDatePicker = true }
                 )
             } else if (section == "plan") {
                 PremiumPlanSection(
@@ -174,6 +181,75 @@ fun PremiumStudyScreen(
         }
 
         item { Spacer(modifier = Modifier.height(120.dp)) }
+    }
+
+    if (showDatePicker) {
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = runCatching {
+                java.time.LocalDate.parse(selectedDate).atStartOfDay(java.time.ZoneOffset.UTC)
+                    .toInstant().toEpochMilli()
+            }.getOrNull()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    pickerState.selectedDateMillis?.let { millis ->
+                        selectedDate = java.time.Instant.ofEpochMilli(millis)
+                            .atZone(java.time.ZoneOffset.UTC).toLocalDate().toString()
+                    }
+                    showDatePicker = false
+                }) { Text("Günü seç") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Vazgeç") }
+            }
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+
+    if (showDayEditor) {
+        var questionDraft by remember(selectedDate, selectedDay) {
+            mutableStateOf(selectedDay?.questionCount?.toString() ?: "0")
+        }
+        var minuteDraft by remember(selectedDate, selectedDay) {
+            mutableStateOf(selectedDay?.studyMinutes?.toString() ?: "0")
+        }
+        val validDayValues = (questionDraft.toIntOrNull() ?: -1) >= 0 &&
+            (minuteDraft.toIntOrNull() ?: -1) >= 0
+        AlertDialog(
+            onDismissRequest = { showDayEditor = false },
+            title = { Text(selectedDate + " kaydını düzenle") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = questionDraft,
+                        onValueChange = { questionDraft = it.filter(Char::isDigit).take(5) },
+                        label = { Text("Çözülen soru") },
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = minuteDraft,
+                        onValueChange = { minuteDraft = it.filter(Char::isDigit).take(4) },
+                        label = { Text("Çalışma süresi (dakika)") },
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = validDayValues,
+                    onClick = {
+                        onSaveDay(selectedDate, questionDraft.toInt(), minuteDraft.toInt())
+                        showDayEditor = false
+                    }
+                ) { Text("Kaydet") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDayEditor = false }) { Text("Vazgeç") }
+            }
+        )
     }
 }
 
@@ -242,13 +318,12 @@ private fun PremiumStudyTabs(
 private fun PremiumTodaySection(
     days: List<StudyDay>,
     goal: Int?,
+    date: String,
     onEditToday: () -> Unit,
-    onPickDay: () -> Unit,
-    onEditDay: (String) -> Unit
+    onPickDay: () -> Unit
 ) {
     val c = MaterialTheme.colorScheme
-    val today = java.time.LocalDate.now().toString()
-    val current = days.firstOrNull { it.date == today }
+    val current = days.firstOrNull { it.date == date }
     val questions = current?.questionCount ?: 0
     val minutes = current?.studyMinutes ?: 0
 
@@ -257,7 +332,7 @@ private fun PremiumTodaySection(
         verticalArrangement = Arrangement.spacedBy(YksTokens.Space.md)
     ) {
         Text(
-            text = "Bugün",
+            text = if (date == java.time.LocalDate.now().toString()) "Bugün" else date,
             style = MaterialTheme.typography.titleMedium,
             color = c.onSurfaceVariant
         )
