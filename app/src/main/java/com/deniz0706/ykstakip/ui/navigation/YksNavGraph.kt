@@ -825,7 +825,7 @@ fun YksNavHost(
                 aiBaseUrl = AppSettings.getAiBaseUrl(appContext),
                 aiModel = AppSettings.getAiModel(appContext),
                 hasAiKey = hasAiKey,
-                onSaveAi = { baseUrl, model, key ->
+                onSaveAi = { key, baseUrl, model ->
                     val normalizedBaseUrl = baseUrl.trim().trimEnd('/')
                     when {
                         !normalizedBaseUrl.startsWith("https://") -> "Base URL https:// ile başlamalı."
