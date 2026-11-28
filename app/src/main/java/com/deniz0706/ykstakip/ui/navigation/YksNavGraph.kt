@@ -565,8 +565,8 @@ fun YksNavHost(
                         navController.popBackStack()
                     }
                 },
-                onOpenLearning = { subject, topic, title ->
-                    navController.navigate("study?learning=$subject/$topic/$title")
+                onOpenLearning = { _, _, _ ->
+                    navController.navigate("study?section=learning")
                 },
                 colorScheme = androidx.compose.material3.MaterialTheme.colorScheme
             )
@@ -574,8 +574,11 @@ fun YksNavHost(
         }
 
         composable(
-            route = "study",
-            arguments = emptyList(),
+            route = "study?section={section}",
+            arguments = listOf(navArgument("section") {
+                type = androidx.navigation.NavType.StringType
+                defaultValue = "today"
+            }),
             deepLinks = listOf(
                 navDeepLink { uriPattern = "yks://study" }
             )
@@ -583,6 +586,7 @@ fun YksNavHost(
             PremiumStudyScreen(
                 days = studyDays,
                 plan = studyPlan,
+                initialSection = backStackEntry.arguments?.getString("section") ?: "today",
                 goal = studyGoal,
                 exams = statsExams,
                 learningOutcomes = learningOutcomes,
@@ -719,7 +723,7 @@ fun YksNavHost(
                     refreshStudyPlan()
                 },
                 onOpenLearningFromPlan = { item ->
-                    navController.navigate("study?learning=${item.subject}/${item.topic}/${item.subject}")
+                    navController.navigate("study?section=learning")
                 },
                 onDeletePlan = { item ->
                     studyPlanRepository.delete(item.id)
