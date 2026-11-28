@@ -43,20 +43,14 @@ class LegacyDataMigratorTest {
     }
 
     @Test
-    fun malformedStudyJsonDoesNotMarkMigrationCompleteOrOverwriteSource() {
+    fun studyJsonRemainsOnLegacyStoreUntilItsUiAndBackupMigrateTogether() {
         val original = """[{"date":"2026-11-28","questionCount":"broken","studyMinutes":30}]"""
-        context.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
-            .edit().putString("study_days", original).commit()
+        val studyPrefs = context.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
+        studyPrefs.edit().putString("study_days", original).commit()
 
-        assertThrows(IllegalStateException::class.java) {
-            LegacyDataMigrator.migrateIfNeeded(context)
-        }
+        LegacyDataMigrator.migrateIfNeeded(context)
 
-        assertFalse(appPrefs.getBoolean("migrated_to_sqldelight_persistent_v2", false))
-        assertEquals(
-            original,
-            context.getSharedPreferences("yks_takip_study", Context.MODE_PRIVATE)
-                .getString("study_days", null)
-        )
+        assertEquals(original, studyPrefs.getString("study_days", null))
+        assertEquals(true, appPrefs.getBoolean("migrated_to_sqldelight_persistent_v2", false))
     }
 }
