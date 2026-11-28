@@ -88,10 +88,16 @@ fun PremiumSettingsScreen(
                 subtitle = "Uygulama renk temasını seçin.",
                 colorScheme = c
             ) {
-                PremiumThemeRow(
+                Text(
+                    text = "Tema galerisi",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = c.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                ThemePreviewSelector(
                     selected = selectedTheme,
                     onSelect = onThemeChange,
-                    colorScheme = c
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
