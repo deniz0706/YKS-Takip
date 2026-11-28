@@ -41,17 +41,31 @@ import java.time.LocalDate
 @Composable
 fun ExamEntryScreen(
     onBack: () -> Unit,
-    onSave: (Exam) -> Unit
+    onSave: (Exam) -> Unit,
+    initialExam: Exam? = null
 ) {
     val colors = MaterialTheme.colorScheme
-    var type by remember { mutableStateOf(ExamType.TYT) }
-    var aytField by remember { mutableStateOf(AytField.SAYISAL) }
-    var title by remember { mutableStateOf("") }
-    var publisher by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf(LocalDate.now().toString()) }
-    var notes by remember { mutableStateOf("") }
-    val answers = remember { mutableStateMapOf<String, String>() }
-    val times = remember { mutableStateMapOf<String, String>() }
+    var type by remember(initialExam) { mutableStateOf(initialExam?.type ?: ExamType.TYT) }
+    var aytField by remember(initialExam) { mutableStateOf(initialExam?.aytField ?: AytField.SAYISAL) }
+    var title by remember(initialExam) { mutableStateOf(initialExam?.title.orEmpty()) }
+    var publisher by remember(initialExam) { mutableStateOf(initialExam?.publisher.orEmpty()) }
+    var date by remember(initialExam) { mutableStateOf(initialExam?.date ?: LocalDate.now().toString()) }
+    var notes by remember(initialExam) { mutableStateOf(initialExam?.notes.orEmpty()) }
+    val answers = remember(initialExam) {
+        mutableStateMapOf<String, String>().apply {
+            initialExam?.subjects?.forEach { subject ->
+                put(subject.subject + ":correct", subject.correct.toString())
+                put(subject.subject + ":wrong", subject.wrong.toString())
+            }
+        }
+    }
+    val times = remember(initialExam) {
+        mutableStateMapOf<String, String>().apply {
+            initialExam?.subjects?.forEach { subject ->
+                put(subject.subject, subject.timeMinutes.toString())
+            }
+        }
+    }
 
     val configs = if (type == ExamType.TYT) SubjectConfigs.subjectsFor(ExamType.TYT)
         else SubjectConfigs.subjectsFor(aytField)
@@ -83,7 +97,7 @@ fun ExamEntryScreen(
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = onBack) { Text("← Geri") }
-            Text("Yeni Deneme", style = MaterialTheme.typography.titleLarge, color = colors.onSurface)
+            Text(if (initialExam == null) "Yeni Deneme" else "Denemeyi Düzenle", style = MaterialTheme.typography.titleLarge, color = colors.onSurface)
         }
 
         Card(
@@ -194,7 +208,7 @@ fun ExamEntryScreen(
                 if (canSave) {
                     onSave(
                         Exam(
-                            id = System.currentTimeMillis(),
+                            id = initialExam?.id ?: System.currentTimeMillis(),
                             title = title.trim(),
                             date = date,
                             type = type,
@@ -209,7 +223,7 @@ fun ExamEntryScreen(
             enabled = canSave,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Denemeyi Kaydet")
+            Text(if (initialExam == null) "Denemeyi Kaydet" else "Değişiklikleri Kaydet")
         }
         Spacer(Modifier.height(72.dp))
     }
