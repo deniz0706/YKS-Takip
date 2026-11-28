@@ -37,3 +37,13 @@ This is a targeted audit of branches with likely product value. Ahead/behind cou
 ## Next candidate reviews
 1. Complete the remaining preference/key and model/backup schema census before introducing shared persistence.
 2. Review current UI components directly and design the Compose Multiplatform screen migration around the existing product behavior; do not revive stale screen snapshots.
+
+
+## Mainline refresh — 2026-11-28
+
+- PR #60 and PR #61 are now merged into main; PR #51 was closed as superseded, not merged.
+- The inspected historical feature branches `feat/unified-design-weekly-insights`, `feat/ai-coach-plan-actions`, `feat/exam-error-notebook`, `feat/exam-session-controls`, `feat/home-study-widget`, `feature/weekly-plan-time-insights`, and `feature/yks-intelligence-suite` all have their corresponding key implementation files in main.
+- In the sampled utility files, the only meaningful source differences were old package imports (`com.deniz0706.ykstakip.model`) versus current shared-domain imports (`com.deniz0706.ykstakip.domain.model`). Do not merge those stale branches wholesale.
+- The remaining work is not to re-add those features; it is to validate their current integration, UI quality and data flow in the current app, then migrate the real screens incrementally to Compose Multiplatform.
+- SQLDelight schema/store foundation exists, but it is not yet the production source of truth. Legacy SharedPreferences/JSON and photo data remain authoritative pending a verified importer.
+- Ranking engine files and calibration behavior remain protected.
