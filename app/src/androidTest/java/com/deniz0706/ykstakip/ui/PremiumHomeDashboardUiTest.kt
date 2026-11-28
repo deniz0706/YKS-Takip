@@ -77,7 +77,8 @@ class PremiumHomeDashboardUiTest {
             }
         }
 
-        composeRule.onNodeWithText("5 soru").assertExists()
+        composeRule.onNodeWithText("5 / 10 soru").assertExists()
+        composeRule.onNodeWithText("50%").assertExists()
     }
 
     @Test
