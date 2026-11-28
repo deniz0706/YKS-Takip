@@ -106,7 +106,7 @@ fun ExamEntryScreen(
             shape = RoundedCornerShape(YksTokens.Shape.panel),
             elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
-            colors = CardDefaults.cardColors(containerColor = colors.surfaceContainer)
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
         ) {
             Column(Modifier.padding(YksTokens.Space.cardContent), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Sınav bilgileri", style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
@@ -187,7 +187,7 @@ fun ExamEntryScreen(
             shape = RoundedCornerShape(YksTokens.Shape.panel),
             elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
-            colors = CardDefaults.cardColors(containerColor = colors.surfaceContainer)
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
         ) {
             Column(Modifier.padding(YksTokens.Space.cardContent)) {
                 Text("Toplam net", style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
