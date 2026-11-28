@@ -15,11 +15,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.deniz0706.ykstakip.domain.model.Exam
+import com.deniz0706.ykstakip.domain.model.ExamType
 import com.deniz0706.ykstakip.ui.theme.YksTokens
 import com.deniz0706.ykstakip.util.Fmt
 
@@ -39,6 +45,24 @@ fun PremiumExamsScreen(
     colorScheme: ColorScheme
 ) {
     val c = colorScheme
+    var selectedFilter by remember { mutableStateOf("Tümü") }
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredExams = remember(exams, selectedFilter, searchQuery) {
+        exams.filter { exam ->
+            val matchesType = when (selectedFilter) {
+                "TYT" -> exam.type == ExamType.TYT
+                "AYT" -> exam.type == ExamType.AYT
+                else -> true
+            }
+            val query = searchQuery.trim()
+            val matchesQuery = query.isEmpty() ||
+                exam.title.contains(query, ignoreCase = true) ||
+                exam.date.contains(query, ignoreCase = true) ||
+                exam.type.label.contains(query, ignoreCase = true) ||
+                exam.publisher.contains(query, ignoreCase = true)
+            matchesType && matchesQuery
+        }.sortedByDescending { it.date }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(c.background),
@@ -52,7 +76,7 @@ fun PremiumExamsScreen(
         item {
             PremiumSectionHeader(
                 title = "Denemeler",
-                subtitle = "${exams.size} kayıt",
+                subtitle = "${filteredExams.size} / ${exams.size} kayıt",
                 colorScheme = c
             )
         }
@@ -70,6 +94,33 @@ fun PremiumExamsScreen(
             )
         }
 
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    placeholder = { Text("Deneme adı, yayıncı veya tarih ara") },
+                    shape = RoundedCornerShape(YksTokens.Shape.panel)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("Tümü", "TYT", "AYT").forEach { filter ->
+                        FilterChip(
+                            selected = selectedFilter == filter,
+                            onClick = { selectedFilter = filter },
+                            label = { Text(filter) }
+                        )
+                    }
+                }
+                Text(
+                    text = "${filteredExams.size} sonuç",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = c.onSurfaceVariant
+                )
+            }
+        }
+
         item { Spacer(modifier = Modifier.height(YksTokens.Space.sm)) }
 
         if (exams.isEmpty()) {
@@ -80,9 +131,17 @@ fun PremiumExamsScreen(
                     colorScheme = c
                 )
             }
+        } else if (filteredExams.isEmpty()) {
+            item {
+                PremiumEmptyState(
+                    title = "Eşleşen deneme bulunamadı",
+                    subtitle = "Arama metnini veya deneme türü filtresini değiştirin.",
+                    colorScheme = c
+                )
+            }
         } else {
             items(
-                items = exams.sortedByDescending { it.date },
+                items = filteredExams,
                 key = { it.id }
             ) { exam ->
                 PremiumExamCard(
