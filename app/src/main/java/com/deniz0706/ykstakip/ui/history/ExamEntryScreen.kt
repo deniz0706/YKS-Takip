@@ -1,6 +1,7 @@
 package com.deniz0706.ykstakip.ui.history
 
 import com.deniz0706.ykstakip.ui.theme.clayCanvas
+import com.deniz0706.ykstakip.ui.theme.clayRaised
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -101,7 +102,7 @@ fun ExamEntryScreen(
         }
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
             shape = RoundedCornerShape(YksTokens.Shape.panel),
             elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
@@ -182,7 +183,7 @@ fun ExamEntryScreen(
         }
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
             shape = RoundedCornerShape(YksTokens.Shape.panel),
             elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
@@ -244,7 +245,7 @@ private fun SubjectEntryCard(
     val wrongValue = wrong.toIntOrNull() ?: 0
     val remaining = (config.questionCount - correctValue - wrongValue).coerceAtLeast(0)
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clayRaised(shape = RoundedCornerShape(YksTokens.Shape.panel), depth = 8.dp),
         shape = RoundedCornerShape(YksTokens.Shape.card),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 6.dp),
 
