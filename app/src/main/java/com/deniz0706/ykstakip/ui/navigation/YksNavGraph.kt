@@ -333,6 +333,7 @@ fun YksNavHost(
         factory = SettingsViewModelFactory(appContext as android.app.Application)
     )
     val theme by settingsViewModel.theme.asFlow().collectAsState(initial = "light")
+    var hasAiKey by remember(appContext) { mutableStateOf(AiSecretStoreHasApiKey(appContext)) }
 
     val statisticsViewModel: StatisticsViewModel = viewModel(
         factory = StatisticsViewModelFactory(appContext as android.app.Application)
@@ -823,11 +824,17 @@ fun YksNavHost(
                 },
                 aiBaseUrl = AppSettings.getAiBaseUrl(appContext),
                 aiModel = AppSettings.getAiModel(appContext),
-                hasAiKey = AiSecretStoreHasApiKey(appContext),
+                hasAiKey = hasAiKey,
                 onSaveAi = { baseUrl, model, key ->
-                    AppSettings.setAiBaseUrl(appContext, baseUrl)
-                    AppSettings.setAiModel(appContext, model)
-                    null
+                    try {
+                        AppSettings.setAiBaseUrl(appContext, baseUrl)
+                        AppSettings.setAiModel(appContext, model)
+                        if (key.isNotBlank()) com.deniz0706.ykstakip.data.AiSecretStore.saveApiKey(appContext, key)
+                        hasAiKey = AiSecretStoreHasApiKey(appContext)
+                        null
+                    } catch (error: Exception) {
+                        error.message ?: "AI ayarları kaydedilemedi."
+                    }
                 },
                 onTestAi = {
                     try {
