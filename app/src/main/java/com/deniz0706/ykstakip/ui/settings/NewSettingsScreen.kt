@@ -41,8 +41,6 @@ fun NewSettingsScreen(
     hasAiKey: Boolean,
     onSaveAi: (String, String, String) -> String?,
     onTestAi: () -> Unit,
-    onExport: () -> Unit,
-    onImport: () -> Unit,
     onImportStudy: () -> Unit,
     onExportStudy: () -> Unit,
     onUndoStudyImport: () -> Unit,
@@ -127,8 +125,6 @@ fun NewSettingsScreen(
             YksSection(title = "Veri Yönetimi", detail = "Yedekleme ve geri yükleme araçları.")
             Spacer(modifier = Modifier.height(YksSpacing.sm))
             DataRow(
-                onExport = onExport,
-                onImport = onImport,
                 onImportStudy = onImportStudy,
                 onExportStudy = onExportStudy,
                 onUndoStudyImport = onUndoStudyImport,
@@ -386,5 +382,25 @@ private fun DataRow(
         ) {
             Text("Çalışma geçmişini içe aktar")
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        androidx.compose.material3.HorizontalDivider(color = c.outlineVariant)
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Öğrenme arşivi · ZIP", style = MaterialTheme.typography.titleMedium,
+            color = c.onSurface, fontWeight = FontWeight.SemiBold)
+        androidx.compose.material3.Button(
+            onClick = onExportLearningZip,
+            enabled = !learningZipBusy,
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Öğrenme arşivini dışa aktar") }
+        androidx.compose.material3.OutlinedButton(
+            onClick = onImportLearningZip,
+            enabled = !learningZipBusy,
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Öğrenme arşivini içe aktar") }
+        androidx.compose.material3.OutlinedButton(
+            onClick = onUndoStudyImport,
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Son çalışma içe aktarımını geri al") }
     }
 }
