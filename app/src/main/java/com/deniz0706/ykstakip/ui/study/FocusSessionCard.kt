@@ -163,7 +163,7 @@ fun FocusSessionCard(onSaved: () -> Unit, modifier: Modifier = Modifier) {
                 shape = RoundedCornerShape(15.dp),
                 modifier = Modifier.weight(1f).height(49.dp)) {
                 Text(if (state.running) "Ⅱ Duraklat"
-                    else if (state.elapsedMs > 0L) "▶ Devam et" else "▶ Başlat", maxLines = 1)
+                    else if (state.elapsedMs > 0L) " Devam et" else " Başlat", maxLines = 1)
             }
             OutlinedButton(onClick = {
                 val result = examStore.saveToToday()
