@@ -16,6 +16,7 @@ import java.util.UUID
 class AiMemoryRepository(context: Context) {
     private val prefs = context.applicationContext
         .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private val writeGuard = LegacyDataWriteGuard("AI hafızası")
 
     data class Memory(
         val id: String,
@@ -96,7 +97,7 @@ class AiMemoryRepository(context: Context) {
                     source = item.optString("source", "legacy")
                 )
             }
-        }.getOrDefault(emptyList())
+        }.onFailure { writeGuard.markUnreadable() }.getOrElse { emptyList() }
         // Drop facts produced by the old heuristic auto-capture; only explicit Hatırla entries remain.
         val safe = loaded.filterNot { it.source == "explicit_self_description" }
         if (safe.size != loaded.size) persist(safe)
@@ -104,6 +105,7 @@ class AiMemoryRepository(context: Context) {
     }
 
     private fun persist(memories: List<Memory>) {
+        writeGuard.requireWritable()
         val array = JSONArray()
         memories.forEach { memory ->
             array.put(JSONObject().apply {
