@@ -6,6 +6,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import android.net.Uri
+import org.json.JSONObject
+import java.io.File
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -80,4 +85,52 @@ class FullBackupV1MigrationTest {
         assertEquals("TYT", exam.examType)
         assertEquals(0, ai.memories.size)
     }
+    @Test fun prepareImportDoesNotApplySettingsBeforeWholeArchiveIsValidated() {
+        AppSettings.setObp(context, 87.5f)
+        val archive = File(context.cacheDir, "invalid-full-backup-" + System.nanoTime() + ".zip")
+        val manifest = JSONObject().apply {
+            put("schema", "yks_takip_full_backup")
+            put("version", 2)
+            put("examCount", 0)
+            put("studyDayCount", 0)
+            put("learningOutcomeCount", 0)
+            put("learningQuestionCount", 0)
+            put("photoCount", 0)
+        }.toString()
+        val settings = JSONObject().apply {
+            put("schema", SettingsBackupManager.SCHEMA)
+            put("version", 1)
+            put("obp", 99.9)
+            put("learning_field", "SAYISAL")
+        }.toString()
+
+        try {
+            ZipOutputStream(archive.outputStream()).use { zip ->
+                fun entry(name: String, value: String) {
+                    zip.putNextEntry(ZipEntry(name))
+                    zip.write(value.toByteArray(Charsets.UTF_8))
+                    zip.closeEntry()
+                }
+                entry("manifest.json", manifest)
+                entry("exams.json", "[]")
+                entry("study.json", StudyBackupManager.exportJson(emptyList()))
+                entry("settings.json", settings)
+                // A non-empty but invalid nested archive forces validation to fail
+                // after all optional sections have been encountered.
+                entry("learning.zip", "not-a-valid-zip")
+            }
+
+            var failed = false
+            try {
+                FullBackupManager.prepareImport(context, Uri.fromFile(archive))
+            } catch (_: Exception) {
+                failed = true
+            }
+            assertTrue("Invalid learning archive must be rejected", failed)
+            assertEquals(87.5f, AppSettings.getObp(context)!!, 0.001f)
+        } finally {
+            archive.delete()
+        }
+    }
+
 }
