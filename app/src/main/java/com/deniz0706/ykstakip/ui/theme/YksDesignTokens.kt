@@ -27,8 +27,8 @@ object YksSpacing {
 object YksShape {
     val control = 12.dp
     val input = 16.dp
-    val card = 22.dp
-    val panel = 24.dp
+    val card = 24.dp
+    val panel = 28.dp
     val floating = 28.dp
     val pill = 100.dp
 }
@@ -46,5 +46,5 @@ object YksComponentSize {
     val compactIcon = 18.dp
     val standardIcon = 22.dp
     val largeIcon = 28.dp
-    val navigationBarHeight = 72.dp
+    val navigationBarHeight = 84.dp
 }
