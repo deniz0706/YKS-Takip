@@ -4,6 +4,8 @@ import android.content.Context
 import com.deniz0706.ykstakip.domain.model.AytField
 import com.deniz0706.ykstakip.domain.model.Exam
 import com.deniz0706.ykstakip.domain.model.ExamType
+import com.deniz0706.ykstakip.data.repository.SqlExamRepository
+import kotlinx.coroutines.flow.first
 import com.deniz0706.ykstakip.util.WeakTopicAnalyzer
 import com.deniz0706.ykstakip.util.PerformanceIntelligence
 import java.time.LocalDate
@@ -11,9 +13,9 @@ import java.time.LocalDate
 /** Builds a compact, read-only snapshot. It never triggers network requests. */
 object AiContextBuilder {
 
-    fun build(context: Context): String {
+    suspend fun build(context: Context): String {
         val app = context.applicationContext
-        val exams = ExamRepository.getInstance(app).getAllExams().sortedBy { it.date }
+        val exams = SqlExamRepository.getInstance(app).getAllExams().first().sortedBy { it.date }
         val studyDays = StudyRepository(app).getAll().sortedBy { it.date }
         val outcomes = LearningRepository.getInstance(app).outcomes()
         val plan = StudyPlanRepository(app).getAll()
